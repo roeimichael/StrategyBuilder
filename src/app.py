@@ -832,7 +832,9 @@ def display_results(ticker: str, results: Dict[str, Any], db: TradingDatabase):
             start_date=results['start_date'],
             end_date=results['end_date'],
             interval=results['interval'],
-            trades=results.get('trades', [])
+            trades=results.get('trades', []),
+            strategy_name=st.session_state.current_strategy,
+            strategy_params=st.session_state.current_parameters
         )
 
     if fig:
@@ -1239,7 +1241,9 @@ def run_grid_search_tab(db: TradingDatabase):
                     start_date=selected_result['start_date'],
                     end_date=selected_result['end_date'],
                     interval=selected_result['interval'],
-                    trades=selected_result.get('trades', [])
+                    trades=selected_result.get('trades', []),
+                    strategy_name=strategy_name,
+                    strategy_params=selected_result['parameters']
                 )
 
             if fig:

@@ -8,12 +8,250 @@ import pandas as pd
 import yfinance as yf
 from typing import List, Dict, Any
 import streamlit as st
+import numpy as np
+
+
+def calculate_sma(data: pd.Series, period: int) -> pd.Series:
+    """Calculate Simple Moving Average"""
+    return data.rolling(window=period).mean()
+
+
+def calculate_ema(data: pd.Series, period: int) -> pd.Series:
+    """Calculate Exponential Moving Average"""
+    return data.ewm(span=period, adjust=False).mean()
+
+
+def calculate_bollinger_bands(data: pd.Series, period: int = 20, devfactor: float = 2.0):
+    """Calculate Bollinger Bands"""
+    sma = data.rolling(window=period).mean()
+    std = data.rolling(window=period).std()
+    upper = sma + (std * devfactor)
+    lower = sma - (std * devfactor)
+    return upper, sma, lower
+
+
+def calculate_tema(data: pd.Series, period: int) -> pd.Series:
+    """Calculate Triple Exponential Moving Average"""
+    ema1 = data.ewm(span=period, adjust=False).mean()
+    ema2 = ema1.ewm(span=period, adjust=False).mean()
+    ema3 = ema2.ewm(span=period, adjust=False).mean()
+    tema = 3 * ema1 - 3 * ema2 + ema3
+    return tema
+
+
+def calculate_keltner_channel(data: pd.DataFrame, ema_period: int = 20,
+                              atr_period: int = 10, atr_multiplier: float = 2.0):
+    """Calculate Keltner Channels"""
+    # EMA as middle line
+    middle = data['Close'].ewm(span=ema_period, adjust=False).mean()
+
+    # ATR calculation
+    high_low = data['High'] - data['Low']
+    high_close = np.abs(data['High'] - data['Close'].shift())
+    low_close = np.abs(data['Low'] - data['Close'].shift())
+    ranges = pd.concat([high_low, high_close, low_close], axis=1)
+    true_range = np.max(ranges, axis=1)
+    atr = true_range.rolling(atr_period).mean()
+
+    upper = middle + (atr * atr_multiplier)
+    lower = middle - (atr * atr_multiplier)
+
+    return upper, middle, lower
+
+
+def add_strategy_indicators(fig, data: pd.DataFrame, strategy_name: str,
+                           params: Dict[str, Any], row: int, col: int):
+    """Add strategy-specific indicators to the chart"""
+
+    if strategy_name == 'Bollinger Bands':
+        # Calculate Bollinger Bands
+        period = params.get('period', 20)
+        devfactor = params.get('devfactor', 2.0)
+        upper, middle, lower = calculate_bollinger_bands(data['Close'], period, devfactor)
+
+        # Add upper band
+        fig.add_trace(
+            go.Scatter(
+                x=data.index, y=upper,
+                name=f'BB Upper ({period}, {devfactor})',
+                line=dict(color='#94a3b8', width=1, dash='dash'),
+                opacity=0.7
+            ),
+            row=row, col=col
+        )
+
+        # Add middle band (SMA)
+        fig.add_trace(
+            go.Scatter(
+                x=data.index, y=middle,
+                name=f'BB Middle (SMA {period})',
+                line=dict(color='#fbbf24', width=2),
+                opacity=0.8
+            ),
+            row=row, col=col
+        )
+
+        # Add lower band
+        fig.add_trace(
+            go.Scatter(
+                x=data.index, y=lower,
+                name=f'BB Lower ({period}, {devfactor})',
+                line=dict(color='#94a3b8', width=1, dash='dash'),
+                opacity=0.7
+            ),
+            row=row, col=col
+        )
+
+    elif strategy_name == 'TEMA Crossover':
+        # TEMA 20/60 crossover
+        tema20 = calculate_tema(data['Close'], 20)
+        tema60 = calculate_tema(data['Close'], 60)
+
+        fig.add_trace(
+            go.Scatter(
+                x=data.index, y=tema20,
+                name='TEMA 20',
+                line=dict(color='#3b82f6', width=2),
+                opacity=0.8
+            ),
+            row=row, col=col
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=data.index, y=tema60,
+                name='TEMA 60',
+                line=dict(color='#f59e0b', width=2),
+                opacity=0.8
+            ),
+            row=row, col=col
+        )
+
+    elif strategy_name == 'TEMA + MACD':
+        # Show TEMA lines
+        tema_period = 30  # Default TEMA period for this strategy
+        tema = calculate_tema(data['Close'], tema_period)
+
+        fig.add_trace(
+            go.Scatter(
+                x=data.index, y=tema,
+                name=f'TEMA {tema_period}',
+                line=dict(color='#3b82f6', width=2),
+                opacity=0.8
+            ),
+            row=row, col=col
+        )
+
+    elif strategy_name == 'Alligator':
+        # Bill Williams Alligator with 3 SMAs
+        jaw = calculate_sma(data['Close'], 13).shift(8)  # Blue line
+        teeth = calculate_sma(data['Close'], 8).shift(5)  # Red line
+        lips = calculate_sma(data['Close'], 5).shift(3)  # Green line
+
+        fig.add_trace(
+            go.Scatter(
+                x=data.index, y=jaw,
+                name='Alligator Jaw (13)',
+                line=dict(color='#3b82f6', width=2),
+                opacity=0.7
+            ),
+            row=row, col=col
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=data.index, y=teeth,
+                name='Alligator Teeth (8)',
+                line=dict(color='#ef4444', width=2),
+                opacity=0.7
+            ),
+            row=row, col=col
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=data.index, y=lips,
+                name='Alligator Lips (5)',
+                line=dict(color='#10b981', width=2),
+                opacity=0.7
+            ),
+            row=row, col=col
+        )
+
+    elif strategy_name == 'Keltner Channel':
+        # Calculate Keltner Channels
+        ema_period = params.get('ema_period', 20)
+        atr_period = params.get('atr_period', 10)
+        atr_multiplier = params.get('atr_multiplier', 2.0)
+
+        upper, middle, lower = calculate_keltner_channel(
+            data, ema_period, atr_period, atr_multiplier
+        )
+
+        # Add upper channel
+        fig.add_trace(
+            go.Scatter(
+                x=data.index, y=upper,
+                name=f'Keltner Upper ({ema_period}, {atr_multiplier}x)',
+                line=dict(color='#94a3b8', width=1, dash='dash'),
+                opacity=0.7
+            ),
+            row=row, col=col
+        )
+
+        # Add middle line (EMA)
+        fig.add_trace(
+            go.Scatter(
+                x=data.index, y=middle,
+                name=f'Keltner Middle (EMA {ema_period})',
+                line=dict(color='#fbbf24', width=2),
+                opacity=0.8
+            ),
+            row=row, col=col
+        )
+
+        # Add lower channel
+        fig.add_trace(
+            go.Scatter(
+                x=data.index, y=lower,
+                name=f'Keltner Lower ({ema_period}, {atr_multiplier}x)',
+                line=dict(color='#94a3b8', width=1, dash='dash'),
+                opacity=0.7
+            ),
+            row=row, col=col
+        )
+
+    elif strategy_name == 'ADX Adaptive':
+        # Show EMA for trend mode
+        ema_fast = calculate_ema(data['Close'], 10)
+        ema_slow = calculate_ema(data['Close'], 30)
+
+        fig.add_trace(
+            go.Scatter(
+                x=data.index, y=ema_fast,
+                name='EMA 10 (Fast)',
+                line=dict(color='#3b82f6', width=1.5),
+                opacity=0.7
+            ),
+            row=row, col=col
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=data.index, y=ema_slow,
+                name='EMA 30 (Slow)',
+                line=dict(color='#f59e0b', width=1.5),
+                opacity=0.7
+            ),
+            row=row, col=col
+        )
 
 
 def create_backtest_chart(ticker: str, start_date, end_date, interval: str,
-                         trades: List[Dict[str, Any]]) -> go.Figure:
+                         trades: List[Dict[str, Any]], strategy_name: str = None,
+                         strategy_params: Dict[str, Any] = None) -> go.Figure:
     """
-    Create interactive chart with price action and entry/exit signals
+    Create interactive chart with price action, entry/exit signals, and strategy indicators
 
     Args:
         ticker: Stock symbol
@@ -21,6 +259,8 @@ def create_backtest_chart(ticker: str, start_date, end_date, interval: str,
         end_date: End date for data
         interval: Time interval
         trades: List of trade dictionaries with entry/exit info
+        strategy_name: Name of the strategy used
+        strategy_params: Parameters used for the strategy
 
     Returns:
         Plotly figure object
@@ -64,6 +304,10 @@ def create_backtest_chart(ticker: str, start_date, end_date, interval: str,
             ),
             row=1, col=1
         )
+
+        # Add strategy indicators based on strategy type
+        if strategy_name and strategy_params:
+            add_strategy_indicators(fig, data, strategy_name, strategy_params, row=1, col=1)
 
         # Add entry and exit markers
         if trades:
