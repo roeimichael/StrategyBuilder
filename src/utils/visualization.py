@@ -50,7 +50,7 @@ def create_backtest_chart(ticker: str, start_date, end_date, interval: str,
             row_heights=[0.7, 0.3]
         )
 
-        # Add candlestick chart
+        # Add candlestick chart (Dark mode colors)
         fig.add_trace(
             go.Candlestick(
                 x=data.index,
@@ -59,8 +59,8 @@ def create_backtest_chart(ticker: str, start_date, end_date, interval: str,
                 low=data['Low'],
                 close=data['Close'],
                 name='Price',
-                increasing_line_color='#26a69a',
-                decreasing_line_color='#ef5350'
+                increasing_line_color='#10b981',
+                decreasing_line_color='#ef4444'
             ),
             row=1, col=1
         )
@@ -80,13 +80,13 @@ def create_backtest_chart(ticker: str, start_date, end_date, interval: str,
                 exit_dates.append(trade['exit_date'])
                 exit_prices.append(trade['exit_price'])
 
-                # Color based on profit/loss
+                # Color based on profit/loss (Dark mode colors)
                 if trade['pnl'] > 0:
-                    colors_entry.append('green')
-                    colors_exit.append('green')
+                    colors_entry.append('#10b981')
+                    colors_exit.append('#10b981')
                 else:
-                    colors_entry.append('red')
-                    colors_exit.append('red')
+                    colors_entry.append('#ef4444')
+                    colors_exit.append('#ef4444')
 
             # Add buy signals (triangles pointing up)
             fig.add_trace(
@@ -99,7 +99,7 @@ def create_backtest_chart(ticker: str, start_date, end_date, interval: str,
                         symbol='triangle-up',
                         size=15,
                         color=colors_entry,
-                        line=dict(width=2, color='white')
+                        line=dict(width=2, color='#1e293b')
                     ),
                     hovertemplate='<b>Entry</b><br>Date: %{x}<br>Price: $%{y:.2f}<extra></extra>'
                 ),
@@ -117,15 +117,15 @@ def create_backtest_chart(ticker: str, start_date, end_date, interval: str,
                         symbol='triangle-down',
                         size=15,
                         color=colors_exit,
-                        line=dict(width=2, color='white')
+                        line=dict(width=2, color='#1e293b')
                     ),
                     hovertemplate='<b>Exit</b><br>Date: %{x}<br>Price: $%{y:.2f}<extra></extra>'
                 ),
                 row=1, col=1
             )
 
-        # Add volume bars
-        colors = ['red' if close < open_ else 'green'
+        # Add volume bars (Dark mode colors)
+        colors = ['#ef4444' if close < open_ else '#10b981'
                  for close, open_ in zip(data['Close'], data['Open'])]
 
         fig.add_trace(
@@ -134,12 +134,13 @@ def create_backtest_chart(ticker: str, start_date, end_date, interval: str,
                 y=data['Volume'],
                 name='Volume',
                 marker_color=colors,
-                showlegend=False
+                showlegend=False,
+                opacity=0.6
             ),
             row=2, col=1
         )
 
-        # Update layout
+        # Update layout (Dark mode template)
         fig.update_layout(
             title=f'{ticker} Backtest Visualization',
             xaxis_title='Date',
@@ -156,8 +157,15 @@ def create_backtest_chart(ticker: str, start_date, end_date, interval: str,
                 xanchor="right",
                 x=1
             ),
-            template='plotly_white'
+            template='plotly_dark',
+            paper_bgcolor='#101420',
+            plot_bgcolor='#101420',
+            font=dict(color='#e2e8f0')
         )
+
+        # Minimize gridlines for clean look
+        fig.update_xaxes(showgrid=False, gridcolor='#2D3748', gridwidth=0.5)
+        fig.update_yaxes(showgrid=True, gridcolor='#2D3748', gridwidth=0.5)
 
         # Remove rangeslider
         fig.update_xaxes(rangeslider_visible=False, row=1, col=1)
@@ -224,17 +232,17 @@ def create_performance_metrics_chart(trades: List[Dict[str, Any]]) -> go.Figure:
 
     fig = go.Figure()
 
-    # Add cumulative P&L line
+    # Add cumulative P&L line (Dark mode)
     fig.add_trace(
         go.Scatter(
             x=df['exit_date'],
             y=df['cumulative_pnl'],
             mode='lines+markers',
             name='Cumulative P&L',
-            line=dict(color='#1f77b4', width=3),
-            marker=dict(size=8),
+            line=dict(color='#3b82f6', width=3),
+            marker=dict(size=8, color='#3b82f6'),
             fill='tozeroy',
-            fillcolor='rgba(31, 119, 180, 0.2)',
+            fillcolor='rgba(59, 130, 246, 0.2)',
             hovertemplate='<b>Date:</b> %{x}<br><b>Cumulative P&L:</b> $%{y:,.2f}<extra></extra>'
         )
     )
@@ -243,9 +251,10 @@ def create_performance_metrics_chart(trades: List[Dict[str, Any]]) -> go.Figure:
     fig.add_hline(
         y=0,
         line_dash="dash",
-        line_color="gray",
+        line_color="#94a3b8",
         annotation_text="Break Even",
-        annotation_position="right"
+        annotation_position="right",
+        annotation_font_color="#94a3b8"
     )
 
     fig.update_layout(
@@ -254,8 +263,15 @@ def create_performance_metrics_chart(trades: List[Dict[str, Any]]) -> go.Figure:
         yaxis_title='Cumulative P&L ($)',
         hovermode='x',
         height=400,
-        template='plotly_white'
+        template='plotly_dark',
+        paper_bgcolor='#101420',
+        plot_bgcolor='#101420',
+        font=dict(color='#e2e8f0')
     )
+
+    # Minimize gridlines
+    fig.update_xaxes(showgrid=False)
+    fig.update_yaxes(showgrid=True, gridcolor='#2D3748', gridwidth=0.5)
 
     return fig
 
@@ -281,23 +297,23 @@ def create_trade_distribution_chart(trades: List[Dict[str, Any]]) -> go.Figure:
     winning_trades = df[df['pnl'] > 0]['pnl_pct']
     losing_trades = df[df['pnl'] < 0]['pnl_pct']
 
-    # Add histogram for winning trades
+    # Add histogram for winning trades (Dark mode)
     fig.add_trace(
         go.Histogram(
             x=winning_trades,
             name='Winning Trades',
-            marker_color='green',
+            marker_color='#10b981',
             opacity=0.7,
             xbins=dict(size=1)
         )
     )
 
-    # Add histogram for losing trades
+    # Add histogram for losing trades (Dark mode)
     fig.add_trace(
         go.Histogram(
             x=losing_trades,
             name='Losing Trades',
-            marker_color='red',
+            marker_color='#ef4444',
             opacity=0.7,
             xbins=dict(size=1)
         )
@@ -309,8 +325,15 @@ def create_trade_distribution_chart(trades: List[Dict[str, Any]]) -> go.Figure:
         yaxis_title='Number of Trades',
         barmode='overlay',
         height=400,
-        template='plotly_white',
+        template='plotly_dark',
+        paper_bgcolor='#101420',
+        plot_bgcolor='#101420',
+        font=dict(color='#e2e8f0'),
         showlegend=True
     )
+
+    # Minimize gridlines
+    fig.update_xaxes(showgrid=True, gridcolor='#2D3748', gridwidth=0.5)
+    fig.update_yaxes(showgrid=True, gridcolor='#2D3748', gridwidth=0.5)
 
     return fig

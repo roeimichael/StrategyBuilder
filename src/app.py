@@ -47,10 +47,10 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Modern Professional CSS
+# Dark Mode FinTech Professional CSS
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500;600;700&display=swap');
 
     * {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -59,25 +59,34 @@ st.markdown("""
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
 
+    /* Dark Mode Foundation */
     .main {
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        background-color: #101420;
+        color: #e2e8f0;
+        padding: 2rem;
     }
 
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
-        padding-top: 2rem;
+        background-color: #1A202C;
+        padding: 1.5rem 1rem;
+        border-right: 1px solid #2D3748;
     }
 
     [data-testid="stSidebar"] * {
-        color: #f8fafc !important;
+        color: #e2e8f0 !important;
     }
 
+    /* Typography - Financial Data */
+    .financial-data {
+        font-family: 'Roboto Mono', monospace !important;
+        font-weight: 600;
+    }
+
+    /* Header Transformation */
     .main-header {
         font-size: 2.5rem;
         font-weight: 700;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        color: #ffffff;
         text-align: center;
         margin-bottom: 0.5rem;
         letter-spacing: -0.03em;
@@ -85,86 +94,282 @@ st.markdown("""
 
     .sub-header {
         text-align: center;
-        color: #64748b;
+        color: #94a3b8;
         font-size: 1.1rem;
-        font-weight: 400;
+        font-weight: 300;
         margin-bottom: 2rem;
     }
 
+    /* Tab Navigation - Minimalist */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
+        gap: 32px;
         background-color: transparent;
-        border-bottom: 2px solid #e2e8f0;
+        border-bottom: 1px solid #2D3748;
+        padding: 0 1rem;
     }
 
     .stTabs [data-baseweb="tab"] {
         height: 50px;
-        background-color: #ffffff;
-        border-radius: 8px 8px 0 0;
-        color: #475569;
+        background-color: transparent;
+        border-radius: 0;
+        color: #94a3b8;
         font-weight: 500;
-        padding: 0 24px;
+        padding: 0 8px;
+        border-bottom: 2px solid transparent;
     }
 
     .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: #ffffff !important;
+        background-color: transparent;
+        color: #3b82f6 !important;
+        border-bottom: 2px solid #3b82f6;
     }
 
-    .stButton > button {
+    /* Primary Buttons - Flat Blue Accent */
+    .stButton > button[kind="primary"],
+    .stButton > button[data-testid="baseButton-primary"] {
         width: 100%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background-color: #3b82f6;
         color: white;
         font-weight: 600;
-        padding: 0.75rem 1.5rem;
-        border-radius: 12px;
+        padding: 0.875rem 1.5rem;
+        border-radius: 10px;
         border: none;
-        box-shadow: 0 4px 14px 0 rgba(102, 126, 234, 0.4);
-        transition: all 0.3s ease;
+        box-shadow: none;
+        transition: all 0.2s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-size: 0.875rem;
+    }
+
+    .stButton > button[kind="primary"]:hover,
+    .stButton > button[data-testid="baseButton-primary"]:hover {
+        background-color: #2563eb;
+        transform: translateY(-1px);
+    }
+
+    /* Secondary Buttons */
+    .stButton > button {
+        background-color: #1e293b;
+        color: #e2e8f0;
+        font-weight: 500;
+        padding: 0.625rem 1rem;
+        border-radius: 8px;
+        border: 1px solid #334155;
+        transition: all 0.2s ease;
     }
 
     .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px 0 rgba(102, 126, 234, 0.6);
+        background-color: #334155;
+        border-color: #475569;
     }
 
+    /* Metric Cards - Floating Effect */
     [data-testid="stMetricValue"] {
-        font-size: 1.8rem;
+        font-family: 'Roboto Mono', monospace;
+        font-size: 2rem;
         font-weight: 700;
-        color: #1e293b;
+        color: #ffffff;
     }
 
     [data-testid="stMetricLabel"] {
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: #64748b;
+        font-size: 0.75rem;
+        font-weight: 300;
+        color: #94a3b8;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
+        letter-spacing: 0.1em;
     }
 
+    [data-testid="metric-container"] {
+        background-color: #1e293b;
+        padding: 1.5rem;
+        border-radius: 10px;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+        border: 1px solid #334155;
+    }
+
+    /* Positive/Negative Deltas - High Contrast */
+    [data-testid="stMetricDelta"] svg[fill*="green"],
+    [data-testid="stMetricDelta"] svg[fill*="#09ab3b"] {
+        fill: #10b981 !important;
+    }
+
+    [data-testid="stMetricDelta"] svg[fill*="red"],
+    [data-testid="stMetricDelta"] svg[fill*="#ff2b2b"] {
+        fill: #ef4444 !important;
+    }
+
+    [data-testid="stMetricDelta"] {
+        background-color: transparent;
+        font-family: 'Roboto Mono', monospace;
+        font-weight: 600;
+    }
+
+    /* Input Fields - Professional */
     .stTextInput > div > div > input,
-    .stNumberInput > div > div > input {
-        background-color: rgba(255, 255, 255, 0.9) !important;
-        border: 2px solid #e2e8f0 !important;
-        border-radius: 10px !important;
-        font-weight: 500 !important;
+    .stNumberInput > div > div > input,
+    .stSelectbox > div > div > div,
+    .stDateInput > div > div > input {
+        background-color: #0f172a !important;
+        border: 1px solid #334155 !important;
+        border-radius: 8px !important;
+        color: #e2e8f0 !important;
+        font-family: 'Roboto Mono', monospace !important;
+        font-weight: 400 !important;
+        padding: 0.625rem !important;
     }
 
+    .stTextInput > div > div > input:focus,
+    .stNumberInput > div > div > input:focus {
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 1px #3b82f6 !important;
+    }
+
+    /* Progress Bar */
     .stProgress > div > div > div {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background-color: #3b82f6;
     }
 
-    h2, h3 {
+    .stProgress > div > div {
+        background-color: #1e293b;
+    }
+
+    /* Headers */
+    h1, h2, h3 {
         font-weight: 700;
         letter-spacing: -0.02em;
-        color: #1e293b;
+        color: #f1f5f9;
     }
 
+    /* Dividers */
     hr {
         margin: 2rem 0;
         border: none;
         height: 1px;
-        background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+        background-color: #2D3748;
+    }
+
+    /* Expanders */
+    [data-testid="stExpander"] {
+        background-color: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 8px;
+        margin: 0.5rem 0;
+    }
+
+    [data-testid="stExpander"] summary {
+        color: #e2e8f0;
+        font-weight: 500;
+    }
+
+    /* Data Tables */
+    .stDataFrame {
+        background-color: #1e293b;
+    }
+
+    .stDataFrame table {
+        color: #e2e8f0;
+    }
+
+    .stDataFrame thead tr th {
+        background-color: #0f172a !important;
+        color: #94a3b8 !important;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        border-bottom: 2px solid #334155;
+    }
+
+    .stDataFrame tbody tr {
+        border-bottom: 1px solid #334155;
+    }
+
+    .stDataFrame tbody tr:nth-child(even) {
+        background-color: #1A202C;
+    }
+
+    .stDataFrame tbody tr:nth-child(odd) {
+        background-color: #1e293b;
+    }
+
+    /* Right-align financial columns */
+    .stDataFrame td:has(.financial-data),
+    .stDataFrame th:has(.financial-data) {
+        text-align: right;
+    }
+
+    /* Sidebar Headers */
+    [data-testid="stSidebar"] h1,
+    [data-testid="stSidebar"] h2,
+    [data-testid="stSidebar"] h3 {
+        color: #f1f5f9;
+        font-size: 1rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    /* Info/Warning/Error Boxes */
+    .stAlert {
+        background-color: #1e293b;
+        border-left: 4px solid #3b82f6;
+        border-radius: 8px;
+        color: #e2e8f0;
+    }
+
+    [data-baseweb="notification"] {
+        background-color: #1e293b;
+        border: 1px solid #334155;
+    }
+
+    /* Multiselect */
+    .stMultiSelect > div > div {
+        background-color: #0f172a;
+        border: 1px solid #334155;
+    }
+
+    /* Radio Buttons */
+    .stRadio > div {
+        background-color: transparent;
+    }
+
+    .stRadio label {
+        color: #e2e8f0;
+    }
+
+    /* Checkbox */
+    .stCheckbox label {
+        color: #e2e8f0;
+    }
+
+    /* Spinner */
+    .stSpinner > div {
+        border-top-color: #3b82f6 !important;
+    }
+
+    /* Download Button */
+    .stDownloadButton > button {
+        background-color: #1e293b;
+        color: #3b82f6;
+        border: 1px solid #3b82f6;
+        font-weight: 500;
+    }
+
+    .stDownloadButton > button:hover {
+        background-color: #3b82f6;
+        color: white;
+    }
+
+    /* Spacing - 8-point grid */
+    .block-container {
+        padding: 2rem 3rem;
+    }
+
+    /* Card styling for metric containers */
+    div[data-testid="column"] > div {
+        padding: 0.5rem;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -266,8 +471,8 @@ def main():
     st.markdown('<p class="sub-header">Professional Algorithmic Trading Platform</p>', unsafe_allow_html=True)
     st.markdown("---")
 
-    # Main tabs
-    tab1, tab2, tab3 = st.tabs(["▸ Backtest", "▸ Grid Search", "▸ Live Trading"])
+    # Main tabs with professional icons
+    tab1, tab2, tab3 = st.tabs(["⚡ Backtest", "⚙ Grid Search", "〰 Live Trading"])
 
     with tab1:
         run_backtest_tab(db)
@@ -284,10 +489,10 @@ def run_backtest_tab(db: TradingDatabase):
 
     # Sidebar - Configuration
     with st.sidebar:
-        st.header("Configuration")
+        st.header("⚙ Configuration")
 
         # Ticker Selection
-        st.subheader("▸ Stock Selection")
+        st.subheader("Stock Selection")
         ticker_source = st.radio(
             "Select ticker source:",
             ["Popular Stocks", "S&P 500", "Custom Input"],
@@ -325,7 +530,7 @@ def run_backtest_tab(db: TradingDatabase):
         st.markdown("---")
 
         # Strategy Selection
-        st.subheader("▸ Strategy")
+        st.subheader("Strategy")
         strategy_name = st.selectbox(
             "Select strategy:",
             list(STRATEGIES.keys()),
@@ -359,7 +564,7 @@ def run_backtest_tab(db: TradingDatabase):
         st.markdown("---")
 
         # Date Range
-        st.subheader("▸ Date Range")
+        st.subheader("Date Range")
         col1, col2 = st.columns(2)
 
         with col1:
@@ -379,7 +584,7 @@ def run_backtest_tab(db: TradingDatabase):
         st.markdown("---")
 
         # Time Interval
-        st.subheader("▸ Time Interval")
+        st.subheader("Time Interval")
         interval = st.selectbox(
             "Select interval:",
             ["1d", "1h", "30m", "15m", "5m", "1wk"],
@@ -390,7 +595,7 @@ def run_backtest_tab(db: TradingDatabase):
         st.markdown("---")
 
         # Backtesting Parameters
-        st.subheader("▸ Backtest Settings")
+        st.subheader("Backtest Settings")
 
         starting_cash = st.number_input(
             "Starting capital ($):",
@@ -420,7 +625,7 @@ def run_backtest_tab(db: TradingDatabase):
         st.markdown("---")
 
         # Run Button
-        run_button = st.button("▸ Run Backtest", type="primary")
+        run_button = st.button("⚡ Run Backtest", type="primary")
 
     # Main content area
     if not selected_tickers:
@@ -525,7 +730,7 @@ def display_results(ticker: str, results: Dict[str, Any], db: TradingDatabase):
     col_save, col_monitor = st.columns([1, 1])
 
     with col_save:
-        if st.button(f"▸ Save to Database", key=f"save_{ticker}"):
+        if st.button(f"💾 Save to Database", key=f"save_{ticker}"):
             try:
                 backtest_id = db.save_backtest(
                     results=results,
@@ -538,7 +743,7 @@ def display_results(ticker: str, results: Dict[str, Any], db: TradingDatabase):
                 st.error(f"Failed to save: {str(e)}")
 
     with col_monitor:
-        if st.button(f"▸ Add to Live Monitoring", key=f"monitor_{ticker}"):
+        if st.button(f"📡 Add to Live Monitoring", key=f"monitor_{ticker}"):
             try:
                 monitor_id = db.add_to_monitoring(
                     ticker=ticker,
@@ -619,7 +824,7 @@ def display_results(ticker: str, results: Dict[str, Any], db: TradingDatabase):
     st.markdown("---")
 
     # Interactive price chart with entry/exit signals
-    st.subheader("▸ Price Chart with Trade Signals")
+    st.subheader("📊 Price Chart with Trade Signals")
 
     with st.spinner("Loading chart..."):
         fig = create_backtest_chart(
@@ -640,7 +845,7 @@ def display_results(ticker: str, results: Dict[str, Any], db: TradingDatabase):
     # Performance charts
     trades = results.get('trades', [])
     if trades:
-        st.subheader("▸ Performance Analysis")
+        st.subheader("📈 Performance Analysis")
 
         chart_col1, chart_col2 = st.columns(2)
 
@@ -657,7 +862,7 @@ def display_results(ticker: str, results: Dict[str, Any], db: TradingDatabase):
         st.markdown("---")
 
         # Trade details table
-        st.subheader("▸ Trade Details")
+        st.subheader("📋 Trade Details")
 
         trades_df = create_trades_table(trades)
 
@@ -686,7 +891,7 @@ def display_results(ticker: str, results: Dict[str, Any], db: TradingDatabase):
             # Download button for trade data
             csv = trades_df.to_csv(index=False)
             st.download_button(
-                label="▸ Download Trade Data (CSV)",
+                label="💾 Download Trade Data (CSV)",
                 data=csv,
                 file_name=f"{ticker}_trades.csv",
                 mime="text/csv"
@@ -706,16 +911,16 @@ def run_grid_search_tab(db: TradingDatabase):
 
     # Sidebar configuration
     with st.sidebar:
-        st.header(" Grid Search Configuration")
+        st.header("⚙ Grid Search Configuration")
 
         # Stock selection
-        st.subheader("▸ Stock")
+        st.subheader("Stock")
         ticker = st.text_input("Ticker:", value="AAPL", help="Single stock for optimization")
 
         st.markdown("---")
 
         # Strategy selection
-        st.subheader("▸ Strategy")
+        st.subheader("Strategy")
         strategy_name = st.selectbox(
             "Select strategy to optimize:",
             list(STRATEGIES.keys()),
@@ -727,7 +932,7 @@ def run_grid_search_tab(db: TradingDatabase):
         st.markdown("---")
 
         # Date range
-        st.subheader("▸ Test Period")
+        st.subheader("Test Period")
         col1, col2 = st.columns(2)
 
         with col1:
@@ -749,13 +954,13 @@ def run_grid_search_tab(db: TradingDatabase):
         st.markdown("---")
 
         # Capital settings
-        st.subheader("▸ Capital")
+        st.subheader("Capital")
         starting_cash = st.number_input("Starting capital ($):", value=10000, min_value=1000, step=1000)
 
         st.markdown("---")
 
         # Sort metric
-        st.subheader("▸ Optimization Metric")
+        st.subheader("Optimization Metric")
         sort_metric = st.selectbox(
             "Optimize for:",
             ["return_pct", "sharpe_ratio", "win_rate"],
@@ -768,7 +973,7 @@ def run_grid_search_tab(db: TradingDatabase):
         )
 
     # Main content
-    st.subheader("▸ Parameter Ranges")
+    st.subheader("⚙ Parameter Ranges")
     st.markdown("Define the range of values to test for each parameter")
 
     # Get default parameter ranges for this strategy
@@ -881,7 +1086,7 @@ def run_grid_search_tab(db: TradingDatabase):
     st.markdown("---")
 
     # Run grid search button
-    run_search = st.button("▸ Run Grid Search", type="primary", disabled=not param_ranges)
+    run_search = st.button("⚙ Run Grid Search", type="primary", disabled=not param_ranges)
 
     if run_search and param_ranges:
         # Base parameters
@@ -946,7 +1151,7 @@ def run_grid_search_tab(db: TradingDatabase):
         col1, col2 = st.columns([1, 3])
 
         with col1:
-            st.subheader("▸ Top 5 Results")
+            st.subheader("🏆 Top 5 Results")
 
             for idx, result in enumerate(top_results):
                 # Create button for each result
@@ -999,7 +1204,7 @@ def run_grid_search_tab(db: TradingDatabase):
             action_col1, action_col2 = st.columns(2)
 
             with action_col1:
-                if st.button("▸ Save to Database", key="save_grid_result"):
+                if st.button("💾 Save to Database", key="save_grid_result"):
                     try:
                         backtest_id = db.save_backtest(
                             results=selected_result,
@@ -1012,7 +1217,7 @@ def run_grid_search_tab(db: TradingDatabase):
                         st.error(f"Failed to save: {str(e)}")
 
             with action_col2:
-                if st.button("▸ Add to Monitoring", key="monitor_grid_result"):
+                if st.button("📡 Add to Monitoring", key="monitor_grid_result"):
                     try:
                         monitor_id = db.add_to_monitoring(
                             ticker=selected_result['ticker'],
@@ -1026,7 +1231,7 @@ def run_grid_search_tab(db: TradingDatabase):
 
             # Chart
             st.markdown("---")
-            st.subheader("▸ Performance Chart")
+            st.subheader("📊 Performance Chart")
 
             with st.spinner("Loading chart..."):
                 fig = create_backtest_chart(
@@ -1043,7 +1248,7 @@ def run_grid_search_tab(db: TradingDatabase):
             # Trades table
             if selected_result.get('trades'):
                 st.markdown("---")
-                st.subheader("▸ Trade Details")
+                st.subheader("📋 Trade Details")
 
                 trades_df = create_trades_table(selected_result['trades'])
                 if not trades_df.empty:
@@ -1051,7 +1256,7 @@ def run_grid_search_tab(db: TradingDatabase):
 
         # Comparison table
         st.markdown("---")
-        st.subheader("▸ Top 5 Comparison")
+        st.subheader("📊 Top 5 Comparison")
 
         comparison_data = []
         for idx, result in enumerate(top_results):
@@ -1097,7 +1302,7 @@ def run_live_trading_tab(db: TradingDatabase):
 def show_backtest_history(db: TradingDatabase):
     """Display backtest history with option to add to monitoring"""
 
-    st.subheader("▸ Past Backtest Configurations")
+    st.subheader("📚 Past Backtest Configurations")
     st.markdown("Review your backtest history and add successful strategies to live monitoring")
 
     # Filters
@@ -1166,7 +1371,7 @@ def show_backtest_history(db: TradingDatabase):
                 st.markdown(f"**Notes:** {backtest['notes']}")
 
             # Action button
-            if st.button(f"▸ Add to Monitoring", key=f"add_monitor_{backtest['id']}"):
+            if st.button(f"📡 Add to Monitoring", key=f"add_monitor_{backtest['id']}"):
                 try:
                     monitor_id = db.add_to_monitoring(
                         ticker=backtest['ticker'],
@@ -1183,7 +1388,7 @@ def show_backtest_history(db: TradingDatabase):
 def show_active_monitoring(db: TradingDatabase):
     """Display and manage actively monitored stocks"""
 
-    st.subheader("▸ Active Monitoring List")
+    st.subheader("📡 Active Monitoring List")
     st.markdown("These stocks are being monitored for trading signals")
 
     # Get monitored stocks
@@ -1233,7 +1438,7 @@ def show_active_monitoring(db: TradingDatabase):
             st.markdown("---")
 
     # Button to run monitoring script
-    st.markdown("### ▸ Manual Check")
+    st.markdown("### 🔄 Manual Check")
     if st.button("Run Monitoring Check Now", type="primary"):
         st.info("Monitoring check will be implemented in the monitoring script. Use `python monitor_stocks.py` to run checks.")
 
@@ -1241,7 +1446,7 @@ def show_active_monitoring(db: TradingDatabase):
 def show_signals_and_performance(db: TradingDatabase):
     """Display trading signals and performance metrics"""
 
-    st.subheader("▸ Trading Signals & Performance")
+    st.subheader("📈 Trading Signals & Performance")
     st.markdown("Recent trading signals from monitored stocks")
 
     # Time filter
