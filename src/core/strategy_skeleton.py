@@ -7,7 +7,28 @@ import backtrader as bt
 class Strategy_skeleton(bt.Strategy):
     def notify_order(self, order):
         if order.status == order.Completed:
-            pass
+            # Record order execution details
+            if order.isbuy():
+                self.last_buy_price = order.executed.price
+                self.last_buy_date = self.data.datetime.date(0)
+                self.last_buy_size = order.executed.size
+            elif order.issell():
+                if hasattr(self, 'last_buy_price'):
+                    # Calculate trade details
+                    pnl = (order.executed.price - self.last_buy_price) * self.last_buy_size
+                    pnl_pct = ((order.executed.price / self.last_buy_price) - 1) * 100
+
+                    trade_info = {
+                        'entry_date': self.last_buy_date,
+                        'exit_date': self.data.datetime.date(0),
+                        'entry_price': self.last_buy_price,
+                        'exit_price': order.executed.price,
+                        'size': self.last_buy_size,
+                        'pnl': pnl,
+                        'pnl_pct': pnl_pct,
+                        'type': 'LONG'
+                    }
+                    self.trades.append(trade_info)
 
         if not order.alive():
             self.order = None  # indicate no order is pending
@@ -15,6 +36,10 @@ class Strategy_skeleton(bt.Strategy):
     def __init__(self, args):
         self.args = args
         self.size = 0
+        self.trades = []  # Track all trades
+        self.last_buy_price = None
+        self.last_buy_date = None
+        self.last_buy_size = None
 
     def print_trade(self, trade):
         if trade.isclosed:

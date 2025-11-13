@@ -17,6 +17,12 @@ from utils.gui_helpers import (
     get_popular_tickers,
     format_strategy_name
 )
+from utils.visualization import (
+    create_backtest_chart,
+    create_trades_table,
+    create_performance_metrics_chart,
+    create_trade_distribution_chart
+)
 from core.run_strategy import Run_strategy
 from strategies.bollinger_bands_strategy import Bollinger_three
 from strategies.tema_macd_strategy import TEMA_MACD
@@ -357,17 +363,21 @@ def display_results(ticker: str, results: Dict[str, Any]):
         )
 
     with col2:
+        pnl_color = "normal" if results['pnl'] >= 0 else "inverse"
         st.metric(
             "Final Value",
             f"${results['end_value']:,.2f}",
-            delta=f"${results['pnl']:,.2f}"
+            delta=f"${results['pnl']:,.2f}",
+            delta_color=pnl_color
         )
 
     with col3:
+        return_color = "normal" if results['return_pct'] >= 0 else "inverse"
         st.metric(
             "Total Return",
             f"{results['return_pct']:+.2f}%",
-            delta=f"{results['return_pct']:+.2f}%"
+            delta=f"{results['return_pct']:+.2f}%",
+            delta_color=return_color
         )
 
     with col4:
@@ -379,21 +389,109 @@ def display_results(ticker: str, results: Dict[str, Any]):
         else:
             st.metric("Sharpe Ratio", "N/A")
 
-    # Additional metrics
-    st.markdown("---")
-    metrics_col1, metrics_col2 = st.columns(2)
+    # Second row of metrics
+    col5, col6, col7, col8 = st.columns(4)
 
-    with metrics_col1:
+    with col5:
         if results.get('max_drawdown'):
-            st.metric("Maximum Drawdown", f"{results['max_drawdown']:.2f}%")
+            st.metric("Max Drawdown", f"{results['max_drawdown']:.2f}%")
+        else:
+            st.metric("Max Drawdown", "N/A")
 
-    with metrics_col2:
-        if results.get('total_trades'):
-            st.metric("Total Trades", results['total_trades'])
+    with col6:
+        st.metric("Total Trades", results.get('total_trades', 0))
 
-    # Placeholder for charts (will implement in Phase 4)
+    with col7:
+        trades = results.get('trades', [])
+        if trades:
+            winning_trades = len([t for t in trades if t['pnl'] > 0])
+            win_rate = (winning_trades / len(trades)) * 100
+            st.metric("Win Rate", f"{win_rate:.1f}%")
+        else:
+            st.metric("Win Rate", "N/A")
+
+    with col8:
+        if trades:
+            avg_pnl = sum(t['pnl'] for t in trades) / len(trades)
+            st.metric("Avg P&L per Trade", f"${avg_pnl:+,.2f}")
+        else:
+            st.metric("Avg P&L per Trade", "N/A")
+
     st.markdown("---")
-    st.info("📊 Chart visualization will be added in the next phase")
+
+    # Interactive price chart with entry/exit signals
+    st.subheader("📊 Price Chart with Trade Signals")
+
+    with st.spinner("Loading chart..."):
+        fig = create_backtest_chart(
+            ticker=results['ticker'],
+            start_date=results['start_date'],
+            end_date=results['end_date'],
+            interval=results['interval'],
+            trades=results.get('trades', [])
+        )
+
+    if fig:
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.warning("Unable to load chart data")
+
+    st.markdown("---")
+
+    # Performance charts
+    trades = results.get('trades', [])
+    if trades:
+        st.subheader("📈 Performance Analysis")
+
+        chart_col1, chart_col2 = st.columns(2)
+
+        with chart_col1:
+            cumulative_fig = create_performance_metrics_chart(trades)
+            if cumulative_fig:
+                st.plotly_chart(cumulative_fig, use_container_width=True)
+
+        with chart_col2:
+            distribution_fig = create_trade_distribution_chart(trades)
+            if distribution_fig:
+                st.plotly_chart(distribution_fig, use_container_width=True)
+
+        st.markdown("---")
+
+        # Trade details table
+        st.subheader("📋 Trade Details")
+
+        trades_df = create_trades_table(trades)
+
+        if not trades_df.empty:
+            # Color code P&L column
+            def highlight_pnl(val):
+                if isinstance(val, str) and val.startswith('$'):
+                    # Extract numeric value
+                    try:
+                        numeric_val = float(val.replace('$', '').replace(',', '').replace('+', ''))
+                        color = 'background-color: #d4edda' if numeric_val > 0 else 'background-color: #f8d7da'
+                        return color
+                    except:
+                        return ''
+                return ''
+
+            # Apply styling
+            styled_df = trades_df.style.applymap(highlight_pnl, subset=['P&L'])
+
+            st.dataframe(styled_df, use_container_width=True, height=400)
+
+            # Download button for trade data
+            csv = trades_df.to_csv(index=False)
+            st.download_button(
+                label="📥 Download Trade Data (CSV)",
+                data=csv,
+                file_name=f"{ticker}_trades.csv",
+                mime="text/csv"
+            )
+        else:
+            st.info("No trades executed during this backtest")
+    else:
+        st.info("No trades executed during this backtest")
 
 
 if __name__ == "__main__":

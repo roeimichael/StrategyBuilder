@@ -73,6 +73,11 @@ class Run_strategy:
         except:
             max_drawdown = None
 
+        # Get trade details from strategy
+        trades = []
+        if hasattr(strat, 'trades'):
+            trades = strat.trades
+
         # Return comprehensive results dictionary
         return {
             'start_value': start_value,
@@ -81,7 +86,12 @@ class Run_strategy:
             'return_pct': return_pct,
             'sharpe_ratio': sharpe_ratio,
             'max_drawdown': max_drawdown,
-            'total_trades': None,  # Can be extracted from strategy if tracked
+            'total_trades': len(trades),
+            'trades': trades,
+            'ticker': ticker,
+            'start_date': start_date,
+            'end_date': end_date if end_date else 'today',
+            'interval': interval,
         }
         # self.cerebro.plot(style='candlestick')
 
