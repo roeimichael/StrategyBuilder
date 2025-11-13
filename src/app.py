@@ -41,38 +41,130 @@ from strategies.keltner_channel_strategy import Keltner_Channel
 
 # Page configuration
 st.set_page_config(
-    page_title="StrategyBuilder",
-    page_icon="📈",
+    page_title="StrategyBuilder Pro",
+    page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS
+# Modern Professional CSS
 st.markdown("""
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    * {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+
+    .main {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    }
+
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
+        padding-top: 2rem;
+    }
+
+    [data-testid="stSidebar"] * {
+        color: #f8fafc !important;
+    }
+
     .main-header {
-        font-size: 3rem;
-        font-weight: bold;
+        font-size: 2.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
         text-align: center;
-        color: #1f77b4;
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.03em;
+    }
+
+    .sub-header {
+        text-align: center;
+        color: #64748b;
+        font-size: 1.1rem;
+        font-weight: 400;
         margin-bottom: 2rem;
     }
-    .stButton>button {
+
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+        background-color: transparent;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .stTabs [data-baseweb="tab"] {
+        height: 50px;
+        background-color: #ffffff;
+        border-radius: 8px 8px 0 0;
+        color: #475569;
+        font-weight: 500;
+        padding: 0 24px;
+    }
+
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #ffffff !important;
+    }
+
+    .stButton > button {
         width: 100%;
-        background-color: #1f77b4;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        font-size: 1.2rem;
-        padding: 0.75rem;
-        border-radius: 10px;
+        font-weight: 600;
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        border: none;
+        box-shadow: 0 4px 14px 0 rgba(102, 126, 234, 0.4);
+        transition: all 0.3s ease;
     }
-    .stButton>button:hover {
-        background-color: #145a8f;
+
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px 0 rgba(102, 126, 234, 0.6);
     }
-    .metric-card {
-        background-color: #f0f2f6;
-        padding: 1rem;
-        border-radius: 10px;
-        border-left: 5px solid #1f77b4;
+
+    [data-testid="stMetricValue"] {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    [data-testid="stMetricLabel"] {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .stTextInput > div > div > input,
+    .stNumberInput > div > div > input {
+        background-color: rgba(255, 255, 255, 0.9) !important;
+        border: 2px solid #e2e8f0 !important;
+        border-radius: 10px !important;
+        font-weight: 500 !important;
+    }
+
+    .stProgress > div > div > div {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    h2, h3 {
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: #1e293b;
+    }
+
+    hr {
+        margin: 2rem 0;
+        border: none;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -170,12 +262,12 @@ def main():
     db = init_database()
 
     # Header
-    st.markdown('<h1 class="main-header">📈 StrategyBuilder 📉</h1>', unsafe_allow_html=True)
-    st.markdown("### Professional Backtesting & Live Trading Platform")
+    st.markdown('<h1 class="main-header">StrategyBuilder Pro</h1>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-header">Professional Algorithmic Trading Platform</p>', unsafe_allow_html=True)
     st.markdown("---")
 
     # Main tabs
-    tab1, tab2, tab3 = st.tabs(["📊 Backtest", "🔬 Grid Search", "🔴 Live Trading"])
+    tab1, tab2, tab3 = st.tabs(["▸ Backtest", "▸ Grid Search", "▸ Live Trading"])
 
     with tab1:
         run_backtest_tab(db)
@@ -192,10 +284,10 @@ def run_backtest_tab(db: TradingDatabase):
 
     # Sidebar - Configuration
     with st.sidebar:
-        st.header("⚙️ Configuration")
+        st.header("Configuration")
 
         # Ticker Selection
-        st.subheader("📊 Stock Selection")
+        st.subheader("▸ Stock Selection")
         ticker_source = st.radio(
             "Select ticker source:",
             ["Popular Stocks", "S&P 500", "Custom Input"],
@@ -233,7 +325,7 @@ def run_backtest_tab(db: TradingDatabase):
         st.markdown("---")
 
         # Strategy Selection
-        st.subheader("🎯 Strategy")
+        st.subheader("▸ Strategy")
         strategy_name = st.selectbox(
             "Select strategy:",
             list(STRATEGIES.keys()),
@@ -241,12 +333,12 @@ def run_backtest_tab(db: TradingDatabase):
         )
 
         strategy_info = STRATEGIES[strategy_name]
-        st.info(f"ℹ️ {strategy_info['description']}")
+        st.info(f"• {strategy_info['description']}")
 
         # Strategy Parameters (if any)
         strategy_params = {}
         if strategy_info['params']:
-            with st.expander("📝 Strategy Parameters"):
+            with st.expander("▾ Strategy Parameters"):
                 for param_name, default_value in strategy_info['params'].items():
                     if isinstance(default_value, int):
                         strategy_params[param_name] = st.number_input(
@@ -267,7 +359,7 @@ def run_backtest_tab(db: TradingDatabase):
         st.markdown("---")
 
         # Date Range
-        st.subheader("📅 Date Range")
+        st.subheader("▸ Date Range")
         col1, col2 = st.columns(2)
 
         with col1:
@@ -287,7 +379,7 @@ def run_backtest_tab(db: TradingDatabase):
         st.markdown("---")
 
         # Time Interval
-        st.subheader("⏱️ Time Interval")
+        st.subheader("▸ Time Interval")
         interval = st.selectbox(
             "Select interval:",
             ["1d", "1h", "30m", "15m", "5m", "1wk"],
@@ -298,7 +390,7 @@ def run_backtest_tab(db: TradingDatabase):
         st.markdown("---")
 
         # Backtesting Parameters
-        st.subheader("💰 Backtest Settings")
+        st.subheader("▸ Backtest Settings")
 
         starting_cash = st.number_input(
             "Starting capital ($):",
@@ -328,11 +420,11 @@ def run_backtest_tab(db: TradingDatabase):
         st.markdown("---")
 
         # Run Button
-        run_button = st.button("🚀 Run Backtest", type="primary")
+        run_button = st.button("▸ Run Backtest", type="primary")
 
     # Main content area
     if not selected_tickers:
-        st.warning("⚠️ Please select at least one stock ticker to begin.")
+        st.warning("! Please select at least one stock ticker to begin.")
         st.info("""
         ### How to use StrategyBuilder:
         1. Select one or more stock tickers from the sidebar
@@ -395,22 +487,22 @@ def run_backtest_tab(db: TradingDatabase):
                 if results:
                     st.session_state.backtest_results[ticker] = results
                 else:
-                    st.error(f"❌ Failed to run backtest for {ticker}")
+                    st.error(f"× Failed to run backtest for {ticker}")
 
             except Exception as e:
-                st.error(f"❌ Error backtesting {ticker}: {str(e)}")
+                st.error(f"× Error backtesting {ticker}: {str(e)}")
 
         progress_bar.empty()
         status_text.empty()
 
         if st.session_state.backtest_results:
-            st.success(f"✅ Backtesting completed for {len(st.session_state.backtest_results)} stock(s)!")
+            st.success(f"• Backtesting completed for {len(st.session_state.backtest_results)} stock(s)!")
             st.session_state.selected_stock = list(st.session_state.backtest_results.keys())[0]
 
     # Display results
     if st.session_state.backtest_results:
         st.markdown("---")
-        st.header("📊 Backtest Results")
+        st.header(" Backtest Results")
 
         # Stock selector for multiple stocks
         if len(st.session_state.backtest_results) > 1:
@@ -433,7 +525,7 @@ def display_results(ticker: str, results: Dict[str, Any], db: TradingDatabase):
     col_save, col_monitor = st.columns([1, 1])
 
     with col_save:
-        if st.button(f"💾 Save to Database", key=f"save_{ticker}"):
+        if st.button(f"▸ Save to Database", key=f"save_{ticker}"):
             try:
                 backtest_id = db.save_backtest(
                     results=results,
@@ -441,12 +533,12 @@ def display_results(ticker: str, results: Dict[str, Any], db: TradingDatabase):
                     parameters=st.session_state.current_parameters,
                     notes=f"Backtest run on {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}"
                 )
-                st.success(f"✅ Saved to database (ID: {backtest_id})")
+                st.success(f"• Saved to database (ID: {backtest_id})")
             except Exception as e:
                 st.error(f"Failed to save: {str(e)}")
 
     with col_monitor:
-        if st.button(f"📡 Add to Live Monitoring", key=f"monitor_{ticker}"):
+        if st.button(f"▸ Add to Live Monitoring", key=f"monitor_{ticker}"):
             try:
                 monitor_id = db.add_to_monitoring(
                     ticker=ticker,
@@ -454,7 +546,7 @@ def display_results(ticker: str, results: Dict[str, Any], db: TradingDatabase):
                     interval=results['interval'],
                     parameters=st.session_state.current_parameters
                 )
-                st.success(f"✅ Added to live monitoring (Monitor ID: {monitor_id})")
+                st.success(f"• Added to live monitoring (Monitor ID: {monitor_id})")
             except Exception as e:
                 st.error(f"Failed to add to monitoring: {str(e)}")
 
@@ -527,7 +619,7 @@ def display_results(ticker: str, results: Dict[str, Any], db: TradingDatabase):
     st.markdown("---")
 
     # Interactive price chart with entry/exit signals
-    st.subheader("📊 Price Chart with Trade Signals")
+    st.subheader("▸ Price Chart with Trade Signals")
 
     with st.spinner("Loading chart..."):
         fig = create_backtest_chart(
@@ -548,7 +640,7 @@ def display_results(ticker: str, results: Dict[str, Any], db: TradingDatabase):
     # Performance charts
     trades = results.get('trades', [])
     if trades:
-        st.subheader("📈 Performance Analysis")
+        st.subheader("▸ Performance Analysis")
 
         chart_col1, chart_col2 = st.columns(2)
 
@@ -565,7 +657,7 @@ def display_results(ticker: str, results: Dict[str, Any], db: TradingDatabase):
         st.markdown("---")
 
         # Trade details table
-        st.subheader("📋 Trade Details")
+        st.subheader("▸ Trade Details")
 
         trades_df = create_trades_table(trades)
 
@@ -594,7 +686,7 @@ def display_results(ticker: str, results: Dict[str, Any], db: TradingDatabase):
             # Download button for trade data
             csv = trades_df.to_csv(index=False)
             st.download_button(
-                label="📥 Download Trade Data (CSV)",
+                label="▸ Download Trade Data (CSV)",
                 data=csv,
                 file_name=f"{ticker}_trades.csv",
                 mime="text/csv"
@@ -608,22 +700,22 @@ def display_results(ticker: str, results: Dict[str, Any], db: TradingDatabase):
 def run_grid_search_tab(db: TradingDatabase):
     """Grid search parameter optimization tab"""
 
-    st.header("🔬 Grid Search - Parameter Optimization")
+    st.header(" Grid Search - Parameter Optimization")
     st.markdown("Systematically test parameter combinations to find optimal strategy settings")
     st.markdown("---")
 
     # Sidebar configuration
     with st.sidebar:
-        st.header("🔬 Grid Search Configuration")
+        st.header(" Grid Search Configuration")
 
         # Stock selection
-        st.subheader("📊 Stock")
+        st.subheader("▸ Stock")
         ticker = st.text_input("Ticker:", value="AAPL", help="Single stock for optimization")
 
         st.markdown("---")
 
         # Strategy selection
-        st.subheader("🎯 Strategy")
+        st.subheader("▸ Strategy")
         strategy_name = st.selectbox(
             "Select strategy to optimize:",
             list(STRATEGIES.keys()),
@@ -635,7 +727,7 @@ def run_grid_search_tab(db: TradingDatabase):
         st.markdown("---")
 
         # Date range
-        st.subheader("📅 Test Period")
+        st.subheader("▸ Test Period")
         col1, col2 = st.columns(2)
 
         with col1:
@@ -657,13 +749,13 @@ def run_grid_search_tab(db: TradingDatabase):
         st.markdown("---")
 
         # Capital settings
-        st.subheader("💰 Capital")
+        st.subheader("▸ Capital")
         starting_cash = st.number_input("Starting capital ($):", value=10000, min_value=1000, step=1000)
 
         st.markdown("---")
 
         # Sort metric
-        st.subheader("📊 Optimization Metric")
+        st.subheader("▸ Optimization Metric")
         sort_metric = st.selectbox(
             "Optimize for:",
             ["return_pct", "sharpe_ratio", "win_rate"],
@@ -676,7 +768,7 @@ def run_grid_search_tab(db: TradingDatabase):
         )
 
     # Main content
-    st.subheader("⚙️ Parameter Ranges")
+    st.subheader("▸ Parameter Ranges")
     st.markdown("Define the range of values to test for each parameter")
 
     # Get default parameter ranges for this strategy
@@ -784,12 +876,12 @@ def run_grid_search_tab(db: TradingDatabase):
         st.info(f"📊 Total combinations to test: **{total_combinations}**")
 
         if total_combinations > 100:
-            st.warning("⚠️ Large number of combinations may take a while. Consider reducing parameter ranges.")
+            st.warning("! Large number of combinations may take a while. Consider reducing parameter ranges.")
 
     st.markdown("---")
 
     # Run grid search button
-    run_search = st.button("🚀 Run Grid Search", type="primary", disabled=not param_ranges)
+    run_search = st.button("▸ Run Grid Search", type="primary", disabled=not param_ranges)
 
     if run_search and param_ranges:
         # Base parameters
@@ -836,14 +928,14 @@ def run_grid_search_tab(db: TradingDatabase):
         if results:
             st.session_state.grid_search_results = results
             st.session_state.selected_grid_result = 0
-            st.success(f"✅ Grid search complete! Found {len(results)} valid combinations")
+            st.success(f"• Grid search complete! Found {len(results)} valid combinations")
         else:
-            st.error("❌ No valid results from grid search")
+            st.error("× No valid results from grid search")
 
     # Display results
     if st.session_state.grid_search_results:
         st.markdown("---")
-        st.header("📊 Grid Search Results")
+        st.header(" Grid Search Results")
 
         results = st.session_state.grid_search_results
 
@@ -854,7 +946,7 @@ def run_grid_search_tab(db: TradingDatabase):
         col1, col2 = st.columns([1, 3])
 
         with col1:
-            st.subheader("🏆 Top 5 Results")
+            st.subheader("▸ Top 5 Results")
 
             for idx, result in enumerate(top_results):
                 # Create button for each result
@@ -907,7 +999,7 @@ def run_grid_search_tab(db: TradingDatabase):
             action_col1, action_col2 = st.columns(2)
 
             with action_col1:
-                if st.button("💾 Save to Database", key="save_grid_result"):
+                if st.button("▸ Save to Database", key="save_grid_result"):
                     try:
                         backtest_id = db.save_backtest(
                             results=selected_result,
@@ -915,12 +1007,12 @@ def run_grid_search_tab(db: TradingDatabase):
                             parameters=selected_result['parameters'],
                             notes=f"Grid search optimized (Rank #{st.session_state.selected_grid_result + 1})"
                         )
-                        st.success(f"✅ Saved configuration to database (ID: {backtest_id})")
+                        st.success(f"• Saved configuration to database (ID: {backtest_id})")
                     except Exception as e:
                         st.error(f"Failed to save: {str(e)}")
 
             with action_col2:
-                if st.button("📡 Add to Monitoring", key="monitor_grid_result"):
+                if st.button("▸ Add to Monitoring", key="monitor_grid_result"):
                     try:
                         monitor_id = db.add_to_monitoring(
                             ticker=selected_result['ticker'],
@@ -928,13 +1020,13 @@ def run_grid_search_tab(db: TradingDatabase):
                             interval=selected_result['interval'],
                             parameters=selected_result['parameters']
                         )
-                        st.success(f"✅ Added to monitoring (ID: {monitor_id})")
+                        st.success(f"• Added to monitoring (ID: {monitor_id})")
                     except Exception as e:
                         st.error(f"Failed to add: {str(e)}")
 
             # Chart
             st.markdown("---")
-            st.subheader("📊 Performance Chart")
+            st.subheader("▸ Performance Chart")
 
             with st.spinner("Loading chart..."):
                 fig = create_backtest_chart(
@@ -951,7 +1043,7 @@ def run_grid_search_tab(db: TradingDatabase):
             # Trades table
             if selected_result.get('trades'):
                 st.markdown("---")
-                st.subheader("📋 Trade Details")
+                st.subheader("▸ Trade Details")
 
                 trades_df = create_trades_table(selected_result['trades'])
                 if not trades_df.empty:
@@ -959,7 +1051,7 @@ def run_grid_search_tab(db: TradingDatabase):
 
         # Comparison table
         st.markdown("---")
-        st.subheader("📊 Top 5 Comparison")
+        st.subheader("▸ Top 5 Comparison")
 
         comparison_data = []
         for idx, result in enumerate(top_results):
@@ -985,7 +1077,7 @@ def run_grid_search_tab(db: TradingDatabase):
 def run_live_trading_tab(db: TradingDatabase):
     """Live trading/monitoring tab content"""
 
-    st.header("🔴 Live Trading & Monitoring")
+    st.header(" Live Trading & Monitoring")
     st.markdown("Monitor stocks with your tested strategies in real-time")
     st.markdown("---")
 
@@ -1005,7 +1097,7 @@ def run_live_trading_tab(db: TradingDatabase):
 def show_backtest_history(db: TradingDatabase):
     """Display backtest history with option to add to monitoring"""
 
-    st.subheader("📊 Past Backtest Configurations")
+    st.subheader("▸ Past Backtest Configurations")
     st.markdown("Review your backtest history and add successful strategies to live monitoring")
 
     # Filters
@@ -1074,7 +1166,7 @@ def show_backtest_history(db: TradingDatabase):
                 st.markdown(f"**Notes:** {backtest['notes']}")
 
             # Action button
-            if st.button(f"📡 Add to Monitoring", key=f"add_monitor_{backtest['id']}"):
+            if st.button(f"▸ Add to Monitoring", key=f"add_monitor_{backtest['id']}"):
                 try:
                     monitor_id = db.add_to_monitoring(
                         ticker=backtest['ticker'],
@@ -1083,7 +1175,7 @@ def show_backtest_history(db: TradingDatabase):
                         parameters=backtest['parameters'],
                         backtest_id=backtest['id']
                     )
-                    st.success(f"✅ Added {backtest['ticker']} to monitoring (Monitor ID: {monitor_id})")
+                    st.success(f"• Added {backtest['ticker']} to monitoring (Monitor ID: {monitor_id})")
                 except Exception as e:
                     st.error(f"Failed to add to monitoring: {str(e)}")
 
@@ -1091,7 +1183,7 @@ def show_backtest_history(db: TradingDatabase):
 def show_active_monitoring(db: TradingDatabase):
     """Display and manage actively monitored stocks"""
 
-    st.subheader("📡 Active Monitoring List")
+    st.subheader("▸ Active Monitoring List")
     st.markdown("These stocks are being monitored for trading signals")
 
     # Get monitored stocks
@@ -1129,7 +1221,7 @@ def show_active_monitoring(db: TradingDatabase):
                 st.markdown(f"**Status:** {stock['status'].upper()}")
 
             with col4:
-                if st.button("🗑️ Remove", key=f"remove_{stock['id']}"):
+                if st.button("× Remove", key=f"remove_{stock['id']}"):
                     db.remove_from_monitoring(stock['id'])
                     st.success(f"Removed {stock['ticker']} from monitoring")
                     st.rerun()
@@ -1141,7 +1233,7 @@ def show_active_monitoring(db: TradingDatabase):
             st.markdown("---")
 
     # Button to run monitoring script
-    st.markdown("### 🔄 Manual Check")
+    st.markdown("### ▸ Manual Check")
     if st.button("Run Monitoring Check Now", type="primary"):
         st.info("Monitoring check will be implemented in the monitoring script. Use `python monitor_stocks.py` to run checks.")
 
@@ -1149,7 +1241,7 @@ def show_active_monitoring(db: TradingDatabase):
 def show_signals_and_performance(db: TradingDatabase):
     """Display trading signals and performance metrics"""
 
-    st.subheader("📈 Trading Signals & Performance")
+    st.subheader("▸ Trading Signals & Performance")
     st.markdown("Recent trading signals from monitored stocks")
 
     # Time filter
