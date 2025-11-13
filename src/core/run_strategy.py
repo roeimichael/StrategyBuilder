@@ -28,10 +28,25 @@ class Run_strategy:
         self.cerebro.addobserver(bt.observers.DrawDown)  # visualize the drawdown evol
 
     def add_data(self, cerebro, ticker, start_date, interval, end_date=None):
-        if end_date:
-            data = yf.download(ticker, start=start_date, end=end_date, interval=interval)
-        else:
-            data = yf.download(ticker, start=start_date, interval=interval)
+        # Convert date objects to strings if necessary
+        if hasattr(start_date, 'strftime'):
+            start_date = start_date.strftime('%Y-%m-%d')
+        if end_date and hasattr(end_date, 'strftime'):
+            end_date = end_date.strftime('%Y-%m-%d')
+
+        # Download data with proper error handling
+        try:
+            if end_date:
+                data = yf.download(ticker, start=start_date, end=end_date, interval=interval, progress=False)
+            else:
+                data = yf.download(ticker, start=start_date, interval=interval, progress=False)
+
+            if data.empty:
+                raise ValueError(f"No data available for {ticker}")
+
+        except Exception as e:
+            raise ValueError(f"Failed to download data for {ticker}: {str(e)}")
+
         data = bt.feeds.PandasData(dataname=data)
         self.data = data
         cerebro.adddata(data)
