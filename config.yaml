@@ -1,0 +1,83 @@
+# StrategyBuilder Configuration File
+
+# Backtesting Parameters
+backtesting:
+  # Initial cash for backtesting
+  cash: 10000
+
+  # Default position sizing (1.0 = 100% of available cash)
+  order_percentage: 1.0
+
+  # Commission settings
+  commission: 0.001  # 0.1% per trade
+
+# Technical Indicator Parameters
+indicators:
+  # MACD settings
+  macd:
+    fast_period: 12
+    slow_period: 26
+    signal_period: 9
+
+  # ATR settings
+  atr:
+    period: 14
+    distance: 2.0  # Stop loss/take profit distance in ATR multiples
+
+  # Moving Average settings
+  moving_averages:
+    short_period: 20
+    medium_period: 50
+    long_period: 200
+
+  # Bollinger Bands
+  bollinger:
+    period: 20
+    std_dev: 2
+
+  # ADX settings
+  adx:
+    period: 14
+    trend_threshold: 25  # ADX value above which market is trending
+
+  # CMF settings
+  cmf:
+    period: 20
+
+# Data Settings
+data:
+  # Default data interval for backtesting
+  default_interval: "1d"  # Options: 1m, 5m, 15m, 30m, 1h, 90m, 1d, 5d, 1wk, 1mo
+
+  # Default lookback period
+  default_lookback_years: 1
+
+  # Data source
+  source: "yfinance"  # Yahoo Finance
+
+# Notifications (requires environment variables)
+notifications:
+  # Enable/disable notifications
+  telegram:
+    enabled: false
+
+  email:
+    enabled: false
+    smtp_server: "smtp.gmail.com"
+    smtp_port: 587
+
+# Risk Management
+risk:
+  # Maximum position size as percentage of portfolio
+  max_position_size: 1.0
+
+  # Default stop loss percentage (if not using ATR)
+  default_stop_loss: 0.02  # 2%
+
+  # Default take profit percentage
+  default_take_profit: 0.04  # 4%
+
+# Logging
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  save_to_file: false

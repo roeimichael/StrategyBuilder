@@ -630,3 +630,28 @@ output.xlsx
 Test.py
 Test2.py
 Test3.py
+
+# StrategyBuilder specific
+# Environment variables and secrets
+.env
+config/secrets.yaml
+*.key
+*.pem
+
+# Backtest results and outputs
+results/
+outputs/
+*.csv
+!data/*.csv
+
+# Downloaded data cache
+cache/
+*.pickle
+*.pkl
+
+# Old/deprecated files (keep for now, will be removed later)
+parameters.py
+pararmeters_tema.py
+telegram_notification.py
+email_notification.py
+*.mat
