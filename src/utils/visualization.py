@@ -33,6 +33,14 @@ def create_backtest_chart(ticker: str, start_date, end_date, interval: str,
             st.error(f"No data available for {ticker}")
             return None
 
+        # Fix for yfinance 0.2.31+ which returns MultiIndex columns
+        if isinstance(data.columns, pd.MultiIndex):
+            data.columns = data.columns.get_level_values(0)
+
+        # Ensure all column names are strings
+        if len(data.columns) > 0 and isinstance(data.columns[0], tuple):
+            data.columns = [col[0] if isinstance(col, tuple) else col for col in data.columns]
+
         # Create figure with secondary y-axis for volume
         fig = make_subplots(
             rows=2, cols=1,
@@ -117,8 +125,8 @@ def create_backtest_chart(ticker: str, start_date, end_date, interval: str,
             )
 
         # Add volume bars
-        colors = ['red' if row['Close'] < row['Open'] else 'green'
-                 for index, row in data.iterrows()]
+        colors = ['red' if close < open_ else 'green'
+                 for close, open_ in zip(data['Close'], data['Open'])]
 
         fig.add_trace(
             go.Bar(

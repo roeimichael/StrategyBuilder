@@ -184,12 +184,25 @@ def test_visualization():
 
         trades = results.get('trades', [])
 
+        # Test chart creation (should work even without trades)
+        print("\n   Testing chart creation (basic)...")
+        fig_basic = create_backtest_chart(
+            ticker='NVDA',
+            start_date=start_date,
+            end_date=end_date,
+            interval='1d',
+            trades=[]  # Test with no trades
+        )
+        if fig_basic is None:
+            raise ValueError("Basic chart creation (no trades) returned None")
+        print("   ✓ Basic chart created (no trades)")
+
         if not trades:
-            print("\n⚠️  No trades to visualize (skipping visualization tests)")
+            print("\n⚠️  No trades executed, but visualization functions work")
             return True
 
-        # Test chart creation
-        print("\n   Testing chart creation...")
+        # Test chart creation with trades
+        print("\n   Testing chart with trade signals...")
         fig = create_backtest_chart(
             ticker='NVDA',
             start_date=start_date,
@@ -199,8 +212,8 @@ def test_visualization():
         )
 
         if fig is None:
-            raise ValueError("Chart creation returned None")
-        print("   ✓ Backtest chart created")
+            raise ValueError("Chart with trade signals returned None")
+        print("   ✓ Chart with trade signals created")
 
         # Test trades table
         print("   Testing trades table...")
