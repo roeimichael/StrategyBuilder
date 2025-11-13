@@ -44,6 +44,16 @@ class Run_strategy:
             if data.empty:
                 raise ValueError(f"No data available for {ticker}")
 
+            # Fix for yfinance 0.2.31+ which returns MultiIndex columns
+            # Flatten MultiIndex columns to simple string names for backtrader compatibility
+            import pandas as pd
+            if isinstance(data.columns, pd.MultiIndex):
+                data.columns = data.columns.get_level_values(0)
+
+            # Ensure all column names are strings (handle any remaining tuples)
+            if len(data.columns) > 0 and isinstance(data.columns[0], tuple):
+                data.columns = [col[0] if isinstance(col, tuple) else col for col in data.columns]
+
         except Exception as e:
             raise ValueError(f"Failed to download data for {ticker}: {str(e)}")
 
