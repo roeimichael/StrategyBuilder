@@ -25,6 +25,12 @@ from strategies.alligator_strategy import Alligator_strategy
 from strategies.adx_strategy import adx_strat
 from strategies.cmf_atr_macd_strategy import MACD_CMF_ATR_Strategy
 from strategies.tema_crossover_strategy import Tema20_tema60
+from strategies.rsi_stochastic_strategy import RSI_Stochastic
+from strategies.williams_r_strategy import Williams_R
+from strategies.mfi_strategy import MFI_Strategy
+from strategies.cci_atr_strategy import CCI_ATR_Strategy
+from strategies.momentum_multi_strategy import Momentum_Multi
+from strategies.keltner_channel_strategy import Keltner_Channel
 
 
 # Strategy mapping
@@ -35,6 +41,12 @@ STRATEGIES = {
     'ADX Adaptive': adx_strat,
     'CMF + ATR + MACD': MACD_CMF_ATR_Strategy,
     'TEMA Crossover': Tema20_tema60,
+    'RSI + Stochastic': RSI_Stochastic,
+    'Williams %R': Williams_R,
+    'MFI (Money Flow)': MFI_Strategy,
+    'CCI + ATR': CCI_ATR_Strategy,
+    'Momentum Multi': Momentum_Multi,
+    'Keltner Channel': Keltner_Channel,
 }
 
 
