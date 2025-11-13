@@ -31,14 +31,14 @@ class adx_strat(Strategy_skeleton):
             amount_to_invest = self.broker.cash
             if self.adx[-1] >= 25:
                 if self.ma20[-1] > self.ma50[-1]:
-                    self.size = math.floor(amount_to_invest / self.data.low)
+                    self.size = math.floor(amount_to_invest / self.data.low[0])
                     # self.buy(size=self.size)# long
                     self.buy(size=self.size)
                     self.log('BUY CREATE (LONG TRENDY), %.2f ' % self.data[0])
                     self.type = 1
             else:
                 if self.data.low[0] < self.boll.lines.bot:
-                    self.size = math.floor(amount_to_invest / self.data.low)
+                    self.size = math.floor(amount_to_invest / self.data.low[0])
                     # self.buy(size=self.size)# long
                     self.buy(size=self.size)
                     self.log('BUY CREATE (LONG STABLE), %.2f ' % self.data[0])
