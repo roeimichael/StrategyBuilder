@@ -475,8 +475,12 @@ def display_results(ticker: str, results: Dict[str, Any]):
                         return ''
                 return ''
 
-            # Apply styling
-            styled_df = trades_df.style.applymap(highlight_pnl, subset=['P&L'])
+            # Apply styling (pandas 2.0+ uses 'map' instead of 'applymap')
+            try:
+                styled_df = trades_df.style.map(highlight_pnl, subset=['P&L'])
+            except AttributeError:
+                # Fallback for pandas < 2.0
+                styled_df = trades_df.style.applymap(highlight_pnl, subset=['P&L'])
 
             st.dataframe(styled_df, use_container_width=True, height=400)
 
