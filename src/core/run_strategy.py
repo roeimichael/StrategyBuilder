@@ -27,29 +27,62 @@ class Run_strategy:
         self.cerebro.addanalyzer(bt.analyzers.SharpeRatio, _name='mysharpe')
         self.cerebro.addobserver(bt.observers.DrawDown)  # visualize the drawdown evol
 
-    def add_data(self, cerebro, ticker, start_date, interval):
-        data = yf.download(ticker, start=start_date, interval=interval)
+    def add_data(self, cerebro, ticker, start_date, interval, end_date=None):
+        if end_date:
+            data = yf.download(ticker, start=start_date, end=end_date, interval=interval)
+        else:
+            data = yf.download(ticker, start=start_date, interval=interval)
         data = bt.feeds.PandasData(dataname=data)
         self.data = data
         cerebro.adddata(data)
+        return data
 
     def print_data(self):
         start_value = self.cerebro.broker.getvalue()
         print('Starting Portfolio Value: %.2f' % start_value)
-        self.cerebro.run()
+        results = self.cerebro.run()
         end_value = self.cerebro.broker.getvalue()
         print('Final Portfolio Value: %.2f' % end_value)
         percentage = (end_value / start_value - 1) * 100
-        print(f"Percentage lost/profited in time period{round(percentage, 3)}%")
+        print(f"Percentage lost/profited in time period: {round(percentage, 3)}%")
         print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        return results, start_value, end_value
 
-    def runstrat(self, ticker, start_date, interval):
+    def runstrat(self, ticker, start_date, interval, end_date=None):
         self.cerebro.broker.set_cash(self.args['cash'])
         if self.data is None:
-            self.add_data(self.cerebro, ticker, start_date, interval)
+            market_data = self.add_data(self.cerebro, ticker, start_date, interval, end_date)
         self.cerebro.addstrategy(self.strategy, args=self.args)
         self.add_analyzers(self.data)
-        self.print_data()
+        results, start_value, end_value = self.print_data()
+
+        # Extract detailed analytics
+        strat = results[0]
+
+        # Get analyzers
+        sharpe_ratio = strat.analyzers.mysharpe.get_analysis().get('sharperatio', None)
+
+        # Calculate returns
+        pnl = end_value - start_value
+        return_pct = (end_value / start_value - 1) * 100
+
+        # Get drawdown info
+        try:
+            dd_info = strat.observers.drawdown._maxdrawdown
+            max_drawdown = dd_info if dd_info else 0
+        except:
+            max_drawdown = None
+
+        # Return comprehensive results dictionary
+        return {
+            'start_value': start_value,
+            'end_value': end_value,
+            'pnl': pnl,
+            'return_pct': return_pct,
+            'sharpe_ratio': sharpe_ratio,
+            'max_drawdown': max_drawdown,
+            'total_trades': None,  # Can be extracted from strategy if tracked
+        }
         # self.cerebro.plot(style='candlestick')
 
         # self.cerebro.addanalyzer(bt.analyzers.PyFolio, _name='pyfolio')
