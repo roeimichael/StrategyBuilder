@@ -16,6 +16,11 @@ empyrical==0.4.1
 # Visualization
 matplotlib==3.2.2
 seaborn==0.11.2
+plotly>=5.3.0
+mplfinance>=0.12.7
+
+# GUI Framework
+streamlit>=1.20.0
 
 # Configuration management
 PyYAML>=5.4.1
