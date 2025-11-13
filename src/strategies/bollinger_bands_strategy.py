@@ -13,7 +13,7 @@ class Bollinger_three(Strategy_skeleton):
     )
 
     def __init__(self, args):
-        super(ethereum_vol, self).__init__(args)
+        super(Bollinger_three, self).__init__(args)
         self.boll_low, self.boll_high = 0, 0
         self.size = 0
         self.boll = bt.indicators.BollingerBands(period=self.p.period, devfactor=self.p.devfactor)

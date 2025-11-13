@@ -23,6 +23,10 @@ class adx_strat(Strategy_skeleton):
         if self.order:
             return  # pending order execution
 
+        # Wait for enough data for indicators (ADX needs 14 periods + 1 for lookback)
+        if len(self) < 51:  # max(ma50 period, adx period + lookback)
+            return
+
         if self.type == 0:  # not in the market
             amount_to_invest = self.broker.cash
             if self.adx[-1] >= 25:
