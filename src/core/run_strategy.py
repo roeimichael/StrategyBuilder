@@ -3,6 +3,7 @@
 import backtrader as bt
 import pandas as pd
 import yfinance as yf
+from utils.performance_analyzer import PerformanceAnalyzer
 
 
 class Run_strategy:
@@ -86,6 +87,10 @@ class Run_strategy:
 
         trades = strat.trades if hasattr(strat, 'trades') else []
 
+        equity_curve = PerformanceAnalyzer.create_equity_curve(trades, start_value)
+        analyzer = PerformanceAnalyzer(trades, start_value, end_value, equity_curve)
+        advanced_metrics = analyzer.calculate_all_metrics()
+
         return {
             'start_value': start_value,
             'end_value': end_value,
@@ -99,4 +104,6 @@ class Run_strategy:
             'start_date': start_date,
             'end_date': end_date if end_date else 'today',
             'interval': interval,
+            'advanced_metrics': advanced_metrics,
+            'equity_curve': equity_curve
         }
