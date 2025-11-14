@@ -1,36 +1,36 @@
-# Core backtesting framework
-backtrader==1.9.76.123
+# StrategyBuilder Pro - Dependencies
 
-# Data acquisition (modernized)
-yfinance>=0.2.31
-pandas-datareader>=0.10.0
+# Core trading and backtesting
+backtrader==1.9.78.123
+yfinance==0.2.66
 
-# Data manipulation and analysis (modern versions)
-pandas>=2.0.3
-numpy>=1.24.3
+# Data analysis and manipulation
+pandas==2.3.3
+numpy==2.3.4
 
-# Technical analysis
-ta>=0.11.0
-empyrical>=0.5.5
+# Web framework and UI
+streamlit==1.51.0
 
-# Visualization (modern versions)
-matplotlib>=3.7.2
-seaborn>=0.12.2
-plotly>=5.17.0
-mplfinance>=0.12.10b0
+# Visualization
+plotly==6.4.0
 
-# GUI Framework (modern)
-streamlit>=1.28.0
+# Data fetching dependencies
+beautifulsoup4==4.14.2
+lxml==6.0.2
+html5lib==1.1
+curl_cffi==0.13.0
+websockets==15.0.1
 
-# Configuration management
-PyYAML>=6.0.1
-python-dotenv>=1.0.0
+# yfinance dependencies
+frozendict==2.4.7
+peewee==3.18.3
+platformdirs==4.5.0
 
-# Notifications (optional)
-pyTelegramBotAPI>=4.14.0
-schedule>=1.2.0
-
-# Utilities (modern versions)
-python-dateutil>=2.8.2
+# HTTP requests
 requests>=2.31.0
-lxml>=4.9.3
+
+# Python timezone handling
+pytz>=2022.5
+
+# Note: multitasking may require manual installation due to setuptools compatibility issues
+# If pip install fails for multitasking, you may need to install it manually
