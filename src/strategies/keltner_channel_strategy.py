@@ -63,4 +63,3 @@ class Keltner_Channel(Strategy_skeleton):
             if self.data.close[0] < self.ema[0]:
                 self.close()
                 self.log(f'SELL CREATE (Reversion: {self.data.close[0]:.2f} < {self.ema[0]:.2f}), %.2f' % self.data[0])
-                self.print_stats()

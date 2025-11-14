@@ -65,5 +65,4 @@ class CCI_ATR_Strategy(Strategy_skeleton):
             if self.cci[0] < self.p.cci_exit and self.cci[-1] >= self.p.cci_exit:
                 self.close()
                 self.log(f'SELL CREATE (CCI: {self.cci[0]:.2f}), %.2f' % self.data[0])
-                self.print_stats()
                 self.in_position = False

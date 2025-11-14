@@ -49,11 +49,9 @@ class adx_strat(Strategy_skeleton):
                     self.close()
                     self.log('SELL CREATE (LONG TRENDY), %.2f ' % self.data[0])
                     self.type = 0
-                    self.print_stats()
             elif self.type == 2:
                 if self.data.close[0] > self.boll.lines.mid[0]:
                     self.close()
                     self.log('SELL CREATE (LONG STABLE), %.2f ' % self.data[0])
                     self.type = 0
-                    self.print_stats()
 

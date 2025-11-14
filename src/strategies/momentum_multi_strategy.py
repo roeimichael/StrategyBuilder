@@ -11,6 +11,7 @@ import math
 import backtrader as bt
 
 from core.strategy_skeleton import Strategy_skeleton
+from indicators.obv_indicator import OBV
 
 
 class Momentum_Multi(Strategy_skeleton):
@@ -40,7 +41,7 @@ class Momentum_Multi(Strategy_skeleton):
         )
 
         # On Balance Volume - volume trend
-        self.obv = bt.indicators.OBV(
+        self.obv = OBV(
             self.data
         )
 
@@ -70,4 +71,3 @@ class Momentum_Multi(Strategy_skeleton):
             if self.roc[0] < 0 or self.rsi[0] > self.p.rsi_exit:
                 self.close()
                 self.log(f'SELL CREATE (ROC: {self.roc[0]:.2f}, RSI: {self.rsi[0]:.2f}), %.2f' % self.data[0])
-                self.print_stats()

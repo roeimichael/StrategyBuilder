@@ -66,4 +66,3 @@ class RSI_Stochastic(Strategy_skeleton):
 
                 self.close()
                 self.log(f'SELL CREATE (RSI: {self.rsi[0]:.2f}, Stoch: {self.stoch.percK[0]:.2f}), %.2f' % self.data[0])
-                self.print_stats()

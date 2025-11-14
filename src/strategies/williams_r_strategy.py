@@ -53,4 +53,3 @@ class Williams_R(Strategy_skeleton):
             if self.willr[0] > self.p.overbought:
                 self.close()
                 self.log(f'SELL CREATE (WillR: {self.willr[0]:.2f}), %.2f' % self.data[0])
-                self.print_stats()

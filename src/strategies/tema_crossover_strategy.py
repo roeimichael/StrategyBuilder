@@ -33,7 +33,6 @@ class Tema20_tema60(Strategy_skeleton):
                         print(" ")
                         print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                         self.log('BUY CREATE (LONG), %.2f ' % self.data[0])
-                        self.print_stats()
 
             else:
                 if self.tcross == -1 and self.tcross_flag == 1:
@@ -42,5 +41,4 @@ class Tema20_tema60(Strategy_skeleton):
                     print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                     self.log('SELL CREATE (LONG), %.2f' % self.data[0])
                     self.close()
-                    self.print_stats()
 

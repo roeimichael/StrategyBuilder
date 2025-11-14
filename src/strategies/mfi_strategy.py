@@ -11,6 +11,7 @@ import math
 import backtrader as bt
 
 from core.strategy_skeleton import Strategy_skeleton
+from indicators.mfi_indicator import MFI
 
 
 class MFI_Strategy(Strategy_skeleton):
@@ -25,7 +26,7 @@ class MFI_Strategy(Strategy_skeleton):
         self.size = 0
 
         # Money Flow Index indicator (like RSI but volume-weighted)
-        self.mfi = bt.indicators.MFI(
+        self.mfi = MFI(
             self.data,
             period=self.p.period
         )
@@ -53,4 +54,3 @@ class MFI_Strategy(Strategy_skeleton):
             if self.mfi[0] > self.p.overbought:
                 self.close()
                 self.log(f'SELL CREATE (MFI: {self.mfi[0]:.2f}), %.2f' % self.data[0])
-                self.print_stats()

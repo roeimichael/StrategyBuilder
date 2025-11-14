@@ -38,7 +38,6 @@ class Alligator_strategy(Strategy_skeleton):
                         print(" ")
                         print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                         self.log('BUY CREATE (LONG), %.2f ' % self.data[0])
-                        self.print_stats()
                 if self.data.close[0] < self.ema[0] and (self.jaws[0] > self.teeth[0] > self.lips[0]):  # if the graph is under the ema we can buy short
                     if self.lips[0] < self.data.close[0] < self.teeth[0]:
                         self.short_position = 1
@@ -47,7 +46,6 @@ class Alligator_strategy(Strategy_skeleton):
                         print(" ")
                         print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                         self.log('SELL CREATE (SHORT), %.2f ' % self.data[0])
-                        self.print_stats()
 
             else:  # selling
                 if self.long_position == 1:  # we have a long position opened
@@ -57,7 +55,6 @@ class Alligator_strategy(Strategy_skeleton):
                         print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                         self.log('SELL CREATE (LONG), %.2f' % self.data[0])
                         self.close()
-                        self.print_stats()
                 elif self.short_position == 1:  # we have a short position
                     if self.data.close[0] <= self.lips[0]:  # checking if the sl/tp is happening
                         self.short_position = 0
@@ -65,4 +62,3 @@ class Alligator_strategy(Strategy_skeleton):
                         print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                         self.log('BUY CREATE (SHORT), %.2f' % self.data[0])
                         self.close()
-                        self.print_stats()

@@ -54,7 +54,6 @@ class TEMA_MACD(Strategy_skeleton):
                     print(" ")
                     print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                     self.log('BUY CREATE (LONG), %.2f ' % self.data[0])
-                    self.print_stats()
 
             elif self.position:
                 if self.flag_tema != 1 or self.flag_macd != 1:
@@ -62,5 +61,4 @@ class TEMA_MACD(Strategy_skeleton):
                     print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                     self.log('SELL CREATE (LONG), %.2f' % self.data[0])
                     self.close()
-                    self.print_stats()
 
