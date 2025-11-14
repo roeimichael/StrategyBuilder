@@ -81,3 +81,139 @@ risk:
 logging:
   level: "INFO"  # DEBUG, INFO, WARNING, ERROR
   save_to_file: false
+
+# Walk-Forward Optimization
+walk_forward:
+  # Training period in days
+  train_period_days: 252  # ~1 year
+
+  # Testing period in days
+  test_period_days: 63  # ~3 months
+
+  # Number of walk-forward periods
+  num_periods: 4
+
+  # Anchored walk-forward (train period grows) or rolling (fixed train period)
+  anchored: false
+
+# Strategy Configurations
+strategies:
+  bollinger_bands:
+    # Default parameters
+    defaults:
+      cash: 10000
+      period: 20
+      devfactor: 2.0
+
+    # Parameter ranges for optimization
+    optimization:
+      period: [10, 15, 20, 25, 30]
+      devfactor: [1.5, 2.0, 2.5, 3.0]
+
+    # Parameter constraints
+    constraints:
+      period:
+        min: 5
+        max: 100
+      devfactor:
+        min: 0.5
+        max: 5.0
+
+  sma_crossover:
+    defaults:
+      cash: 10000
+      fast_period: 10
+      slow_period: 30
+
+    optimization:
+      fast_period: [5, 10, 15, 20]
+      slow_period: [20, 30, 40, 50]
+
+    constraints:
+      fast_period:
+        min: 2
+        max: 50
+      slow_period:
+        min: 10
+        max: 200
+
+  rsi:
+    defaults:
+      cash: 10000
+      period: 14
+      oversold: 30
+      overbought: 70
+
+    optimization:
+      period: [10, 14, 20]
+      oversold: [20, 25, 30]
+      overbought: [70, 75, 80]
+
+    constraints:
+      period:
+        min: 5
+        max: 30
+      oversold:
+        min: 10
+        max: 40
+      overbought:
+        min: 60
+        max: 90
+
+  tema_macd:
+    defaults:
+      cash: 10000
+      macd1: 12
+      macd2: 26
+      macdsig: 9
+
+    optimization:
+      macd1: [8, 12, 16]
+      macd2: [20, 26, 32]
+      macdsig: [7, 9, 11]
+
+    constraints:
+      macd1:
+        min: 5
+        max: 20
+      macd2:
+        min: 15
+        max: 50
+      macdsig:
+        min: 5
+        max: 15
+
+# Performance Optimization
+performance:
+  # Use vectorized backtesting for speed
+  use_vectorized: true
+
+  # Number of parallel workers for grid search (-1 = all cores)
+  parallel_workers: -1
+
+  # Enable caching of market data
+  cache_data: true
+
+  # Cache directory
+  cache_dir: "./data/cache"
+
+# API Configuration
+api:
+  # FastAPI server settings
+  host: "0.0.0.0"
+  port: 8000
+
+  # Enable API documentation
+  docs_enabled: true
+
+  # CORS settings
+  cors:
+    enabled: true
+    allowed_origins: ["*"]
+    allowed_methods: ["*"]
+    allowed_headers: ["*"]
+
+  # Rate limiting
+  rate_limit:
+    enabled: false
+    requests_per_minute: 60
