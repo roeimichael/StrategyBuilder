@@ -41,5 +41,15 @@ PyYAML>=6.0
 # Testing and coverage
 coverage>=7.0.0
 
+# PDF Generation
+reportlab>=4.0.0
+weasyprint>=60.0
+
+# Email notifications
+python-dotenv>=1.0.0
+
+# Progress bars and UI enhancements
+tqdm>=4.66.0
+
 # Note: multitasking may require manual installation due to setuptools compatibility issues
 # If pip install fails for multitasking, you may need to install it manually
