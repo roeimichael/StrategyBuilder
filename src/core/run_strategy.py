@@ -31,8 +31,8 @@ class Run_strategy:
             end_date = end_date.strftime('%Y-%m-%d')
 
         try:
-            data = yf.download(ticker, start=start_date, end=end_date, interval=interval, progress=False) \
-                   if end_date else yf.download(ticker, start=start_date, interval=interval, progress=False)
+            data = yf.download(ticker, start=start_date, end=end_date, interval=interval, progress=False, auto_adjust=False) \
+                   if end_date else yf.download(ticker, start=start_date, interval=interval, progress=False, auto_adjust=False)
 
             if data.empty:
                 raise ValueError(f"No data available for {ticker}")

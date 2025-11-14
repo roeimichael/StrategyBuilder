@@ -22,7 +22,7 @@ class Strategy_skeleton(bt.Strategy):
                 self.last_buy_price = order.executed.price
                 self.last_buy_date = self.data.datetime.date(0)
                 self.last_buy_size = order.executed.size
-            elif order.issell() and hasattr(self, 'last_buy_price'):
+            elif order.issell() and self.last_buy_price is not None:
                 pnl = (order.executed.price - self.last_buy_price) * self.last_buy_size
                 pnl_pct = ((order.executed.price / self.last_buy_price) - 1) * 100
 
