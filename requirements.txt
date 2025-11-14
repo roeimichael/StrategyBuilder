@@ -32,5 +32,14 @@ requests>=2.31.0
 # Python timezone handling
 pytz>=2022.5
 
+# Date utilities
+python-dateutil>=2.8.2
+
+# Configuration
+PyYAML>=6.0
+
+# Testing and coverage
+coverage>=7.0.0
+
 # Note: multitasking may require manual installation due to setuptools compatibility issues
 # If pip install fails for multitasking, you may need to install it manually
