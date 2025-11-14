@@ -1,13 +1,11 @@
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
+"""Backtrader strategy execution engine"""
 import backtrader as bt
 import yfinance as yf
+import pandas as pd
 
-
-# import pyfolio as pf
 
 class Run_strategy:
+    """Executes backtrader strategies and returns results"""
 
     def __init__(self, parameters, strategy, data=None):
         self.cerebro = bt.Cerebro()
@@ -16,41 +14,32 @@ class Run_strategy:
         self.strategy = strategy
 
     def add_analyzers(self, data):
+        """Add performance analyzers to cerebro"""
         self.cerebro.addanalyzer(bt.analyzers.TimeReturn, _name='alltime_roi',
-                                 timeframe=bt.TimeFrame.NoTimeFrame)
-
+                                timeframe=bt.TimeFrame.NoTimeFrame)
         self.cerebro.addanalyzer(bt.analyzers.TimeReturn, data=data, _name='benchmark',
-                                 timeframe=bt.TimeFrame.NoTimeFrame)
-
+                                timeframe=bt.TimeFrame.NoTimeFrame)
         self.cerebro.addanalyzer(bt.analyzers.TimeReturn, timeframe=bt.TimeFrame.Years)
-
         self.cerebro.addanalyzer(bt.analyzers.SharpeRatio, _name='mysharpe')
-        self.cerebro.addobserver(bt.observers.DrawDown)  # visualize the drawdown evol
+        self.cerebro.addobserver(bt.observers.DrawDown)
 
     def add_data(self, cerebro, ticker, start_date, interval, end_date=None):
-        # Convert date objects to strings if necessary
+        """Download and add market data to cerebro"""
         if hasattr(start_date, 'strftime'):
             start_date = start_date.strftime('%Y-%m-%d')
         if end_date and hasattr(end_date, 'strftime'):
             end_date = end_date.strftime('%Y-%m-%d')
 
-        # Download data with proper error handling
         try:
-            if end_date:
-                data = yf.download(ticker, start=start_date, end=end_date, interval=interval, progress=False)
-            else:
-                data = yf.download(ticker, start=start_date, interval=interval, progress=False)
+            data = yf.download(ticker, start=start_date, end=end_date, interval=interval, progress=False) \
+                   if end_date else yf.download(ticker, start=start_date, interval=interval, progress=False)
 
             if data.empty:
                 raise ValueError(f"No data available for {ticker}")
 
-            # Fix for yfinance 0.2.31+ which returns MultiIndex columns
-            # Flatten MultiIndex columns to simple string names for backtrader compatibility
-            import pandas as pd
+            # Handle yfinance MultiIndex columns
             if isinstance(data.columns, pd.MultiIndex):
                 data.columns = data.columns.get_level_values(0)
-
-            # Ensure all column names are strings (handle any remaining tuples)
             if len(data.columns) > 0 and isinstance(data.columns[0], tuple):
                 data.columns = [col[0] if isinstance(col, tuple) else col for col in data.columns]
 
@@ -63,47 +52,40 @@ class Run_strategy:
         return data
 
     def print_data(self):
+        """Run strategy and print results"""
         start_value = self.cerebro.broker.getvalue()
-        print('Starting Portfolio Value: %.2f' % start_value)
+        print(f'Starting Portfolio Value: ${start_value:.2f}')
         results = self.cerebro.run()
         end_value = self.cerebro.broker.getvalue()
-        print('Final Portfolio Value: %.2f' % end_value)
+        print(f'Final Portfolio Value: ${end_value:.2f}')
         percentage = (end_value / start_value - 1) * 100
-        print(f"Percentage lost/profited in time period: {round(percentage, 3)}%")
-        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        print(f"Return: {percentage:.2f}%")
+        print("=" * 70)
         return results, start_value, end_value
 
     def runstrat(self, ticker, start_date, interval, end_date=None):
+        """Execute strategy and return comprehensive results"""
         self.cerebro.broker.set_cash(self.args['cash'])
         if self.data is None:
-            market_data = self.add_data(self.cerebro, ticker, start_date, interval, end_date)
+            self.add_data(self.cerebro, ticker, start_date, interval, end_date)
+
         self.cerebro.addstrategy(self.strategy, args=self.args)
         self.add_analyzers(self.data)
         results, start_value, end_value = self.print_data()
 
-        # Extract detailed analytics
         strat = results[0]
-
-        # Get analyzers
         sharpe_ratio = strat.analyzers.mysharpe.get_analysis().get('sharperatio', None)
-
-        # Calculate returns
         pnl = end_value - start_value
         return_pct = (end_value / start_value - 1) * 100
 
-        # Get drawdown info
+        # Extract max drawdown
         try:
-            dd_info = strat.observers.drawdown._maxdrawdown
-            max_drawdown = dd_info if dd_info else 0
+            max_drawdown = strat.observers.drawdown._maxdrawdown or 0
         except:
             max_drawdown = None
 
-        # Get trade details from strategy
-        trades = []
-        if hasattr(strat, 'trades'):
-            trades = strat.trades
+        trades = strat.trades if hasattr(strat, 'trades') else []
 
-        # Return comprehensive results dictionary
         return {
             'start_value': start_value,
             'end_value': end_value,
@@ -118,20 +100,3 @@ class Run_strategy:
             'end_date': end_date if end_date else 'today',
             'interval': interval,
         }
-        # self.cerebro.plot(style='candlestick')
-
-        # self.cerebro.addanalyzer(bt.analyzers.PyFolio, _name='pyfolio')
-        #
-        # results = self.cerebro.run()
-        # strat = results[0]
-        #
-        # pyfoliozer = strat.analyzers.getbyname('pyfolio')
-        #
-        # returns, positions, transactions, gross_lev = pyfoliozer.get_pf_items()
-        # pf.create_full_tear_sheet(
-        #     returns,
-        #     positions=positions,
-        #     transactions=transactions,
-        #
-        #     live_start_date='2021-09-01',
-        #     round_trips=True)

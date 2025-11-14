@@ -1,96 +1,60 @@
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-import math
+"""Base strategy class for all backtrader strategies"""
 import backtrader as bt
 
 
 class Strategy_skeleton(bt.Strategy):
-    def notify_order(self, order):
-        if order.status == order.Completed:
-            # Record order execution details
-            if order.isbuy():
-                self.last_buy_price = order.executed.price
-                self.last_buy_date = self.data.datetime.date(0)
-                self.last_buy_size = order.executed.size
-            elif order.issell():
-                if hasattr(self, 'last_buy_price'):
-                    # Calculate trade details
-                    pnl = (order.executed.price - self.last_buy_price) * self.last_buy_size
-                    pnl_pct = ((order.executed.price / self.last_buy_price) - 1) * 100
-
-                    trade_info = {
-                        'entry_date': self.last_buy_date,
-                        'exit_date': self.data.datetime.date(0),
-                        'entry_price': self.last_buy_price,
-                        'exit_price': order.executed.price,
-                        'size': self.last_buy_size,
-                        'pnl': pnl,
-                        'pnl_pct': pnl_pct,
-                        'type': 'LONG'
-                    }
-                    self.trades.append(trade_info)
-
-        if not order.alive():
-            self.order = None  # indicate no order is pending
+    """Base strategy with trade tracking and debugging utilities"""
 
     def __init__(self, args):
         self.args = args
         self.size = 0
-        self.trades = []  # Track all trades
+        self.trades = []
         self.last_buy_price = None
         self.last_buy_date = None
         self.last_buy_size = None
+        self.order = None
+        self.val_start = None
 
-    def print_trade(self, trade):
-        if trade.isclosed:
-            dt = self.data.datetime.date()
+    def notify_order(self, order):
+        """Track order execution and record trade details"""
+        if order.status == order.Completed:
+            if order.isbuy():
+                self.last_buy_price = order.executed.price
+                self.last_buy_date = self.data.datetime.date(0)
+                self.last_buy_size = order.executed.size
+            elif order.issell() and hasattr(self, 'last_buy_price'):
+                pnl = (order.executed.price - self.last_buy_price) * self.last_buy_size
+                pnl_pct = ((order.executed.price / self.last_buy_price) - 1) * 100
 
-            print('---------------------------- TRADE ---------------------------------')
-            print("1: Data Name:                            {}".format(trade.data._name))
-            print("2: Bar Num:                              {}".format(len(trade.data)))
-            print("3: Current date:                         {}".format(dt))
-            print('4: Status:                               Trade Complete')
-            print('5: Ref:                                  {}'.format(trade.ref))
-            print('6: PnL:                                  {}'.format(round(trade.pnl, 2)))
-            print('--------------------------------------------------------------------')
+                self.trades.append({
+                    'entry_date': self.last_buy_date,
+                    'exit_date': self.data.datetime.date(0),
+                    'entry_price': self.last_buy_price,
+                    'exit_price': order.executed.price,
+                    'size': self.last_buy_size,
+                    'pnl': pnl,
+                    'pnl_pct': pnl_pct,
+                    'type': 'LONG'
+                })
 
-    def print_next(self):
-        print('---------------------------- NEXT ----------------------------------')
-        print("1: Data Name:                            {}".format(self.data._name))
-        print("2: Bar Num:                              {}".format(len(self.data)))
-        print("3: Current date:                         {}".format(self.data.datetime.datetime()))
-        print('4: Open:                                 {}'.format(self.data.open[0]))
-        print('5: High:                                 {}'.format(self.data.high[0]))
-        print('6: Low:                                  {}'.format(self.data.low[0]))
-        print('7: Close:                                {}'.format(self.data.close[0]))
-        print('8: Volume:                               {}'.format(self.data.volume[0]))
-        print('9: Position Size:                       {}'.format(self.position.size))
-        print('--------------------------------------------------------------------')
-
-    def print_stats(self):
-        print(" ")
-        print(self.broker.getposition(self.data))
-        print(" ")
-        print(f"The current total cash is: {self.broker.get_cash()}")
-        print(f"The current value is: {self.broker.get_value()}")
-        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-        print(" ")
+        if not order.alive():
+            self.order = None
 
     def log(self, txt, dt=None):
-
+        """Log message with timestamp"""
         dt = dt or self.datas[0].datetime.date(0)
-        print('%s, %s' % (dt.isoformat(), txt))
+        print(f'{dt.isoformat()}, {txt}')
 
     def start(self):
-        self.order = None  # sentinel to avoid operations on pending order
-        self.val_start = self.broker.get_cash()  # keep the starting cash
+        """Initialize strategy"""
+        self.order = None
+        self.val_start = self.broker.get_cash()
 
     def next(self):
+        """Main strategy logic - override in subclasses"""
         pass
 
     def stop(self):
-        # calculate the actual returns
-        print(" ")
-        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        """Calculate and print final ROI"""
         self.roi = (self.broker.get_value() / self.val_start) - 1.0
-        print('ROI:     {:.2f}%'.format(100.0 * self.roi))
+        print(f'ROI: {100.0 * self.roi:.2f}%')
