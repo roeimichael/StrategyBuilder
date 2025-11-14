@@ -1,13 +1,5 @@
-"""
-Stock Monitoring Script for Live Trading
-Runs strategies on monitored stocks and logs signals
+"""Stock Monitoring Script for Live Trading"""
 
-This script should be run daily (via cron/task scheduler) to check
-monitored stocks for trading signals.
-
-Usage:
-    python src/monitor_stocks.py [--verbose]
-"""
 import sys
 import os
 import argparse
@@ -59,17 +51,12 @@ def get_latest_price(ticker: str) -> float:
             return hist['Close'].iloc[-1]
         return None
     except Exception as e:
-        print(f"  ❌ Error getting price for {ticker}: {str(e)}")
+        print(f"  Error getting price for {ticker}: {str(e)}")
         return None
 
 
 def check_strategy_signal(monitor: dict, verbose: bool = False) -> dict:
-    """
-    Run strategy on latest data and check for signals
-
-    Returns:
-        dict with signal info or None
-    """
+    """Run strategy on latest data and check for signals"""
     try:
         # Determine lookback period based on interval
         if monitor['interval'] == '1d':
@@ -82,14 +69,12 @@ def check_strategy_signal(monitor: dict, verbose: bool = False) -> dict:
         start_date = datetime.date.today() - datetime.timedelta(days=lookback_days)
         end_date = datetime.date.today()
 
-        # Get strategy class
         strategy_class = STRATEGIES.get(monitor['strategy'])
         if not strategy_class:
             if verbose:
-                print(f"  ⚠️  Unknown strategy: {monitor['strategy']}")
+                print(f"  Unknown strategy: {monitor['strategy']}")
             return None
 
-        # Run backtest
         runner = Run_strategy(monitor['parameters'], strategy_class)
         results = runner.runstrat(
             ticker=monitor['ticker'],
@@ -100,15 +85,14 @@ def check_strategy_signal(monitor: dict, verbose: bool = False) -> dict:
 
         if not results:
             if verbose:
-                print(f"  ⚠️  No results from backtest")
+                print(f"  No results from backtest")
             return None
 
-        # Check for recent trades (signals)
         trades = results.get('trades', [])
 
         if not trades:
             if verbose:
-                print(f"  ℹ️  No trades in recent period")
+                print(f"  No trades in recent period")
             return None
 
         # Get the most recent trade
@@ -119,19 +103,17 @@ def check_strategy_signal(monitor: dict, verbose: bool = False) -> dict:
         if isinstance(trade_date, str):
             trade_date = datetime.datetime.strptime(trade_date, '%Y-%m-%d').date()
 
-        # Consider signals from the last 3 days (to avoid missing signals on weekends)
         cutoff_date = datetime.date.today() - datetime.timedelta(days=3)
 
         if trade_date >= cutoff_date:
-            # This is a recent signal
-            signal_type = "SELL"  # Trade was closed
+            signal_type = "SELL"
             price = latest_trade['exit_price']
             pnl = latest_trade['pnl']
 
             reason = f"{monitor['strategy']} generated exit signal. P&L: ${pnl:+,.2f}"
 
             if verbose:
-                print(f"  🔔 Signal detected: {signal_type} at ${price:.2f}")
+                print(f"  Signal detected: {signal_type} at ${price:.2f}")
 
             return {
                 'signal_type': signal_type,
@@ -139,17 +121,14 @@ def check_strategy_signal(monitor: dict, verbose: bool = False) -> dict:
                 'reason': reason
             }
 
-        # Check if we currently have an open position (last trade is entry only)
-        # This would require checking if there's an unclosed entry
-
         if verbose:
-            print(f"  ℹ️  No recent signals")
+            print(f"  No recent signals")
 
         return None
 
     except Exception as e:
         if verbose:
-            print(f"  ❌ Error checking strategy: {str(e)}")
+            print(f"  Error checking strategy: {str(e)}")
             import traceback
             traceback.print_exc()
         return None
@@ -159,40 +138,34 @@ def monitor_stocks(verbose: bool = False):
     """Main monitoring function"""
 
     print("="*70)
-    print(f"📡 Stock Monitoring - {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"Stock Monitoring - {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("="*70)
 
-    # Initialize database
     db = TradingDatabase()
 
-    # Get monitored stocks
     monitored = db.get_monitored_stocks(status='active')
 
     if not monitored:
-        print("\nℹ️  No stocks are currently being monitored.")
-        print("   Add stocks to monitoring via the GUI (Live Trading tab)")
+        print("\nNo stocks are currently being monitored.")
+        print("Add stocks to monitoring via the GUI (Live Trading tab)")
         return
 
-    print(f"\n📊 Monitoring {len(monitored)} stock(s)...\n")
+    print(f"\nMonitoring {len(monitored)} stock(s)...\n")
 
     signals_found = 0
 
-    # Check each monitored stock
     for monitor in monitored:
-        print(f"🔍 Checking {monitor['ticker']} ({monitor['strategy']}, {monitor['interval']})...")
+        print(f"Checking {monitor['ticker']} ({monitor['strategy']}, {monitor['interval']})...")
 
-        # Get latest price
         price = get_latest_price(monitor['ticker'])
 
         if price:
             if verbose:
-                print(f"  💰 Current price: ${price:.2f}")
+                print(f"  Current price: ${price:.2f}")
 
-            # Check for trading signal
             signal = check_strategy_signal(monitor, verbose=verbose)
 
             if signal:
-                # Log signal to database
                 db.log_signal(
                     monitor_id=monitor['id'],
                     ticker=monitor['ticker'],
@@ -201,43 +174,36 @@ def monitor_stocks(verbose: bool = False):
                     reason=signal['reason']
                 )
 
-                print(f"  ✅ Logged {signal['signal_type']} signal at ${signal['price']:.2f}")
+                print(f"  Logged {signal['signal_type']} signal at ${signal['price']:.2f}")
                 signals_found += 1
             else:
                 if verbose:
-                    print(f"  ✓ No new signals")
+                    print(f"  No new signals")
 
-        # Update last checked timestamp
         db.update_monitor_last_checked(monitor['id'])
 
         print()
 
     print("="*70)
-    print(f"✅ Monitoring complete! Found {signals_found} new signal(s)")
+    print(f"Monitoring complete! Found {signals_found} new signal(s)")
     print("="*70)
 
 
 def main():
     """Main entry point"""
 
-    parser = argparse.ArgumentParser(
-        description='Monitor stocks for trading signals'
-    )
-    parser.add_argument(
-        '-v', '--verbose',
-        action='store_true',
-        help='Enable verbose output'
-    )
+    parser = argparse.ArgumentParser(description='Monitor stocks for trading signals')
+    parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose output')
 
     args = parser.parse_args()
 
     try:
         monitor_stocks(verbose=args.verbose)
     except KeyboardInterrupt:
-        print("\n\n⚠️  Monitoring interrupted by user")
+        print("\n\nMonitoring interrupted by user")
         sys.exit(1)
     except Exception as e:
-        print(f"\n❌ Fatal error: {str(e)}")
+        print(f"\nFatal error: {str(e)}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

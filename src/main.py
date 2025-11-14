@@ -1,7 +1,4 @@
-"""
-StrategyBuilder - Interactive Backtesting CLI
-"""
-from __future__ import absolute_import, division, print_function, unicode_literals
+"""StrategyBuilder - Interactive Backtesting CLI"""
 
 import os
 import sys
@@ -9,7 +6,6 @@ import datetime
 import yaml
 from typing import List, Dict, Any
 
-# Add src to path for imports
 sys.path.insert(0, os.path.dirname(__file__))
 
 from core.run_strategy import Run_strategy
@@ -20,7 +16,6 @@ from strategies.adx_strategy import adx_strat
 from strategies.cmf_atr_macd_strategy import MACD_CMF_ATR_Strategy
 from strategies.tema_crossover_strategy import Tema20_tema60
 
-# Available strategies
 STRATEGIES = {
     '1': ('Bollinger Bands', Bollinger_three, 'Mean reversion using Bollinger Bands'),
     '2': ('TEMA + MACD', TEMA_MACD, 'Triple EMA crossover with MACD confirmation'),
@@ -30,7 +25,6 @@ STRATEGIES = {
     '6': ('TEMA Crossover', Tema20_tema60, 'TEMA 20/60 crossover with volume filter'),
 }
 
-# Available time intervals
 INTERVALS = {
     '1': ('1 hour', '1h'),
     '2': ('1 day', '1d'),
@@ -115,7 +109,6 @@ def get_dates() -> tuple:
     print("DATE RANGE")
     print("-" * 70)
 
-    # Start date
     start_input = input("Enter start date (YYYY-MM-DD) or days back (e.g., 365) [default: 365 days]: ").strip()
 
     if not start_input:
@@ -133,7 +126,6 @@ def get_dates() -> tuple:
             print("Invalid date format. Using default (365 days ago)")
             start_date = datetime.date.today() - datetime.timedelta(days=365)
 
-    # End date
     end_input = input("Enter end date (YYYY-MM-DD) [default: today]: ").strip()
 
     if not end_input:
@@ -201,7 +193,6 @@ def get_additional_params(config: dict) -> dict:
     print("\nAdjustable parameters:")
     params = {}
 
-    # Position sizing
     print("\n1. Position Size (% of capital per trade)")
     order_pct = input("   Enter percentage (0-100) [default: 100]: ").strip()
     if order_pct:
@@ -210,7 +201,6 @@ def get_additional_params(config: dict) -> dict:
         except ValueError:
             pass
 
-    # MACD parameters
     print("\n2. MACD Parameters")
     macd_fast = input("   Fast period [default: 12]: ").strip()
     macd_slow = input("   Slow period [default: 26]: ").strip()
@@ -232,7 +222,6 @@ def get_additional_params(config: dict) -> dict:
         except ValueError:
             pass
 
-    # ATR parameters
     print("\n3. ATR (Average True Range) Parameters")
     atr_period = input("   Period [default: 14]: ").strip()
     atr_dist = input("   Distance multiplier [default: 2.0]: ").strip()
@@ -267,7 +256,6 @@ def build_parameters(config: dict, cash: float, custom_params: dict) -> dict:
         'order_pct': backtesting_config.get('order_percentage', 1.0),
     }
 
-    # Override with custom parameters
     parameters.update(custom_params)
 
     return parameters
@@ -345,10 +333,8 @@ def main():
     """Main execution function"""
     print_banner()
 
-    # Load configuration
     config = load_config()
 
-    # Get user inputs
     tickers = get_tickers()
     interval = get_interval()
     start_date, end_date = get_dates()
@@ -356,19 +342,15 @@ def main():
     cash = get_starting_cash()
     custom_params = get_additional_params(config)
 
-    # Build parameters
     parameters = build_parameters(config, cash, custom_params)
 
-    # Print summary
     print_summary(tickers, start_date, end_date, interval, strategy_name, parameters)
 
-    # Run backtests
     all_results = {}
     for ticker in tickers:
         results = run_backtest(ticker, start_date, end_date, interval, strategy_class, parameters)
         all_results[ticker] = results
 
-    # Print final summary
     print_results_summary(all_results)
 
     print("Backtesting complete!\n")
