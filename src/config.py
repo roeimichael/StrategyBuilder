@@ -1,19 +1,18 @@
 """Configuration and constants for StrategyBuilder Pro"""
 
-from strategies.bollinger_bands_strategy import Bollinger_three
-from strategies.tema_macd_strategy import TEMA_MACD
-from strategies.alligator_strategy import Alligator_strategy
 from strategies.adx_strategy import adx_strat
-from strategies.cmf_atr_macd_strategy import MACD_CMF_ATR_Strategy
-from strategies.tema_crossover_strategy import Tema20_tema60
-from strategies.rsi_stochastic_strategy import RSI_Stochastic
-from strategies.williams_r_strategy import Williams_R
-from strategies.mfi_strategy import MFI_Strategy
+from strategies.alligator_strategy import Alligator_strategy
+from strategies.bollinger_bands_strategy import Bollinger_three
 from strategies.cci_atr_strategy import CCI_ATR_Strategy
-from strategies.momentum_multi_strategy import Momentum_Multi
+from strategies.cmf_atr_macd_strategy import MACD_CMF_ATR_Strategy
 from strategies.keltner_channel_strategy import Keltner_Channel
+from strategies.mfi_strategy import MFI_Strategy
+from strategies.momentum_multi_strategy import Momentum_Multi
+from strategies.rsi_stochastic_strategy import RSI_Stochastic
+from strategies.tema_crossover_strategy import Tema20_tema60
+from strategies.tema_macd_strategy import TEMA_MACD
+from strategies.williams_r_strategy import Williams_R
 
-# Strategy definitions
 STRATEGIES = {
     'Bollinger Bands': {
         'class': Bollinger_three,
@@ -79,11 +78,9 @@ STRATEGIES = {
     },
 }
 
-# Default backtest parameters
 DEFAULT_PARAMS = {
     'cash': 100000,
     'commission': 0.001,
 }
 
-# Intervals
 INTERVALS = ['1d', '1wk', '1mo', '1h', '5m', '15m', '30m', '60m']

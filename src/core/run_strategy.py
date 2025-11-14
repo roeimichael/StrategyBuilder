@@ -1,13 +1,15 @@
 """Backtrader strategy execution engine"""
+
 import backtrader as bt
-import yfinance as yf
 import pandas as pd
+import yfinance as yf
 
 
 class Run_strategy:
     """Executes backtrader strategies and returns results"""
 
     def __init__(self, parameters, strategy, data=None):
+        """Initialize strategy runner with parameters and strategy class"""
         self.cerebro = bt.Cerebro()
         self.args = parameters
         self.data = data
@@ -37,7 +39,6 @@ class Run_strategy:
             if data.empty:
                 raise ValueError(f"No data available for {ticker}")
 
-            # Handle yfinance MultiIndex columns
             if isinstance(data.columns, pd.MultiIndex):
                 data.columns = data.columns.get_level_values(0)
             if len(data.columns) > 0 and isinstance(data.columns[0], tuple):
@@ -78,7 +79,6 @@ class Run_strategy:
         pnl = end_value - start_value
         return_pct = (end_value / start_value - 1) * 100
 
-        # Extract max drawdown
         try:
             max_drawdown = strat.observers.drawdown._maxdrawdown or 0
         except:

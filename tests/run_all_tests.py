@@ -23,14 +23,14 @@ def run_test_suite(test_name, test_file):
         elapsed = time.time() - start_time
 
         if result.returncode == 0:
-            print(f"\n✓ {test_name} PASSED ({elapsed:.1f}s)")
+            print(f"\nPASSED {test_name} ({elapsed:.1f}s)")
             return True
         else:
-            print(f"\n✗ {test_name} FAILED ({elapsed:.1f}s)")
+            print(f"\nFAILED {test_name} ({elapsed:.1f}s)")
             return False
 
     except Exception as e:
-        print(f"\n✗ {test_name} ERROR: {str(e)}")
+        print(f"\nERROR {test_name}: {str(e)}")
         return False
 
 
@@ -62,7 +62,6 @@ def main():
 
     overall_elapsed = time.time() - overall_start
 
-    # Final summary
     print("\n" + "=" * 100)
     print("FINAL TEST SUMMARY")
     print("=" * 100)
@@ -72,7 +71,7 @@ def main():
     failed_tests = total_tests - passed_tests
 
     for test_name, passed in results.items():
-        status = "✓ PASSED" if passed else "✗ FAILED"
+        status = "PASSED" if passed else "FAILED"
         print(f"{test_name:50} {status}")
 
     print("\n" + "-" * 100)
@@ -84,10 +83,10 @@ def main():
     print("=" * 100)
 
     if failed_tests == 0:
-        print("\n🎉 ALL TESTS PASSED! System is ready for beta release.")
+        print("\nALL TESTS PASSED! System is ready for beta release.")
         return 0
     else:
-        print(f"\n⚠ {failed_tests} test suite(s) failed. Review errors above.")
+        print(f"\n{failed_tests} test suite(s) failed. Review errors above.")
         return 1
 
 

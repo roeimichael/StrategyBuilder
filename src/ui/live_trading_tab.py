@@ -8,12 +8,10 @@ from utils.database import TradingDatabase
 
 def run_live_trading_tab(db: TradingDatabase):
     """Live trading/monitoring tab content"""
-
-    st.header(" Live Trading & Monitoring")
+    st.header("Live Trading & Monitoring")
     st.markdown("Monitor stocks with your tested strategies in real-time")
     st.markdown("---")
 
-    # Create subtabs for different views
     subtab1, subtab2, subtab3 = st.tabs(["📊 Backtest History", "📡 Active Monitoring", "📈 Signals & Performance"])
 
     with subtab1:
@@ -28,11 +26,9 @@ def run_live_trading_tab(db: TradingDatabase):
 
 def show_backtest_history(db: TradingDatabase):
     """Display backtest history with option to add to monitoring"""
-
-    st.subheader("📚 Past Backtest Configurations")
+    st.subheader("Past Backtest Configurations")
     st.markdown("Review your backtest history and add successful strategies to live monitoring")
 
-    # Filters
     col1, col2, col3 = st.columns(3)
 
     with col1:
@@ -47,7 +43,6 @@ def show_backtest_history(db: TradingDatabase):
     with col3:
         limit = st.number_input("Number of results:", min_value=10, max_value=100, value=50)
 
-    # Get backtests from database
     ticker_filter = filter_ticker.upper() if filter_ticker else None
     strategy_filter = None if filter_strategy == "All" else filter_strategy
 
@@ -64,10 +59,9 @@ def show_backtest_history(db: TradingDatabase):
     st.markdown(f"**Found {len(backtests)} backtest(s)**")
     st.markdown("---")
 
-    # Display each backtest as a card
     for backtest in backtests:
         with st.expander(
-            f"🔹 {backtest['ticker']} - {backtest['strategy']} "
+            f"{backtest['ticker']} - {backtest['strategy']} "
             f"({backtest['start_date']} to {backtest['end_date']}) - "
             f"Return: {backtest['return_pct']:+.2f}%",
             expanded=False
@@ -97,7 +91,6 @@ def show_backtest_history(db: TradingDatabase):
             if backtest['notes']:
                 st.markdown(f"**Notes:** {backtest['notes']}")
 
-            # Action button
             if st.button(f"📡 Add to Monitoring", key=f"add_monitor_{backtest['id']}"):
                 try:
                     monitor_id = db.add_to_monitoring(
@@ -107,18 +100,16 @@ def show_backtest_history(db: TradingDatabase):
                         parameters=backtest['parameters'],
                         backtest_id=backtest['id']
                     )
-                    st.success(f"• Added {backtest['ticker']} to monitoring (Monitor ID: {monitor_id})")
+                    st.success(f"Added {backtest['ticker']} to monitoring (Monitor ID: {monitor_id})")
                 except Exception as e:
                     st.error(f"Failed to add to monitoring: {str(e)}")
 
 
 def show_active_monitoring(db: TradingDatabase):
     """Display and manage actively monitored stocks"""
-
-    st.subheader("📡 Active Monitoring List")
+    st.subheader("Active Monitoring List")
     st.markdown("These stocks are being monitored for trading signals")
 
-    # Get monitored stocks
     monitored = db.get_monitored_stocks()
 
     if not monitored:
@@ -132,7 +123,6 @@ def show_active_monitoring(db: TradingDatabase):
     st.markdown(f"**Monitoring {len(monitored)} stock(s)**")
     st.markdown("---")
 
-    # Display monitored stocks
     for stock in monitored:
         with st.container():
             col1, col2, col3, col4 = st.columns([2, 2, 2, 1])
@@ -148,38 +138,33 @@ def show_active_monitoring(db: TradingDatabase):
             with col3:
                 last_checked = stock['last_checked'] if stock['last_checked'] else "Never"
                 if last_checked != "Never":
-                    last_checked = last_checked[:19]  # Show datetime without microseconds
+                    last_checked = last_checked[:19]
                 st.markdown(f"**Last Checked:** {last_checked}")
                 st.markdown(f"**Status:** {stock['status'].upper()}")
 
             with col4:
-                if st.button("× Remove", key=f"remove_{stock['id']}"):
+                if st.button("Remove", key=f"remove_{stock['id']}"):
                     db.remove_from_monitoring(stock['id'])
                     st.success(f"Removed {stock['ticker']} from monitoring")
                     st.rerun()
 
-            # Show parameters in expander
             with st.expander("View Configuration"):
                 st.json(stock['parameters'])
 
             st.markdown("---")
 
-    # Button to run monitoring script
-    st.markdown("### 🔄 Manual Check")
+    st.markdown("### Manual Check")
     if st.button("Run Monitoring Check Now", type="primary"):
         st.info("Monitoring check will be implemented in the monitoring script. Use `python monitor_stocks.py` to run checks.")
 
 
 def show_signals_and_performance(db: TradingDatabase):
     """Display trading signals and performance metrics"""
-
-    st.subheader("📈 Trading Signals & Performance")
+    st.subheader("Trading Signals & Performance")
     st.markdown("Recent trading signals from monitored stocks")
 
-    # Time filter
     days_back = st.slider("Show signals from last N days:", min_value=7, max_value=90, value=30)
 
-    # Get signals
     signals = db.get_signals(days=days_back)
 
     if not signals:
@@ -188,20 +173,17 @@ def show_signals_and_performance(db: TradingDatabase):
         st.code("python src/monitor_stocks.py", language="bash")
         return
 
-    # Create DataFrame for display
     signals_df = pd.DataFrame(signals)
 
     st.markdown(f"**Found {len(signals)} signal(s)**")
 
-    # Display signals
     st.dataframe(
         signals_df[['ticker', 'signal_type', 'signal_date', 'price', 'reason', 'created_at']],
         use_container_width=True,
         height=400
     )
 
-    # Summary statistics
-    st.markdown("### 📊 Signal Summary")
+    st.markdown("### Signal Summary")
 
     col1, col2, col3 = st.columns(3)
 

@@ -1,4 +1,5 @@
 """Base strategy class for all backtrader strategies"""
+
 import backtrader as bt
 
 
@@ -6,6 +7,7 @@ class Strategy_skeleton(bt.Strategy):
     """Base strategy with trade tracking and debugging utilities"""
 
     def __init__(self, args):
+        """Initialize strategy with parameters"""
         self.args = args
         self.size = 0
         self.trades = []

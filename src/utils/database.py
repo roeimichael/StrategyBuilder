@@ -1,10 +1,11 @@
 """Database utilities for StrategyBuilder"""
-import sqlite3
-import json
+
 import datetime
-from typing import List, Dict, Any, Optional
-from pathlib import Path
+import json
+import sqlite3
 from contextlib import contextmanager
+from pathlib import Path
+from typing import List, Dict, Any, Optional
 
 
 class TradingDatabase:
@@ -44,6 +45,7 @@ class TradingDatabase:
     }
 
     def __init__(self, db_path: str = "data/trading.db"):
+        """Initialize database connection and create tables if needed"""
         self.db_path = db_path
         Path(db_path).parent.mkdir(parents=True, exist_ok=True)
         self._init_database()

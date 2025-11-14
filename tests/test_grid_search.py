@@ -15,14 +15,12 @@ def test_grid_search():
     print("=" * 80)
 
     try:
-        # Test 1: Create parameter ranges
         print("\nTest 1: Create parameter ranges...")
         ranges_bb = create_parameter_ranges('Bollinger Bands')
-        print(f"✓ Bollinger Bands ranges: {ranges_bb}")
+        print(f"PASSED Bollinger Bands ranges: {ranges_bb}")
         assert 'period' in ranges_bb, "Should have period range"
         assert 'devfactor' in ranges_bb, "Should have devfactor range"
 
-        # Test 2: Initialize optimizer
         print("\nTest 2: Initialize optimizer...")
         strategy_info = STRATEGIES['Bollinger Bands']
         base_params = {
@@ -35,9 +33,8 @@ def test_grid_search():
             'atrdist': 2.0,
         }
         optimizer = GridSearchOptimizer(strategy_info['class'], base_params)
-        print("✓ Optimizer initialized")
+        print("PASSED Optimizer initialized")
 
-        # Test 3: Small grid search (2x2 = 4 combinations)
         print("\nTest 3: Running small grid search (4 combinations)...")
         param_ranges = {
             'period': [15, 20],
@@ -59,28 +56,25 @@ def test_grid_search():
             progress_callback=progress_callback
         )
 
-        print(f"✓ Grid search completed: {len(results)} results")
+        print(f"PASSED Grid search completed: {len(results)} results")
         assert len(results) > 0, "Should have at least one result"
         assert len(results) <= 4, "Should have at most 4 results"
 
-        # Test 4: Verify result structure
         print("\nTest 4: Verify result structure...")
         result = results[0]
         required_keys = ['parameters', 'return_pct', 'sharpe_ratio', 'total_trades',
                         'ticker', 'start_date', 'end_date', 'interval']
         for key in required_keys:
             assert key in result, f"Result should have '{key}' key"
-        print(f"✓ Result structure valid: {list(result.keys())}")
+        print(f"PASSED Result structure valid: {list(result.keys())}")
 
-        # Test 5: Verify sorting (should be sorted by return_pct descending)
         print("\nTest 5: Verify sorting...")
         if len(results) > 1:
             for i in range(len(results) - 1):
                 assert results[i]['return_pct'] >= results[i+1]['return_pct'], \
                     "Results should be sorted by return_pct descending"
-        print("✓ Results properly sorted")
+        print("PASSED Results properly sorted")
 
-        # Test 6: Display top result
         print("\nTest 6: Display top result...")
         top_result = results[0]
         print(f"  Ticker: {top_result['ticker']}")
@@ -88,9 +82,8 @@ def test_grid_search():
         print(f"  Sharpe: {top_result.get('sharpe_ratio', 'N/A')}")
         print(f"  Trades: {top_result['total_trades']}")
         print(f"  Parameters: {top_result['parameters']}")
-        print("✓ Top result displayed")
+        print("PASSED Top result displayed")
 
-        # Test 7: Test with different strategy
         print("\nTest 7: Test with ADX Adaptive strategy...")
         strategy_info = STRATEGIES['ADX Adaptive']
         optimizer = GridSearchOptimizer(strategy_info['class'], base_params)
@@ -106,24 +99,24 @@ def test_grid_search():
             end_date=end_date,
             interval='1d',
             param_ranges=param_ranges,
-            progress_callback=None  # No callback this time
+            progress_callback=None
         )
 
-        print(f"✓ ADX Adaptive grid search completed: {len(results)} results")
+        print(f"PASSED ADX Adaptive grid search completed: {len(results)} results")
         if len(results) == 0:
             print("  Note: ADX Adaptive returned no results (strategy may need longer time period)")
 
         print("\n" + "=" * 80)
-        print("ALL GRID SEARCH TESTS PASSED ✓")
+        print("ALL GRID SEARCH TESTS PASSED")
         print("=" * 80)
 
         return True
 
     except AssertionError as e:
-        print(f"\n✗ TEST FAILED: {str(e)}")
+        print(f"\nFAILED TEST FAILED: {str(e)}")
         return False
     except Exception as e:
-        print(f"\n✗ UNEXPECTED ERROR: {str(e)}")
+        print(f"\nFAILED UNEXPECTED ERROR: {str(e)}")
         import traceback
         traceback.print_exc()
         return False

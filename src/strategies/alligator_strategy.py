@@ -1,11 +1,16 @@
-import backtrader as bt
+"""Alligator indicator strategy with long and short positions"""
+
 import math
+
+import backtrader as bt
+
 from core.strategy_skeleton import Strategy_skeleton
 
 
 class Alligator_strategy(Strategy_skeleton):
 
     def __init__(self, args):
+        """Initialize Alligator indicator (lips, teeth, jaws) and EMA"""
         super(Alligator_strategy, self).__init__(args)
         self.lips = bt.indicators.SmoothedMovingAverage(self.data.close, period=5)
         self.teeth = bt.indicators.SmoothedMovingAverage(self.data.close, period=8)
@@ -17,48 +22,33 @@ class Alligator_strategy(Strategy_skeleton):
         self.long_position = 0
 
     def next(self):
-        print(self.datas[0].datetime.date(0))
-        print(type(self.datas[0].datetime.date(0)))
+        """Execute strategy logic on each bar"""
         self.log('Close, %.2f' % self.data[0])
-
-        if self.ema[0] is not None:  # biggest indicator to be calculated (200 days)
-
+        if self.ema[0] is not None:
             if self.order:
-                return  # pending order execution
-
-            if not self.position:  # not in the market
-
+                return
+            if not self.position:
                 amount_to_invest = (self.args['order_pct'] * self.broker.cash)
-                if self.data.close[0] > self.ema[0] and (self.jaws[0] < self.teeth[0] < self.lips[0]):  # if the graph is above the ema we can buy long
+                if self.data.close[0] > self.ema[0] and (self.jaws[0] < self.teeth[0] < self.lips[0]):
                     if self.lips[0] > self.data.close[0] > self.teeth[0]:
-                        # if self.lips[0] > self.data.teeth[0] and self.lips[0] > self.jaws[0]:
                         self.long_position = 1
                         self.size = math.floor(amount_to_invest / self.data.close)
                         self.order = self.buy(size=self.size)
-                        print(" ")
-                        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                         self.log('BUY CREATE (LONG), %.2f ' % self.data[0])
-                if self.data.close[0] < self.ema[0] and (self.jaws[0] > self.teeth[0] > self.lips[0]):  # if the graph is under the ema we can buy short
+                if self.data.close[0] < self.ema[0] and (self.jaws[0] > self.teeth[0] > self.lips[0]):
                     if self.lips[0] < self.data.close[0] < self.teeth[0]:
                         self.short_position = 1
                         self.size = math.floor(amount_to_invest / self.data.close)
-                        self. order = self.sell(size=self.size)
-                        print(" ")
-                        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+                        self.order = self.sell(size=self.size)
                         self.log('SELL CREATE (SHORT), %.2f ' % self.data[0])
-
-            else:  # selling
-                if self.long_position == 1:  # we have a long position opened
-                    if self.data.close[0] >= self.lips[0]:  # checking if the sl/tp is happening
+            else:
+                if self.long_position == 1:
+                    if self.data.close[0] >= self.lips[0]:
                         self.long_position = 0
-                        print(" ")
-                        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                         self.log('SELL CREATE (LONG), %.2f' % self.data[0])
                         self.close()
-                elif self.short_position == 1:  # we have a short position
-                    if self.data.close[0] <= self.lips[0]:  # checking if the sl/tp is happening
+                elif self.short_position == 1:
+                    if self.data.close[0] <= self.lips[0]:
                         self.short_position = 0
-                        print(" ")
-                        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                         self.log('BUY CREATE (SHORT), %.2f' % self.data[0])
                         self.close()

@@ -2,6 +2,7 @@
 import streamlit as st
 import datetime
 import pandas as pd
+import itertools
 
 from config import STRATEGIES
 from utils.visualization import create_backtest_chart, create_trades_table
@@ -11,22 +12,18 @@ from utils.grid_search import GridSearchOptimizer, create_parameter_ranges
 
 def run_grid_search_tab(db: TradingDatabase):
     """Grid search parameter optimization tab"""
-
-    st.header(" Grid Search - Parameter Optimization")
+    st.header("Grid Search - Parameter Optimization")
     st.markdown("Systematically test parameter combinations to find optimal strategy settings")
     st.markdown("---")
 
-    # Sidebar configuration
     with st.sidebar:
-        st.header("⚙ Grid Search Configuration")
+        st.header("Grid Search Configuration")
 
-        # Stock selection
         st.subheader("Stock")
         ticker = st.text_input("Ticker:", value="AAPL", help="Single stock for optimization")
 
         st.markdown("---")
 
-        # Strategy selection
         st.subheader("Strategy")
         strategy_name = st.selectbox(
             "Select strategy to optimize:",
@@ -38,7 +35,6 @@ def run_grid_search_tab(db: TradingDatabase):
 
         st.markdown("---")
 
-        # Date range
         st.subheader("Test Period")
         col1, col2 = st.columns(2)
 
@@ -60,13 +56,11 @@ def run_grid_search_tab(db: TradingDatabase):
 
         st.markdown("---")
 
-        # Capital settings
         st.subheader("Capital")
         starting_cash = st.number_input("Starting capital ($):", value=10000, min_value=1000, step=1000)
 
         st.markdown("---")
 
-        # Sort metric
         st.subheader("Optimization Metric")
         sort_metric = st.selectbox(
             "Optimize for:",
@@ -79,14 +73,11 @@ def run_grid_search_tab(db: TradingDatabase):
             help="Metric to optimize"
         )
 
-    # Main content
-    st.subheader("⚙ Parameter Ranges")
+    st.subheader("Parameter Ranges")
     st.markdown("Define the range of values to test for each parameter")
 
-    # Get default parameter ranges for this strategy
     default_ranges = create_parameter_ranges(strategy_name)
 
-    # Create parameter range inputs
     param_ranges = {}
 
     if strategy_name == 'Bollinger Bands':
@@ -178,25 +169,21 @@ def run_grid_search_tab(db: TradingDatabase):
     else:
         st.info(f"Parameter ranges for {strategy_name} not yet configured. Using default backtest.")
 
-    # Show total combinations
     if param_ranges:
-        import itertools
         total_combinations = 1
         for values in param_ranges.values():
             total_combinations *= len(values)
 
-        st.info(f"📊 Total combinations to test: **{total_combinations}**")
+        st.info(f"Total combinations to test: **{total_combinations}**")
 
         if total_combinations > 100:
-            st.warning("! Large number of combinations may take a while. Consider reducing parameter ranges.")
+            st.warning("Large number of combinations may take a while. Consider reducing parameter ranges.")
 
     st.markdown("---")
 
-    # Run grid search button
     run_search = st.button("⚙ Run Grid Search", type="primary", disabled=not param_ranges)
 
     if run_search and param_ranges:
-        # Base parameters
         base_params = {
             'cash': starting_cash,
             'order_pct': 1.0,
@@ -207,10 +194,8 @@ def run_grid_search_tab(db: TradingDatabase):
             'atrdist': 2.0,
         }
 
-        # Initialize optimizer
         optimizer = GridSearchOptimizer(strategy_info['class'], base_params)
 
-        # Progress tracking
         progress_bar = st.progress(0)
         status_text = st.empty()
         current_params_text = st.empty()
@@ -218,11 +203,9 @@ def run_grid_search_tab(db: TradingDatabase):
         def progress_callback(current, total, params):
             progress_bar.progress(current / total)
             status_text.text(f"Testing combination {current}/{total}...")
-            # Show current parameters being tested
             param_str = ", ".join([f"{k}={v}" for k, v in params.items() if k in param_ranges])
             current_params_text.text(f"Current: {param_str}")
 
-        # Run grid search
         with st.spinner("Running grid search..."):
             results = optimizer.run_grid_search(
                 ticker=ticker.upper(),
@@ -240,28 +223,24 @@ def run_grid_search_tab(db: TradingDatabase):
         if results:
             st.session_state.grid_search_results = results
             st.session_state.selected_grid_result = 0
-            st.success(f"• Grid search complete! Found {len(results)} valid combinations")
+            st.success(f"Grid search complete! Found {len(results)} valid combinations")
         else:
-            st.error("× No valid results from grid search")
+            st.error("No valid results from grid search")
 
-    # Display results
     if st.session_state.grid_search_results:
         st.markdown("---")
-        st.header(" Grid Search Results")
+        st.header("Grid Search Results")
 
         results = st.session_state.grid_search_results
 
-        # Get top 5
         top_results = results[:5]
 
-        # Selection sidebar
         col1, col2 = st.columns([1, 3])
 
         with col1:
-            st.subheader("🏆 Top 5 Results")
+            st.subheader("Top 5 Results")
 
             for idx, result in enumerate(top_results):
-                # Create button for each result
                 rank = idx + 1
                 return_pct = result['return_pct']
                 sharpe = result.get('sharpe_ratio', 0) if result.get('sharpe_ratio') else 0
@@ -271,17 +250,14 @@ def run_grid_search_tab(db: TradingDatabase):
                 if st.button(button_label, key=f"select_{idx}", use_container_width=True):
                     st.session_state.selected_grid_result = idx
 
-            # Highlight selected
             selected_idx = st.session_state.selected_grid_result
             st.markdown(f"**Currently viewing: #{selected_idx + 1}**")
 
         with col2:
-            # Display selected result
             selected_result = top_results[st.session_state.selected_grid_result]
 
-            st.subheader(f"🥇 Rank #{st.session_state.selected_grid_result + 1} Configuration")
+            st.subheader(f"Rank #{st.session_state.selected_grid_result + 1} Configuration")
 
-            # Metrics
             metric_col1, metric_col2, metric_col3, metric_col4 = st.columns(4)
 
             with metric_col1:
@@ -297,8 +273,7 @@ def run_grid_search_tab(db: TradingDatabase):
             with metric_col4:
                 st.metric("Win Rate", f"{selected_result.get('win_rate', 0):.1f}%")
 
-            # Parameters
-            st.markdown("### ⚙️ Optimal Parameters")
+            st.markdown("### Optimal Parameters")
             param_cols = st.columns(min(len(param_ranges), 4))
 
             for idx, (param_name, param_value) in enumerate(selected_result['parameters'].items()):
@@ -306,7 +281,6 @@ def run_grid_search_tab(db: TradingDatabase):
                     with param_cols[idx % len(param_cols)]:
                         st.metric(param_name.capitalize(), param_value)
 
-            # Action buttons
             st.markdown("---")
             action_col1, action_col2 = st.columns(2)
 
@@ -319,7 +293,7 @@ def run_grid_search_tab(db: TradingDatabase):
                             parameters=selected_result['parameters'],
                             notes=f"Grid search optimized (Rank #{st.session_state.selected_grid_result + 1})"
                         )
-                        st.success(f"• Saved configuration to database (ID: {backtest_id})")
+                        st.success(f"Saved configuration to database (ID: {backtest_id})")
                     except Exception as e:
                         st.error(f"Failed to save: {str(e)}")
 
@@ -332,13 +306,12 @@ def run_grid_search_tab(db: TradingDatabase):
                             interval=selected_result['interval'],
                             parameters=selected_result['parameters']
                         )
-                        st.success(f"• Added to monitoring (ID: {monitor_id})")
+                        st.success(f"Added to monitoring (ID: {monitor_id})")
                     except Exception as e:
                         st.error(f"Failed to add: {str(e)}")
 
-            # Chart
             st.markdown("---")
-            st.subheader("📊 Performance Chart")
+            st.subheader("Performance Chart")
 
             with st.spinner("Loading chart..."):
                 fig = create_backtest_chart(
@@ -354,18 +327,16 @@ def run_grid_search_tab(db: TradingDatabase):
             if fig:
                 st.plotly_chart(fig, use_container_width=True)
 
-            # Trades table
             if selected_result.get('trades'):
                 st.markdown("---")
-                st.subheader("📋 Trade Details")
+                st.subheader("Trade Details")
 
                 trades_df = create_trades_table(selected_result['trades'])
                 if not trades_df.empty:
                     st.dataframe(trades_df, use_container_width=True, height=300)
 
-        # Comparison table
         st.markdown("---")
-        st.subheader("📊 Top 5 Comparison")
+        st.subheader("Top 5 Comparison")
 
         comparison_data = []
         for idx, result in enumerate(top_results):
@@ -378,7 +349,6 @@ def run_grid_search_tab(db: TradingDatabase):
                 'Final Value': f"${result['end_value']:,.2f}"
             }
 
-            # Add parameter values
             for param_name in param_ranges.keys():
                 row[param_name.capitalize()] = result['parameters'].get(param_name, '')
 

@@ -11,14 +11,12 @@ from config import STRATEGIES
 from core.run_strategy import Run_strategy
 
 
-# Test configuration
 TEST_STOCKS = ['AAPL', 'MSFT', 'GOOGL', 'TSLA', 'NVDA']
 START_DATE = datetime.date.today() - datetime.timedelta(days=365)
 END_DATE = datetime.date.today()
 INTERVAL = '1d'
 BASE_CASH = 10000
 
-# Parameter variations for each strategy (5 configurations each)
 STRATEGY_VARIATIONS = {
     'Bollinger Bands': [
         {'period': 10, 'devfactor': 1.5},
@@ -35,7 +33,7 @@ STRATEGY_VARIATIONS = {
         {'macd1': 16, 'macd2': 32, 'macdsig': 11},
     ],
     'Alligator': [
-        {},  # Default params
+        {},
         {},
         {},
         {},
@@ -196,15 +194,14 @@ def run_comprehensive_tests():
                 all_results.append(result)
 
                 if result['status'] == 'SUCCESS':
-                    print(f"✓ Return: {result['return_pct']:+.2f}% | Trades: {result['total_trades']}")
+                    print(f"PASSED Return: {result['return_pct']:+.2f}% | Trades: {result['total_trades']}")
                 else:
-                    print(f"✗ FAILED: {result['error'][:50]}")
+                    print(f"FAILED: {result['error'][:50]}")
 
     print("\n" + "=" * 80)
     print("TEST SUMMARY")
     print("=" * 80)
 
-    # Calculate statistics
     successful_tests = [r for r in all_results if r['status'] == 'SUCCESS']
     failed_tests = [r for r in all_results if r['status'] == 'FAILED']
 
@@ -223,7 +220,6 @@ def run_comprehensive_tests():
         trades = [r['total_trades'] for r in successful_tests]
         print(f"  Average Trades: {sum(trades)/len(trades):.1f}")
 
-    # Strategy-level summary
     print(f"\n{'='*80}")
     print("STRATEGY-LEVEL SUMMARY")
     print(f"{'='*80}")
@@ -240,7 +236,6 @@ def run_comprehensive_tests():
         else:
             print(f"{strategy_name:30} | Tests: {len(strategy_results)} | All FAILED")
 
-    # Save results to CSV
     df = pd.DataFrame(all_results)
     output_file = 'test_results_comprehensive.csv'
     df.to_csv(output_file, index=False)
@@ -248,7 +243,6 @@ def run_comprehensive_tests():
 
     print("\n" + "=" * 80)
 
-    # Return overall success
     return len(failed_tests) == 0
 
 

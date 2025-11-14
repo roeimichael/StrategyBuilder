@@ -17,12 +17,9 @@ from core.run_strategy import Run_strategy
 
 def run_backtest_tab(db: TradingDatabase):
     """Backtest tab content"""
-
-    # Sidebar - Configuration
     with st.sidebar:
-        st.header("⚙ Configuration")
+        st.header("Configuration")
 
-        # Ticker Selection
         st.subheader("Stock Selection")
         ticker_source = st.radio(
             "Select ticker source:",
@@ -50,7 +47,7 @@ def run_backtest_tab(db: TradingDatabase):
                 default=['AAPL']
             )
 
-        else:  # Custom Input
+        else:
             custom_input = st.text_input(
                 "Enter ticker(s) (comma-separated):",
                 value="AAPL",
@@ -60,7 +57,6 @@ def run_backtest_tab(db: TradingDatabase):
 
         st.markdown("---")
 
-        # Strategy Selection
         st.subheader("Strategy")
         strategy_name = st.selectbox(
             "Select strategy:",
@@ -69,12 +65,11 @@ def run_backtest_tab(db: TradingDatabase):
         )
 
         strategy_info = STRATEGIES[strategy_name]
-        st.info(f"• {strategy_info['description']}")
+        st.info(f"{strategy_info['description']}")
 
-        # Strategy Parameters (if any)
         strategy_params = {}
         if strategy_info['params']:
-            with st.expander("▾ Strategy Parameters"):
+            with st.expander("Strategy Parameters"):
                 for param_name, default_value in strategy_info['params'].items():
                     if isinstance(default_value, int):
                         strategy_params[param_name] = st.number_input(
@@ -94,7 +89,6 @@ def run_backtest_tab(db: TradingDatabase):
 
         st.markdown("---")
 
-        # Date Range
         st.subheader("Date Range")
         col1, col2 = st.columns(2)
 
@@ -114,7 +108,6 @@ def run_backtest_tab(db: TradingDatabase):
 
         st.markdown("---")
 
-        # Time Interval
         st.subheader("Time Interval")
         interval = st.selectbox(
             "Select interval:",
@@ -125,7 +118,6 @@ def run_backtest_tab(db: TradingDatabase):
 
         st.markdown("---")
 
-        # Backtesting Parameters
         st.subheader("Backtest Settings")
 
         starting_cash = st.number_input(
@@ -145,8 +137,7 @@ def run_backtest_tab(db: TradingDatabase):
             help="Percentage of capital to use per trade"
         ) / 100
 
-        # Advanced parameters
-        with st.expander("⚙️ Advanced Parameters"):
+        with st.expander("Advanced Parameters"):
             macd_fast = st.number_input("MACD Fast Period", value=12, min_value=5, max_value=50)
             macd_slow = st.number_input("MACD Slow Period", value=26, min_value=10, max_value=100)
             macd_signal = st.number_input("MACD Signal Period", value=9, min_value=3, max_value=30)
@@ -155,12 +146,10 @@ def run_backtest_tab(db: TradingDatabase):
 
         st.markdown("---")
 
-        # Run Button
         run_button = st.button("⚡ Run Backtest", type="primary")
 
-    # Main content area
     if not selected_tickers:
-        st.warning("! Please select at least one stock ticker to begin.")
+        st.warning("Please select at least one stock ticker to begin.")
         st.info("""
         ### How to use StrategyBuilder:
         1. Select one or more stock tickers from the sidebar
@@ -171,8 +160,7 @@ def run_backtest_tab(db: TradingDatabase):
         """)
         return
 
-    # Show selected configuration
-    with st.expander("📋 Current Configuration", expanded=False):
+    with st.expander("Current Configuration", expanded=False):
         config_col1, config_col2, config_col3 = st.columns(3)
         with config_col1:
             st.write("**Tickers:**", ", ".join(selected_tickers))
@@ -184,11 +172,9 @@ def run_backtest_tab(db: TradingDatabase):
             st.write("**Capital:**", f"${starting_cash:,.2f}")
             st.write("**Position Size:**", f"{position_size*100:.0f}%")
 
-    # Run backtest
     if run_button:
         st.session_state.backtest_results = {}
 
-        # Build parameters
         parameters = {
             'cash': starting_cash,
             'order_pct': position_size,
@@ -199,16 +185,13 @@ def run_backtest_tab(db: TradingDatabase):
             'atrdist': atr_distance,
         }
 
-        # Add strategy-specific parameters
         parameters.update(strategy_params)
 
-        # Store in session for later use (monitoring)
         st.session_state.current_strategy = strategy_name
         st.session_state.current_parameters = parameters.copy()
 
         strategy_class = strategy_info['class']
 
-        # Progress bar
         progress_bar = st.progress(0)
         status_text = st.empty()
 
@@ -223,24 +206,22 @@ def run_backtest_tab(db: TradingDatabase):
                 if results:
                     st.session_state.backtest_results[ticker] = results
                 else:
-                    st.error(f"× Failed to run backtest for {ticker}")
+                    st.error(f"Failed to run backtest for {ticker}")
 
             except Exception as e:
-                st.error(f"× Error backtesting {ticker}: {str(e)}")
+                st.error(f"Error backtesting {ticker}: {str(e)}")
 
         progress_bar.empty()
         status_text.empty()
 
         if st.session_state.backtest_results:
-            st.success(f"• Backtesting completed for {len(st.session_state.backtest_results)} stock(s)!")
+            st.success(f"Backtesting completed for {len(st.session_state.backtest_results)} stock(s)")
             st.session_state.selected_stock = list(st.session_state.backtest_results.keys())[0]
 
-    # Display results
     if st.session_state.backtest_results:
         st.markdown("---")
-        st.header(" Backtest Results")
+        st.header("Backtest Results")
 
-        # Stock selector for multiple stocks
         if len(st.session_state.backtest_results) > 1:
             stock_tabs = st.tabs([f"📈 {ticker}" for ticker in st.session_state.backtest_results.keys()])
 
@@ -254,10 +235,8 @@ def run_backtest_tab(db: TradingDatabase):
 
 def display_results(ticker: str, results: Dict[str, Any], db: TradingDatabase):
     """Display backtest results for a single stock"""
-
     st.subheader(f"Results for {ticker}")
 
-    # Action buttons at the top
     col_save, col_monitor = st.columns([1, 1])
 
     with col_save:
@@ -269,7 +248,7 @@ def display_results(ticker: str, results: Dict[str, Any], db: TradingDatabase):
                     parameters=st.session_state.current_parameters,
                     notes=f"Backtest run on {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}"
                 )
-                st.success(f"• Saved to database (ID: {backtest_id})")
+                st.success(f"Saved to database (ID: {backtest_id})")
             except Exception as e:
                 st.error(f"Failed to save: {str(e)}")
 
@@ -282,13 +261,12 @@ def display_results(ticker: str, results: Dict[str, Any], db: TradingDatabase):
                     interval=results['interval'],
                     parameters=st.session_state.current_parameters
                 )
-                st.success(f"• Added to live monitoring (Monitor ID: {monitor_id})")
+                st.success(f"Added to live monitoring (Monitor ID: {monitor_id})")
             except Exception as e:
                 st.error(f"Failed to add to monitoring: {str(e)}")
 
     st.markdown("---")
 
-    # Key metrics
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
@@ -324,7 +302,6 @@ def display_results(ticker: str, results: Dict[str, Any], db: TradingDatabase):
         else:
             st.metric("Sharpe Ratio", "N/A")
 
-    # Second row of metrics
     col5, col6, col7, col8 = st.columns(4)
 
     with col5:
@@ -354,8 +331,7 @@ def display_results(ticker: str, results: Dict[str, Any], db: TradingDatabase):
 
     st.markdown("---")
 
-    # Interactive price chart with entry/exit signals
-    st.subheader("📊 Price Chart with Trade Signals")
+    st.subheader("Price Chart with Trade Signals")
 
     with st.spinner("Loading chart..."):
         fig = create_backtest_chart(
@@ -375,10 +351,9 @@ def display_results(ticker: str, results: Dict[str, Any], db: TradingDatabase):
 
     st.markdown("---")
 
-    # Performance charts
     trades = results.get('trades', [])
     if trades:
-        st.subheader("📈 Performance Analysis")
+        st.subheader("Performance Analysis")
 
         chart_col1, chart_col2 = st.columns(2)
 
@@ -394,13 +369,11 @@ def display_results(ticker: str, results: Dict[str, Any], db: TradingDatabase):
 
         st.markdown("---")
 
-        # Trade details table
-        st.subheader("📋 Trade Details")
+        st.subheader("Trade Details")
 
         trades_df = create_trades_table(trades)
 
         if not trades_df.empty:
-            # Color code P&L column
             def highlight_pnl(val):
                 if isinstance(val, str) and val.startswith('$'):
                     try:
@@ -411,7 +384,6 @@ def display_results(ticker: str, results: Dict[str, Any], db: TradingDatabase):
                         return ''
                 return ''
 
-            # Apply styling
             try:
                 styled_df = trades_df.style.map(highlight_pnl, subset=['P&L'])
             except AttributeError:
@@ -419,7 +391,6 @@ def display_results(ticker: str, results: Dict[str, Any], db: TradingDatabase):
 
             st.dataframe(styled_df, use_container_width=True, height=400)
 
-            # Download button for trade data
             csv = trades_df.to_csv(index=False)
             st.download_button(
                 label="💾 Download Trade Data (CSV)",

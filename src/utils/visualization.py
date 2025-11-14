@@ -1,29 +1,34 @@
 """Visualization utilities for StrategyBuilder - Creates interactive charts with strategy indicators"""
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import pandas as pd
-import yfinance as yf
-import numpy as np
-import streamlit as st
+
 from typing import List, Dict, Any, Tuple
 
+import numpy as np
+import pandas as pd
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import streamlit as st
+import yfinance as yf
 
-# Technical Indicator Calculations
+
 def calculate_sma(data: pd.Series, period: int) -> pd.Series:
+    """Calculate Simple Moving Average"""
     return data.rolling(window=period).mean()
 
 
 def calculate_ema(data: pd.Series, period: int) -> pd.Series:
+    """Calculate Exponential Moving Average"""
     return data.ewm(span=period, adjust=False).mean()
 
 
 def calculate_bollinger_bands(data: pd.Series, period: int = 20, devfactor: float = 2.0) -> Tuple[pd.Series, pd.Series, pd.Series]:
+    """Calculate Bollinger Bands"""
     sma = data.rolling(window=period).mean()
     std = data.rolling(window=period).std()
     return sma + (std * devfactor), sma, sma - (std * devfactor)
 
 
 def calculate_tema(data: pd.Series, period: int) -> pd.Series:
+    """Calculate Triple Exponential Moving Average"""
     ema1 = data.ewm(span=period, adjust=False).mean()
     ema2 = ema1.ewm(span=period, adjust=False).mean()
     ema3 = ema2.ewm(span=period, adjust=False).mean()
@@ -32,6 +37,7 @@ def calculate_tema(data: pd.Series, period: int) -> pd.Series:
 
 def calculate_keltner_channel(data: pd.DataFrame, ema_period: int = 20,
                              atr_period: int = 10, atr_multiplier: float = 2.0) -> Tuple[pd.Series, pd.Series, pd.Series]:
+    """Calculate Keltner Channel"""
     middle = data['Close'].ewm(span=ema_period, adjust=False).mean()
     ranges = pd.concat([
         data['High'] - data['Low'],
@@ -42,7 +48,6 @@ def calculate_keltner_channel(data: pd.DataFrame, ema_period: int = 20,
     return middle + (atr * atr_multiplier), middle, middle - (atr * atr_multiplier)
 
 
-# Chart Styling Constants
 COLORS = {
     'green': '#10b981',
     'red': '#ef4444',
@@ -133,29 +138,24 @@ def create_backtest_chart(ticker: str, start_date, end_date, interval: str,
             st.error(f"No data available for {ticker}")
             return None
 
-        # Handle MultiIndex columns from yfinance
         if isinstance(data.columns, pd.MultiIndex):
             data.columns = data.columns.get_level_values(0)
 
-        # Create subplot figure
         fig = make_subplots(
             rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.03,
             subplot_titles=(f'{ticker} Price Action with Trade Signals', 'Volume'),
             row_heights=[0.7, 0.3]
         )
 
-        # Add candlestick
         fig.add_trace(go.Candlestick(
             x=data.index, open=data['Open'], high=data['High'],
             low=data['Low'], close=data['Close'], name='Price',
             increasing_line_color=COLORS['green'], decreasing_line_color=COLORS['red']
         ), row=1, col=1)
 
-        # Add strategy indicators
         if strategy_name and strategy_params:
             add_strategy_indicators(fig, data, strategy_name, strategy_params, 1, 1)
 
-        # Add trade markers
         if trades:
             entry_dates, entry_prices, exit_dates, exit_prices = [], [], [], []
             colors_entry, colors_exit = [], []
@@ -183,7 +183,6 @@ def create_backtest_chart(ticker: str, start_date, end_date, interval: str,
                 hovertemplate='<b>Exit</b><br>Date: %{x}<br>Price: $%{y:.2f}<extra></extra>'
             ), row=1, col=1)
 
-        # Add volume bars
         colors = [COLORS['red'] if c < o else COLORS['green']
                  for c, o in zip(data['Close'], data['Open'])]
         fig.add_trace(go.Bar(
@@ -191,7 +190,6 @@ def create_backtest_chart(ticker: str, start_date, end_date, interval: str,
             marker_color=colors, showlegend=False, opacity=0.6
         ), row=2, col=1)
 
-        # Update layout
         fig.update_layout(
             title=f'{ticker} Backtest Visualization',
             xaxis_title='Date', yaxis_title='Price ($)',
