@@ -1,0 +1,1445 @@
+{
+  "timestamp": "2025-11-15T18:24:31.950132",
+  "summary": {
+    "total": 221,
+    "passed": 201,
+    "failed": 1,
+    "errors": 0,
+    "skipped": 19,
+    "execution_time": 6.442016124725342,
+    "pass_rate": 90.9502262443439
+  },
+  "test_results": [
+    {
+      "test": "test_api_documentation_accessible (test_api_integration.TestAPIIntegration.test_api_documentation_accessible)",
+      "status": "SKIP",
+      "time": 1.7881393432617188e-05,
+      "module": "test_api_integration",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_backtest_endpoint_invalid_date_format (test_api_integration.TestAPIIntegration.test_backtest_endpoint_invalid_date_format)",
+      "status": "SKIP",
+      "time": 7.62939453125e-06,
+      "module": "test_api_integration",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_backtest_endpoint_invalid_parameters (test_api_integration.TestAPIIntegration.test_backtest_endpoint_invalid_parameters)",
+      "status": "SKIP",
+      "time": 5.9604644775390625e-06,
+      "module": "test_api_integration",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_backtest_endpoint_invalid_strategy (test_api_integration.TestAPIIntegration.test_backtest_endpoint_invalid_strategy)",
+      "status": "SKIP",
+      "time": 3.814697265625e-06,
+      "module": "test_api_integration",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_backtest_endpoint_missing_required_fields (test_api_integration.TestAPIIntegration.test_backtest_endpoint_missing_required_fields)",
+      "status": "SKIP",
+      "time": 4.291534423828125e-06,
+      "module": "test_api_integration",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_backtest_endpoint_with_default_parameters (test_api_integration.TestAPIIntegration.test_backtest_endpoint_with_default_parameters)",
+      "status": "SKIP",
+      "time": 4.0531158447265625e-06,
+      "module": "test_api_integration",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_backtest_endpoint_with_sma_strategy (test_api_integration.TestAPIIntegration.test_backtest_endpoint_with_sma_strategy)",
+      "status": "SKIP",
+      "time": 3.5762786865234375e-06,
+      "module": "test_api_integration",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_backtest_endpoint_with_valid_request (test_api_integration.TestAPIIntegration.test_backtest_endpoint_with_valid_request)",
+      "status": "SKIP",
+      "time": 8.106231689453125e-06,
+      "module": "test_api_integration",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_backtest_response_includes_execution_time (test_api_integration.TestAPIIntegration.test_backtest_response_includes_execution_time)",
+      "status": "SKIP",
+      "time": 4.5299530029296875e-06,
+      "module": "test_api_integration",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_backtest_results_contain_trades (test_api_integration.TestAPIIntegration.test_backtest_results_contain_trades)",
+      "status": "SKIP",
+      "time": 3.814697265625e-06,
+      "module": "test_api_integration",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_config_endpoint (test_api_integration.TestAPIIntegration.test_config_endpoint)",
+      "status": "SKIP",
+      "time": 3.814697265625e-06,
+      "module": "test_api_integration",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_health_check_endpoint (test_api_integration.TestAPIIntegration.test_health_check_endpoint)",
+      "status": "SKIP",
+      "time": 3.5762786865234375e-06,
+      "module": "test_api_integration",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_multiple_concurrent_backtest_requests (test_api_integration.TestAPIIntegration.test_multiple_concurrent_backtest_requests)",
+      "status": "SKIP",
+      "time": 7.200241088867188e-05,
+      "module": "test_api_integration",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_root_endpoint (test_api_integration.TestAPIIntegration.test_root_endpoint)",
+      "status": "SKIP",
+      "time": 3.0994415283203125e-06,
+      "module": "test_api_integration",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_strategies_endpoint (test_api_integration.TestAPIIntegration.test_strategies_endpoint)",
+      "status": "SKIP",
+      "time": 3.337860107421875e-06,
+      "module": "test_api_integration",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_strategies_endpoint_includes_bollinger_bands (test_api_integration.TestAPIIntegration.test_strategies_endpoint_includes_bollinger_bands)",
+      "status": "SKIP",
+      "time": 4.76837158203125e-06,
+      "module": "test_api_integration",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_backtest_validates_date_order (test_api_integration.TestAPIValidation.test_backtest_validates_date_order)",
+      "status": "SKIP",
+      "time": 6.4373016357421875e-06,
+      "module": "test_api_integration",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_backtest_validates_ticker_format (test_api_integration.TestAPIValidation.test_backtest_validates_ticker_format)",
+      "status": "SKIP",
+      "time": 3.5762786865234375e-06,
+      "module": "test_api_integration",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_default_config (test_config_loader.TestConfigLoader.test_default_config)",
+      "status": "PASS",
+      "time": 0.002928018569946289,
+      "module": "test_config_loader"
+    },
+    {
+      "test": "test_get_data_manager_config (test_config_loader.TestConfigLoader.test_get_data_manager_config)",
+      "status": "PASS",
+      "time": 0.0023250579833984375,
+      "module": "test_config_loader"
+    },
+    {
+      "test": "test_get_nested_key (test_config_loader.TestConfigLoader.test_get_nested_key)",
+      "status": "PASS",
+      "time": 0.0019693374633789062,
+      "module": "test_config_loader"
+    },
+    {
+      "test": "test_get_simple_key (test_config_loader.TestConfigLoader.test_get_simple_key)",
+      "status": "PASS",
+      "time": 0.0021278858184814453,
+      "module": "test_config_loader"
+    },
+    {
+      "test": "test_get_strategy_config (test_config_loader.TestConfigLoader.test_get_strategy_config)",
+      "status": "PASS",
+      "time": 0.0023822784423828125,
+      "module": "test_config_loader"
+    },
+    {
+      "test": "test_get_walk_forward_config (test_config_loader.TestConfigLoader.test_get_walk_forward_config)",
+      "status": "PASS",
+      "time": 0.0021233558654785156,
+      "module": "test_config_loader"
+    },
+    {
+      "test": "test_get_with_default (test_config_loader.TestConfigLoader.test_get_with_default)",
+      "status": "PASS",
+      "time": 0.001998424530029297,
+      "module": "test_config_loader"
+    },
+    {
+      "test": "test_load_config (test_config_loader.TestConfigLoader.test_load_config)",
+      "status": "PASS",
+      "time": 0.002543926239013672,
+      "module": "test_config_loader"
+    },
+    {
+      "test": "test_load_nonexistent_file (test_config_loader.TestConfigLoader.test_load_nonexistent_file)",
+      "status": "PASS",
+      "time": 0.0010488033294677734,
+      "module": "test_config_loader"
+    },
+    {
+      "test": "test_bulk_download_success (test_data_manager.TestDataManager.test_bulk_download_success)",
+      "status": "PASS",
+      "time": 0.07007956504821777,
+      "module": "test_data_manager"
+    },
+    {
+      "test": "test_bulk_download_with_failures (test_data_manager.TestDataManager.test_bulk_download_with_failures)",
+      "status": "PASS",
+      "time": 0.04702401161193848,
+      "module": "test_data_manager"
+    },
+    {
+      "test": "test_cache_data (test_data_manager.TestDataManager.test_cache_data)",
+      "status": "PASS",
+      "time": 0.041356563568115234,
+      "module": "test_data_manager"
+    },
+    {
+      "test": "test_clean_and_validate_data_removes_invalid_high_low (test_data_manager.TestDataManager.test_clean_and_validate_data_removes_invalid_high_low)",
+      "status": "PASS",
+      "time": 0.028509855270385742,
+      "module": "test_data_manager"
+    },
+    {
+      "test": "test_clean_and_validate_data_removes_invalid_prices (test_data_manager.TestDataManager.test_clean_and_validate_data_removes_invalid_prices)",
+      "status": "PASS",
+      "time": 0.028176069259643555,
+      "module": "test_data_manager"
+    },
+    {
+      "test": "test_clean_and_validate_data_removes_nans (test_data_manager.TestDataManager.test_clean_and_validate_data_removes_nans)",
+      "status": "PASS",
+      "time": 0.028596162796020508,
+      "module": "test_data_manager"
+    },
+    {
+      "test": "test_clean_and_validate_data_validates_ohlc_relationships (test_data_manager.TestDataManager.test_clean_and_validate_data_validates_ohlc_relationships)",
+      "status": "PASS",
+      "time": 0.03155803680419922,
+      "module": "test_data_manager"
+    },
+    {
+      "test": "test_clear_cache_all (test_data_manager.TestDataManager.test_clear_cache_all)",
+      "status": "PASS",
+      "time": 0.05872607231140137,
+      "module": "test_data_manager"
+    },
+    {
+      "test": "test_clear_cache_specific_ticker (test_data_manager.TestDataManager.test_clear_cache_specific_ticker)",
+      "status": "PASS",
+      "time": 0.05926322937011719,
+      "module": "test_data_manager"
+    },
+    {
+      "test": "test_database_tables_created (test_data_manager.TestDataManager.test_database_tables_created)",
+      "status": "PASS",
+      "time": 0.029145002365112305,
+      "module": "test_data_manager"
+    },
+    {
+      "test": "test_get_cache_stats (test_data_manager.TestDataManager.test_get_cache_stats)",
+      "status": "PASS",
+      "time": 0.04973125457763672,
+      "module": "test_data_manager"
+    },
+    {
+      "test": "test_get_cached_data_empty (test_data_manager.TestDataManager.test_get_cached_data_empty)",
+      "status": "PASS",
+      "time": 0.030178308486938477,
+      "module": "test_data_manager"
+    },
+    {
+      "test": "test_get_data_with_force_update (test_data_manager.TestDataManager.test_get_data_with_force_update)",
+      "status": "PASS",
+      "time": 0.04145216941833496,
+      "module": "test_data_manager"
+    },
+    {
+      "test": "test_get_sp500_tickers (test_data_manager.TestDataManager.test_get_sp500_tickers)",
+      "status": "PASS",
+      "time": 0.19880175590515137,
+      "module": "test_data_manager"
+    },
+    {
+      "test": "test_init_creates_database (test_data_manager.TestDataManager.test_init_creates_database)",
+      "status": "PASS",
+      "time": 0.02832627296447754,
+      "module": "test_data_manager"
+    },
+    {
+      "test": "test_is_cache_complete_empty (test_data_manager.TestDataManager.test_is_cache_complete_empty)",
+      "status": "PASS",
+      "time": 0.02571272850036621,
+      "module": "test_data_manager"
+    },
+    {
+      "test": "test_is_cache_complete_false (test_data_manager.TestDataManager.test_is_cache_complete_false)",
+      "status": "PASS",
+      "time": 0.027497529983520508,
+      "module": "test_data_manager"
+    },
+    {
+      "test": "test_is_cache_complete_true (test_data_manager.TestDataManager.test_is_cache_complete_true)",
+      "status": "PASS",
+      "time": 0.02766895294189453,
+      "module": "test_data_manager"
+    },
+    {
+      "test": "test_bollinger_bands_addition (test_deployment_validation.TestAdvancedCharting.test_bollinger_bands_addition)",
+      "status": "PASS",
+      "time": 0.3196742534637451,
+      "module": "test_deployment_validation"
+    },
+    {
+      "test": "test_candlestick_chart_creation (test_deployment_validation.TestAdvancedCharting.test_candlestick_chart_creation)",
+      "status": "PASS",
+      "time": 0.03197836875915527,
+      "module": "test_deployment_validation"
+    },
+    {
+      "test": "test_chart_builder_initialization (test_deployment_validation.TestAdvancedCharting.test_chart_builder_initialization)",
+      "status": "PASS",
+      "time": 0.0007474422454833984,
+      "module": "test_deployment_validation"
+    },
+    {
+      "test": "test_sma_indicator_addition (test_deployment_validation.TestAdvancedCharting.test_sma_indicator_addition)",
+      "status": "PASS",
+      "time": 0.03611493110656738,
+      "module": "test_deployment_validation"
+    },
+    {
+      "test": "test_all_required_files_exist (test_deployment_validation.TestDeploymentReadiness.test_all_required_files_exist)",
+      "status": "PASS",
+      "time": 0.0009756088256835938,
+      "module": "test_deployment_validation"
+    },
+    {
+      "test": "test_critical_modules_exist (test_deployment_validation.TestDeploymentReadiness.test_critical_modules_exist)",
+      "status": "PASS",
+      "time": 0.03521585464477539,
+      "module": "test_deployment_validation"
+    },
+    {
+      "test": "test_src_directory_structure (test_deployment_validation.TestDeploymentReadiness.test_src_directory_structure)",
+      "status": "PASS",
+      "time": 0.0005643367767333984,
+      "module": "test_deployment_validation"
+    },
+    {
+      "test": "test_api_requirements_has_fastapi (test_deployment_validation.TestDockerValidation.test_api_requirements_has_fastapi)",
+      "status": "PASS",
+      "time": 0.0003325939178466797,
+      "module": "test_deployment_validation"
+    },
+    {
+      "test": "test_docker_compose_exists (test_deployment_validation.TestDockerValidation.test_docker_compose_exists)",
+      "status": "PASS",
+      "time": 0.00017070770263671875,
+      "module": "test_deployment_validation"
+    },
+    {
+      "test": "test_docker_compose_syntax (test_deployment_validation.TestDockerValidation.test_docker_compose_syntax)",
+      "status": "PASS",
+      "time": 0.0003516674041748047,
+      "module": "test_deployment_validation"
+    },
+    {
+      "test": "test_dockerfile_exists (test_deployment_validation.TestDockerValidation.test_dockerfile_exists)",
+      "status": "PASS",
+      "time": 0.00020003318786621094,
+      "module": "test_deployment_validation"
+    },
+    {
+      "test": "test_dockerfile_has_healthcheck (test_deployment_validation.TestDockerValidation.test_dockerfile_has_healthcheck)",
+      "status": "PASS",
+      "time": 0.0002522468566894531,
+      "module": "test_deployment_validation"
+    },
+    {
+      "test": "test_dockerfile_syntax (test_deployment_validation.TestDockerValidation.test_dockerfile_syntax)",
+      "status": "PASS",
+      "time": 0.00024247169494628906,
+      "module": "test_deployment_validation"
+    },
+    {
+      "test": "test_dockerfile_uses_nonroot_user (test_deployment_validation.TestDockerValidation.test_dockerfile_uses_nonroot_user)",
+      "status": "PASS",
+      "time": 0.0003266334533691406,
+      "module": "test_deployment_validation"
+    },
+    {
+      "test": "test_dockerignore_exists (test_deployment_validation.TestDockerValidation.test_dockerignore_exists)",
+      "status": "PASS",
+      "time": 0.00015616416931152344,
+      "module": "test_deployment_validation"
+    },
+    {
+      "test": "test_requirements_files_exist (test_deployment_validation.TestDockerValidation.test_requirements_files_exist)",
+      "status": "PASS",
+      "time": 0.00024509429931640625,
+      "module": "test_deployment_validation"
+    },
+    {
+      "test": "test_requirements_has_core_dependencies (test_deployment_validation.TestDockerValidation.test_requirements_has_core_dependencies)",
+      "status": "PASS",
+      "time": 0.0002110004425048828,
+      "module": "test_deployment_validation"
+    },
+    {
+      "test": "test_requirements_has_reporting_dependencies (test_deployment_validation.TestDockerValidation.test_requirements_has_reporting_dependencies)",
+      "status": "PASS",
+      "time": 0.0002148151397705078,
+      "module": "test_deployment_validation"
+    },
+    {
+      "test": "test_email_notifier_initialization_with_credentials (test_deployment_validation.TestNotificationSystem.test_email_notifier_initialization_with_credentials)",
+      "status": "PASS",
+      "time": 3.5762786865234375e-05,
+      "module": "test_deployment_validation"
+    },
+    {
+      "test": "test_email_notifier_initialization_without_credentials (test_deployment_validation.TestNotificationSystem.test_email_notifier_initialization_without_credentials)",
+      "status": "PASS",
+      "time": 4.792213439941406e-05,
+      "module": "test_deployment_validation"
+    },
+    {
+      "test": "test_env_template_creation (test_deployment_validation.TestNotificationSystem.test_env_template_creation)",
+      "status": "PASS",
+      "time": 0.0018808841705322266,
+      "module": "test_deployment_validation"
+    },
+    {
+      "test": "test_csv_export (test_deployment_validation.TestReportGeneration.test_csv_export)",
+      "status": "PASS",
+      "time": 0.004730939865112305,
+      "module": "test_deployment_validation"
+    },
+    {
+      "test": "test_html_report_generation (test_deployment_validation.TestReportGeneration.test_html_report_generation)",
+      "status": "PASS",
+      "time": 0.001760244369506836,
+      "module": "test_deployment_validation"
+    },
+    {
+      "test": "test_pdf_report_generation (test_deployment_validation.TestReportGeneration.test_pdf_report_generation)",
+      "status": "SKIP",
+      "time": 0.0007531642913818359,
+      "module": "test_deployment_validation",
+      "reason": "reportlab not installed: reportlab is required for PDF generation. Install with: pip install reportlab"
+    },
+    {
+      "test": "test_equity_curve_calculation (test_monte_carlo.TestEquityCurveGeneration.test_equity_curve_calculation)",
+      "status": "PASS",
+      "time": 0.010454177856445312,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_equity_curve_length (test_monte_carlo.TestEquityCurveGeneration.test_equity_curve_length)",
+      "status": "PASS",
+      "time": 4.8160552978515625e-05,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_equity_curve_multiple_simulations (test_monte_carlo.TestEquityCurveGeneration.test_equity_curve_multiple_simulations)",
+      "status": "PASS",
+      "time": 0.0010771751403808594,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_equity_curve_starts_at_initial_capital (test_monte_carlo.TestEquityCurveGeneration.test_equity_curve_starts_at_initial_capital)",
+      "status": "PASS",
+      "time": 3.457069396972656e-05,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_equity_curve_with_100_percent_loss (test_monte_carlo.TestEquityCurveGeneration.test_equity_curve_with_100_percent_loss)",
+      "status": "PASS",
+      "time": 1.9311904907226562e-05,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_empty_trades_raises_error (test_monte_carlo.TestFromTradesSimulation.test_empty_trades_raises_error)",
+      "status": "PASS",
+      "time": 6.842613220214844e-05,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_simulate_from_trades_with_pnl (test_monte_carlo.TestFromTradesSimulation.test_simulate_from_trades_with_pnl)",
+      "status": "PASS",
+      "time": 0.0008339881896972656,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_simulate_from_trades_with_return_pct (test_monte_carlo.TestFromTradesSimulation.test_simulate_from_trades_with_return_pct)",
+      "status": "PASS",
+      "time": 0.0007979869842529297,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_calculate_max_drawdown (test_monte_carlo.TestMaxDrawdownCalculation.test_calculate_max_drawdown)",
+      "status": "PASS",
+      "time": 3.743171691894531e-05,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_max_drawdown_all_simulations (test_monte_carlo.TestMaxDrawdownCalculation.test_max_drawdown_all_simulations)",
+      "status": "PASS",
+      "time": 0.001165151596069336,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_max_drawdown_no_drawdown (test_monte_carlo.TestMaxDrawdownCalculation.test_max_drawdown_no_drawdown)",
+      "status": "PASS",
+      "time": 4.57763671875e-05,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_bootstrap_different_seeds (test_monte_carlo.TestMonteCarloBasics.test_bootstrap_different_seeds)",
+      "status": "PASS",
+      "time": 0.00013327598571777344,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_bootstrap_reproducibility (test_monte_carlo.TestMonteCarloBasics.test_bootstrap_reproducibility)",
+      "status": "PASS",
+      "time": 0.0001201629638671875,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_bootstrap_returns (test_monte_carlo.TestMonteCarloBasics.test_bootstrap_returns)",
+      "status": "PASS",
+      "time": 7.486343383789062e-05,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_initialization (test_monte_carlo.TestMonteCarloBasics.test_initialization)",
+      "status": "PASS",
+      "time": 1.6689300537109375e-05,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_bootstrap_method (test_monte_carlo.TestSimulationMethods.test_bootstrap_method)",
+      "status": "PASS",
+      "time": 0.0016107559204101562,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_empty_returns_raises_error (test_monte_carlo.TestSimulationMethods.test_empty_returns_raises_error)",
+      "status": "PASS",
+      "time": 3.147125244140625e-05,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_invalid_method_raises_error (test_monte_carlo.TestSimulationMethods.test_invalid_method_raises_error)",
+      "status": "PASS",
+      "time": 3.981590270996094e-05,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_shuffle_method (test_monte_carlo.TestSimulationMethods.test_shuffle_method)",
+      "status": "PASS",
+      "time": 0.0011720657348632812,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_losing_strategy_probability (test_monte_carlo.TestStatisticalCalculations.test_losing_strategy_probability)",
+      "status": "PASS",
+      "time": 0.001791238784790039,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_percentiles_in_order (test_monte_carlo.TestStatisticalCalculations.test_percentiles_in_order)",
+      "status": "PASS",
+      "time": 0.013007402420043945,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_probability_of_profit_range (test_monte_carlo.TestStatisticalCalculations.test_probability_of_profit_range)",
+      "status": "PASS",
+      "time": 0.0018281936645507812,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_profitable_strategy_probability (test_monte_carlo.TestStatisticalCalculations.test_profitable_strategy_probability)",
+      "status": "PASS",
+      "time": 0.0017266273498535156,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_results_contains_all_metrics (test_monte_carlo.TestStatisticalCalculations.test_results_contains_all_metrics)",
+      "status": "PASS",
+      "time": 0.001897573471069336,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_risk_of_ruin_range (test_monte_carlo.TestStatisticalCalculations.test_risk_of_ruin_range)",
+      "status": "PASS",
+      "time": 0.0019524097442626953,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_2008_crisis_stress (test_monte_carlo.TestStressTesting.test_2008_crisis_stress)",
+      "status": "PASS",
+      "time": 0.006189107894897461,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_black_swan_stress (test_monte_carlo.TestStressTesting.test_black_swan_stress)",
+      "status": "PASS",
+      "time": 0.006373405456542969,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_flash_crash_stress (test_monte_carlo.TestStressTesting.test_flash_crash_stress)",
+      "status": "PASS",
+      "time": 0.0012900829315185547,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_invalid_scenario_raises_error (test_monte_carlo.TestStressTesting.test_invalid_scenario_raises_error)",
+      "status": "PASS",
+      "time": 4.935264587402344e-05,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_prolonged_bear_stress (test_monte_carlo.TestStressTesting.test_prolonged_bear_stress)",
+      "status": "PASS",
+      "time": 0.0015163421630859375,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_get_summary_statistics (test_monte_carlo.TestSummaryStatistics.test_get_summary_statistics)",
+      "status": "PASS",
+      "time": 0.0020003318786621094,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_summary_statistics_values (test_monte_carlo.TestSummaryStatistics.test_summary_statistics_values)",
+      "status": "PASS",
+      "time": 0.0017108917236328125,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_bootstrap_allows_replacement (test_monte_carlo.TestTradeSequenceRandomization.test_bootstrap_allows_replacement)",
+      "status": "PASS",
+      "time": 0.00011229515075683594,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_shuffle_preserves_all_returns (test_monte_carlo.TestTradeSequenceRandomization.test_shuffle_preserves_all_returns)",
+      "status": "PASS",
+      "time": 4.482269287109375e-05,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_shuffle_randomizes_trade_order (test_monte_carlo.TestTradeSequenceRandomization.test_shuffle_randomizes_trade_order)",
+      "status": "PASS",
+      "time": 0.000621795654296875,
+      "module": "test_monte_carlo"
+    },
+    {
+      "test": "test_avg_win_loss_calculation (test_performance_analyzer.TestPerformanceAnalyzer.test_avg_win_loss_calculation)",
+      "status": "PASS",
+      "time": 0.0018455982208251953,
+      "module": "test_performance_analyzer"
+    },
+    {
+      "test": "test_calculate_all_metrics_integration (test_performance_analyzer.TestPerformanceAnalyzer.test_calculate_all_metrics_integration)",
+      "status": "PASS",
+      "time": 0.00130462646484375,
+      "module": "test_performance_analyzer"
+    },
+    {
+      "test": "test_calmar_ratio_calculation (test_performance_analyzer.TestPerformanceAnalyzer.test_calmar_ratio_calculation)",
+      "status": "PASS",
+      "time": 0.000331878662109375,
+      "module": "test_performance_analyzer"
+    },
+    {
+      "test": "test_consecutive_losses_calculation (test_performance_analyzer.TestPerformanceAnalyzer.test_consecutive_losses_calculation)",
+      "status": "PASS",
+      "time": 0.00023818016052246094,
+      "module": "test_performance_analyzer"
+    },
+    {
+      "test": "test_consecutive_wins_calculation (test_performance_analyzer.TestPerformanceAnalyzer.test_consecutive_wins_calculation)",
+      "status": "PASS",
+      "time": 0.0002949237823486328,
+      "module": "test_performance_analyzer"
+    },
+    {
+      "test": "test_consecutive_wins_with_long_streak (test_performance_analyzer.TestPerformanceAnalyzer.test_consecutive_wins_with_long_streak)",
+      "status": "PASS",
+      "time": 0.00028014183044433594,
+      "module": "test_performance_analyzer"
+    },
+    {
+      "test": "test_create_equity_curve_static_method (test_performance_analyzer.TestPerformanceAnalyzer.test_create_equity_curve_static_method)",
+      "status": "PASS",
+      "time": 0.0004665851593017578,
+      "module": "test_performance_analyzer"
+    },
+    {
+      "test": "test_empty_trades_handling (test_performance_analyzer.TestPerformanceAnalyzer.test_empty_trades_handling)",
+      "status": "PASS",
+      "time": 0.0003230571746826172,
+      "module": "test_performance_analyzer"
+    },
+    {
+      "test": "test_expectancy_calculation (test_performance_analyzer.TestPerformanceAnalyzer.test_expectancy_calculation)",
+      "status": "PASS",
+      "time": 0.0002598762512207031,
+      "module": "test_performance_analyzer"
+    },
+    {
+      "test": "test_largest_win_loss_tracking (test_performance_analyzer.TestPerformanceAnalyzer.test_largest_win_loss_tracking)",
+      "status": "PASS",
+      "time": 0.001079559326171875,
+      "module": "test_performance_analyzer"
+    },
+    {
+      "test": "test_only_losing_trades (test_performance_analyzer.TestPerformanceAnalyzer.test_only_losing_trades)",
+      "status": "PASS",
+      "time": 0.0005171298980712891,
+      "module": "test_performance_analyzer"
+    },
+    {
+      "test": "test_only_winning_trades (test_performance_analyzer.TestPerformanceAnalyzer.test_only_winning_trades)",
+      "status": "PASS",
+      "time": 0.00035071372985839844,
+      "module": "test_performance_analyzer"
+    },
+    {
+      "test": "test_payoff_ratio_calculation (test_performance_analyzer.TestPerformanceAnalyzer.test_payoff_ratio_calculation)",
+      "status": "PASS",
+      "time": 0.00022554397583007812,
+      "module": "test_performance_analyzer"
+    },
+    {
+      "test": "test_profit_factor_calculation (test_performance_analyzer.TestPerformanceAnalyzer.test_profit_factor_calculation)",
+      "status": "PASS",
+      "time": 0.00019288063049316406,
+      "module": "test_performance_analyzer"
+    },
+    {
+      "test": "test_recovery_periods_calculation (test_performance_analyzer.TestPerformanceAnalyzer.test_recovery_periods_calculation)",
+      "status": "PASS",
+      "time": 0.00025916099548339844,
+      "module": "test_performance_analyzer"
+    },
+    {
+      "test": "test_sortino_ratio_calculation (test_performance_analyzer.TestPerformanceAnalyzer.test_sortino_ratio_calculation)",
+      "status": "PASS",
+      "time": 0.000985860824584961,
+      "module": "test_performance_analyzer"
+    },
+    {
+      "test": "test_win_rate_calculation (test_performance_analyzer.TestPerformanceAnalyzer.test_win_rate_calculation)",
+      "status": "PASS",
+      "time": 0.0002968311309814453,
+      "module": "test_performance_analyzer"
+    },
+    {
+      "test": "test_parallel_vs_serial_grid_search (test_performance_regression.TestPerformanceComparison.test_parallel_vs_serial_grid_search)",
+      "status": "FAIL",
+      "time": 2.1347532272338867,
+      "module": "test_performance_regression",
+      "error": "Traceback (most recent call last):\n  File \"/home/user/StrategyBuilder/tests/test_performance_regression.py\", line 332, in test_parallel_vs_serial_grid_search\n    self.assertEqual(len(results), combinations)\nAssertionError: 4 != 6\n"
+    },
+    {
+      "test": "test_vectorized_vs_iterative_comparison (test_performance_regression.TestPerformanceComparison.test_vectorized_vs_iterative_comparison)",
+      "status": "PASS",
+      "time": 0.671069860458374,
+      "module": "test_performance_regression"
+    },
+    {
+      "test": "test_multiple_backtests_performance (test_performance_regression.TestPerformanceRegression.test_multiple_backtests_performance)",
+      "status": "PASS",
+      "time": 0.12445712089538574,
+      "module": "test_performance_regression"
+    },
+    {
+      "test": "test_parallel_grid_search_speedup (test_performance_regression.TestPerformanceRegression.test_parallel_grid_search_speedup)",
+      "status": "PASS",
+      "time": 0.4293982982635498,
+      "module": "test_performance_regression"
+    },
+    {
+      "test": "test_parameter_grid_generation (test_performance_regression.TestPerformanceRegression.test_parameter_grid_generation)",
+      "status": "PASS",
+      "time": 0.0003693103790283203,
+      "module": "test_performance_regression"
+    },
+    {
+      "test": "test_results_dataframe_creation (test_performance_regression.TestPerformanceRegression.test_results_dataframe_creation)",
+      "status": "PASS",
+      "time": 0.2217247486114502,
+      "module": "test_performance_regression"
+    },
+    {
+      "test": "test_vectorized_backtest_accuracy (test_performance_regression.TestPerformanceRegression.test_vectorized_backtest_accuracy)",
+      "status": "PASS",
+      "time": 0.053503990173339844,
+      "module": "test_performance_regression"
+    },
+    {
+      "test": "test_vectorized_bollinger_bands_performance (test_performance_regression.TestPerformanceRegression.test_vectorized_bollinger_bands_performance)",
+      "status": "PASS",
+      "time": 0.033072710037231445,
+      "module": "test_performance_regression"
+    },
+    {
+      "test": "test_vectorized_sma_performance (test_performance_regression.TestPerformanceRegression.test_vectorized_sma_performance)",
+      "status": "PASS",
+      "time": 0.03067183494567871,
+      "module": "test_performance_regression"
+    },
+    {
+      "test": "test_drawdown_below_initial_capital (test_risk_manager.TestDrawdownLimits.test_drawdown_below_initial_capital)",
+      "status": "PASS",
+      "time": 8.392333984375e-05,
+      "module": "test_risk_manager"
+    },
+    {
+      "test": "test_drawdown_exactly_at_limit (test_risk_manager.TestDrawdownLimits.test_drawdown_exactly_at_limit)",
+      "status": "PASS",
+      "time": 1.9788742065429688e-05,
+      "module": "test_risk_manager"
+    },
+    {
+      "test": "test_max_drawdown_stops_trading (test_risk_manager.TestDrawdownLimits.test_max_drawdown_stops_trading)",
+      "status": "PASS",
+      "time": 3.933906555175781e-05,
+      "module": "test_risk_manager"
+    },
+    {
+      "test": "test_multiple_drawdown_events (test_risk_manager.TestDrawdownLimits.test_multiple_drawdown_events)",
+      "status": "PASS",
+      "time": 2.2172927856445312e-05,
+      "module": "test_risk_manager"
+    },
+    {
+      "test": "test_equity_curve_drawdown_calculation (test_risk_manager.TestEquityCurve.test_equity_curve_drawdown_calculation)",
+      "status": "PASS",
+      "time": 0.0020570755004882812,
+      "module": "test_risk_manager"
+    },
+    {
+      "test": "test_get_equity_curve (test_risk_manager.TestEquityCurve.test_get_equity_curve)",
+      "status": "PASS",
+      "time": 0.0010502338409423828,
+      "module": "test_risk_manager"
+    },
+    {
+      "test": "test_calculate_portfolio_heat (test_risk_manager.TestPortfolioHeatLimits.test_calculate_portfolio_heat)",
+      "status": "PASS",
+      "time": 3.981590270996094e-05,
+      "module": "test_risk_manager"
+    },
+    {
+      "test": "test_can_open_position_within_limits (test_risk_manager.TestPortfolioHeatLimits.test_can_open_position_within_limits)",
+      "status": "PASS",
+      "time": 2.09808349609375e-05,
+      "module": "test_risk_manager"
+    },
+    {
+      "test": "test_portfolio_heat_limit_exceeded (test_risk_manager.TestPortfolioHeatLimits.test_portfolio_heat_limit_exceeded)",
+      "status": "PASS",
+      "time": 1.7642974853515625e-05,
+      "module": "test_risk_manager"
+    },
+    {
+      "test": "test_portfolio_heat_with_no_stop_loss (test_risk_manager.TestPortfolioHeatLimits.test_portfolio_heat_with_no_stop_loss)",
+      "status": "PASS",
+      "time": 1.8596649169921875e-05,
+      "module": "test_risk_manager"
+    },
+    {
+      "test": "test_position_size_limit_exceeded (test_risk_manager.TestPortfolioHeatLimits.test_position_size_limit_exceeded)",
+      "status": "PASS",
+      "time": 2.9325485229492188e-05,
+      "module": "test_risk_manager"
+    },
+    {
+      "test": "test_add_position (test_risk_manager.TestPositionManagement.test_add_position)",
+      "status": "PASS",
+      "time": 2.4557113647460938e-05,
+      "module": "test_risk_manager"
+    },
+    {
+      "test": "test_multiple_positions (test_risk_manager.TestPositionManagement.test_multiple_positions)",
+      "status": "PASS",
+      "time": 1.8358230590820312e-05,
+      "module": "test_risk_manager"
+    },
+    {
+      "test": "test_remove_position (test_risk_manager.TestPositionManagement.test_remove_position)",
+      "status": "PASS",
+      "time": 1.2636184692382812e-05,
+      "module": "test_risk_manager"
+    },
+    {
+      "test": "test_reset_clears_state (test_risk_manager.TestResetFunctionality.test_reset_clears_state)",
+      "status": "PASS",
+      "time": 2.8133392333984375e-05,
+      "module": "test_risk_manager"
+    },
+    {
+      "test": "test_position_size_calculation (test_risk_manager.TestRiskAdjustedPositionSizing.test_position_size_calculation)",
+      "status": "PASS",
+      "time": 2.1696090698242188e-05,
+      "module": "test_risk_manager"
+    },
+    {
+      "test": "test_position_size_with_max_limit (test_risk_manager.TestRiskAdjustedPositionSizing.test_position_size_with_max_limit)",
+      "status": "PASS",
+      "time": 1.6689300537109375e-05,
+      "module": "test_risk_manager"
+    },
+    {
+      "test": "test_position_size_with_zero_risk (test_risk_manager.TestRiskAdjustedPositionSizing.test_position_size_with_zero_risk)",
+      "status": "PASS",
+      "time": 1.2636184692382812e-05,
+      "module": "test_risk_manager"
+    },
+    {
+      "test": "test_equity_update_with_loss (test_risk_manager.TestRiskManagerBasics.test_equity_update_with_loss)",
+      "status": "PASS",
+      "time": 1.9550323486328125e-05,
+      "module": "test_risk_manager"
+    },
+    {
+      "test": "test_equity_update_with_profit (test_risk_manager.TestRiskManagerBasics.test_equity_update_with_profit)",
+      "status": "PASS",
+      "time": 1.3113021850585938e-05,
+      "module": "test_risk_manager"
+    },
+    {
+      "test": "test_get_statistics (test_risk_manager.TestRiskManagerBasics.test_get_statistics)",
+      "status": "PASS",
+      "time": 1.6689300537109375e-05,
+      "module": "test_risk_manager"
+    },
+    {
+      "test": "test_initialization (test_risk_manager.TestRiskManagerBasics.test_initialization)",
+      "status": "PASS",
+      "time": 1.5974044799804688e-05,
+      "module": "test_risk_manager"
+    },
+    {
+      "test": "test_flash_crash_scenario (test_risk_manager.TestStressScenarios.test_flash_crash_scenario)",
+      "status": "PASS",
+      "time": 1.9550323486328125e-05,
+      "module": "test_risk_manager"
+    },
+    {
+      "test": "test_recovery_after_drawdown (test_risk_manager.TestStressScenarios.test_recovery_after_drawdown)",
+      "status": "PASS",
+      "time": 1.6450881958007812e-05,
+      "module": "test_risk_manager"
+    },
+    {
+      "test": "test_slow_bleed_scenario (test_risk_manager.TestStressScenarios.test_slow_bleed_scenario)",
+      "status": "PASS",
+      "time": 2.384185791015625e-05,
+      "module": "test_risk_manager"
+    },
+    {
+      "test": "test_volatility_whipsaw_scenario (test_risk_manager.TestStressScenarios.test_volatility_whipsaw_scenario)",
+      "status": "PASS",
+      "time": 1.621246337890625e-05,
+      "module": "test_risk_manager"
+    },
+    {
+      "test": "test_trailing_stop_disabled (test_risk_manager.TestTrailingStop.test_trailing_stop_disabled)",
+      "status": "PASS",
+      "time": 1.621246337890625e-05,
+      "module": "test_risk_manager"
+    },
+    {
+      "test": "test_trailing_stop_triggered (test_risk_manager.TestTrailingStop.test_trailing_stop_triggered)",
+      "status": "PASS",
+      "time": 2.5272369384765625e-05,
+      "module": "test_risk_manager"
+    },
+    {
+      "test": "test_empty_strategies_list (test_strategy_ensemble.TestStrategyEnsemble.test_empty_strategies_list)",
+      "status": "PASS",
+      "time": 0.0013394355773925781,
+      "module": "test_strategy_ensemble"
+    },
+    {
+      "test": "test_ensemble_initialization (test_strategy_ensemble.TestStrategyEnsemble.test_ensemble_initialization)",
+      "status": "PASS",
+      "time": 0.0006592273712158203,
+      "module": "test_strategy_ensemble"
+    },
+    {
+      "test": "test_ensemble_metrics_calculation (test_strategy_ensemble.TestStrategyEnsemble.test_ensemble_metrics_calculation)",
+      "status": "PASS",
+      "time": 0.0024323463439941406,
+      "module": "test_strategy_ensemble"
+    },
+    {
+      "test": "test_individual_results_tracking (test_strategy_ensemble.TestStrategyEnsemble.test_individual_results_tracking)",
+      "status": "PASS",
+      "time": 0.0017178058624267578,
+      "module": "test_strategy_ensemble"
+    },
+    {
+      "test": "test_multiple_vote_thresholds (test_strategy_ensemble.TestStrategyEnsemble.test_multiple_vote_thresholds)",
+      "status": "PASS",
+      "time": 0.0009553432464599609,
+      "module": "test_strategy_ensemble"
+    },
+    {
+      "test": "test_no_common_signals (test_strategy_ensemble.TestStrategyEnsemble.test_no_common_signals)",
+      "status": "PASS",
+      "time": 0.0015015602111816406,
+      "module": "test_strategy_ensemble"
+    },
+    {
+      "test": "test_signal_aggregation_majority_vote (test_strategy_ensemble.TestStrategyEnsemble.test_signal_aggregation_majority_vote)",
+      "status": "PASS",
+      "time": 0.0015900135040283203,
+      "module": "test_strategy_ensemble"
+    },
+    {
+      "test": "test_signal_averaging (test_strategy_ensemble.TestStrategyEnsemble.test_signal_averaging)",
+      "status": "PASS",
+      "time": 0.0018000602722167969,
+      "module": "test_strategy_ensemble"
+    },
+    {
+      "test": "test_unanimous_vote_requirement (test_strategy_ensemble.TestStrategyEnsemble.test_unanimous_vote_requirement)",
+      "status": "PASS",
+      "time": 0.0016937255859375,
+      "module": "test_strategy_ensemble"
+    },
+    {
+      "test": "test_vote_threshold_validation (test_strategy_ensemble.TestStrategyEnsemble.test_vote_threshold_validation)",
+      "status": "PASS",
+      "time": 0.0009157657623291016,
+      "module": "test_strategy_ensemble"
+    },
+    {
+      "test": "test_comparison_data_structure (test_ui_ux.TestComparisonTableGeneration.test_comparison_data_structure)",
+      "status": "PASS",
+      "time": 0.0007410049438476562,
+      "module": "test_ui_ux"
+    },
+    {
+      "test": "test_comparison_includes_advanced_metrics (test_ui_ux.TestComparisonTableGeneration.test_comparison_includes_advanced_metrics)",
+      "status": "PASS",
+      "time": 0.00035381317138671875,
+      "module": "test_ui_ux"
+    },
+    {
+      "test": "test_csv_string_format (test_ui_ux.TestDownloadFunctionality.test_csv_string_format)",
+      "status": "PASS",
+      "time": 0.0016238689422607422,
+      "module": "test_ui_ux"
+    },
+    {
+      "test": "test_dataframe_to_csv_conversion (test_ui_ux.TestDownloadFunctionality.test_dataframe_to_csv_conversion)",
+      "status": "PASS",
+      "time": 0.0006449222564697266,
+      "module": "test_ui_ux"
+    },
+    {
+      "test": "test_all_tooltips_have_formulas (test_ui_ux.TestMetricTooltips.test_all_tooltips_have_formulas)",
+      "status": "PASS",
+      "time": 4.291534423828125e-05,
+      "module": "test_ui_ux"
+    },
+    {
+      "test": "test_calmar_ratio_tooltip (test_ui_ux.TestMetricTooltips.test_calmar_ratio_tooltip)",
+      "status": "PASS",
+      "time": 2.3365020751953125e-05,
+      "module": "test_ui_ux"
+    },
+    {
+      "test": "test_expectancy_tooltip (test_ui_ux.TestMetricTooltips.test_expectancy_tooltip)",
+      "status": "PASS",
+      "time": 2.3603439331054688e-05,
+      "module": "test_ui_ux"
+    },
+    {
+      "test": "test_max_drawdown_tooltip (test_ui_ux.TestMetricTooltips.test_max_drawdown_tooltip)",
+      "status": "PASS",
+      "time": 1.6689300537109375e-05,
+      "module": "test_ui_ux"
+    },
+    {
+      "test": "test_metric_tooltips_exist (test_ui_ux.TestMetricTooltips.test_metric_tooltips_exist)",
+      "status": "PASS",
+      "time": 1.5020370483398438e-05,
+      "module": "test_ui_ux"
+    },
+    {
+      "test": "test_payoff_ratio_tooltip (test_ui_ux.TestMetricTooltips.test_payoff_ratio_tooltip)",
+      "status": "PASS",
+      "time": 1.621246337890625e-05,
+      "module": "test_ui_ux"
+    },
+    {
+      "test": "test_profit_factor_tooltip (test_ui_ux.TestMetricTooltips.test_profit_factor_tooltip)",
+      "status": "PASS",
+      "time": 1.5974044799804688e-05,
+      "module": "test_ui_ux"
+    },
+    {
+      "test": "test_sharpe_ratio_tooltip (test_ui_ux.TestMetricTooltips.test_sharpe_ratio_tooltip)",
+      "status": "PASS",
+      "time": 1.5735626220703125e-05,
+      "module": "test_ui_ux"
+    },
+    {
+      "test": "test_sortino_ratio_tooltip (test_ui_ux.TestMetricTooltips.test_sortino_ratio_tooltip)",
+      "status": "PASS",
+      "time": 1.5497207641601562e-05,
+      "module": "test_ui_ux"
+    },
+    {
+      "test": "test_win_rate_tooltip (test_ui_ux.TestMetricTooltips.test_win_rate_tooltip)",
+      "status": "PASS",
+      "time": 1.8596649169921875e-05,
+      "module": "test_ui_ux"
+    },
+    {
+      "test": "test_grid_search_progress_calculation (test_ui_ux.TestProgressTracking.test_grid_search_progress_calculation)",
+      "status": "PASS",
+      "time": 2.09808349609375e-05,
+      "module": "test_ui_ux"
+    },
+    {
+      "test": "test_progress_bounds (test_ui_ux.TestProgressTracking.test_progress_bounds)",
+      "status": "PASS",
+      "time": 1.33514404296875e-05,
+      "module": "test_ui_ux"
+    },
+    {
+      "test": "test_progress_calculation (test_ui_ux.TestProgressTracking.test_progress_calculation)",
+      "status": "PASS",
+      "time": 1.1205673217773438e-05,
+      "module": "test_ui_ux"
+    },
+    {
+      "test": "test_with_spinner_decorator (test_ui_ux.TestSpinnerDecorator.test_with_spinner_decorator)",
+      "status": "PASS",
+      "time": 1.3191463947296143,
+      "module": "test_ui_ux"
+    },
+    {
+      "test": "test_with_spinner_preserves_function_name (test_ui_ux.TestSpinnerDecorator.test_with_spinner_preserves_function_name)",
+      "status": "PASS",
+      "time": 3.218650817871094e-05,
+      "module": "test_ui_ux"
+    },
+    {
+      "test": "test_with_spinner_with_arguments (test_ui_ux.TestSpinnerDecorator.test_with_spinner_with_arguments)",
+      "status": "PASS",
+      "time": 0.0007460117340087891,
+      "module": "test_ui_ux"
+    },
+    {
+      "test": "test_with_spinner_with_custom_message (test_ui_ux.TestSpinnerDecorator.test_with_spinner_with_custom_message)",
+      "status": "PASS",
+      "time": 0.0007913112640380859,
+      "module": "test_ui_ux"
+    },
+    {
+      "test": "test_performance_badge_function_exists (test_ui_ux.TestStatusIndicators.test_performance_badge_function_exists)",
+      "status": "PASS",
+      "time": 2.3603439331054688e-05,
+      "module": "test_ui_ux"
+    },
+    {
+      "test": "test_performance_badge_with_negative_return (test_ui_ux.TestStatusIndicators.test_performance_badge_with_negative_return)",
+      "status": "PASS",
+      "time": 0.00022864341735839844,
+      "module": "test_ui_ux"
+    },
+    {
+      "test": "test_performance_badge_with_positive_return (test_ui_ux.TestStatusIndicators.test_performance_badge_with_positive_return)",
+      "status": "PASS",
+      "time": 0.00016021728515625,
+      "module": "test_ui_ux"
+    },
+    {
+      "test": "test_status_indicator_function_exists (test_ui_ux.TestStatusIndicators.test_status_indicator_function_exists)",
+      "status": "PASS",
+      "time": 1.2874603271484375e-05,
+      "module": "test_ui_ux"
+    },
+    {
+      "test": "test_average_loss_calculation (test_ui_ux.TestTradeAnalysis.test_average_loss_calculation)",
+      "status": "PASS",
+      "time": 0.0011374950408935547,
+      "module": "test_ui_ux"
+    },
+    {
+      "test": "test_average_win_calculation (test_ui_ux.TestTradeAnalysis.test_average_win_calculation)",
+      "status": "PASS",
+      "time": 0.0006263256072998047,
+      "module": "test_ui_ux"
+    },
+    {
+      "test": "test_trade_filtering_losers (test_ui_ux.TestTradeAnalysis.test_trade_filtering_losers)",
+      "status": "PASS",
+      "time": 0.0006158351898193359,
+      "module": "test_ui_ux"
+    },
+    {
+      "test": "test_trade_filtering_winners (test_ui_ux.TestTradeAnalysis.test_trade_filtering_winners)",
+      "status": "PASS",
+      "time": 0.0005204677581787109,
+      "module": "test_ui_ux"
+    },
+    {
+      "test": "test_all_helper_functions_exist (test_ui_ux.TestUIHelperImports.test_all_helper_functions_exist)",
+      "status": "PASS",
+      "time": 3.0040740966796875e-05,
+      "module": "test_ui_ux"
+    },
+    {
+      "test": "test_metric_tooltips_import (test_ui_ux.TestUIHelperImports.test_metric_tooltips_import)",
+      "status": "PASS",
+      "time": 1.33514404296875e-05,
+      "module": "test_ui_ux"
+    },
+    {
+      "test": "test_ui_helpers_import (test_ui_ux.TestUIHelperImports.test_ui_helpers_import)",
+      "status": "PASS",
+      "time": 1.0013580322265625e-05,
+      "module": "test_ui_ux"
+    },
+    {
+      "test": "test_calculate_summary_basic (test_walk_forward_optimizer.TestWalkForwardOptimizer.test_calculate_summary_basic)",
+      "status": "PASS",
+      "time": 0.0006353855133056641,
+      "module": "test_walk_forward_optimizer"
+    },
+    {
+      "test": "test_calculate_summary_best_worst_periods (test_walk_forward_optimizer.TestWalkForwardOptimizer.test_calculate_summary_best_worst_periods)",
+      "status": "PASS",
+      "time": 0.0003478527069091797,
+      "module": "test_walk_forward_optimizer"
+    },
+    {
+      "test": "test_calculate_summary_empty (test_walk_forward_optimizer.TestWalkForwardOptimizer.test_calculate_summary_empty)",
+      "status": "PASS",
+      "time": 0.00027441978454589844,
+      "module": "test_walk_forward_optimizer"
+    },
+    {
+      "test": "test_calculate_summary_win_rate (test_walk_forward_optimizer.TestWalkForwardOptimizer.test_calculate_summary_win_rate)",
+      "status": "PASS",
+      "time": 0.0002484321594238281,
+      "module": "test_walk_forward_optimizer"
+    },
+    {
+      "test": "test_calculate_summary_with_none_sharpe (test_walk_forward_optimizer.TestWalkForwardOptimizer.test_calculate_summary_with_none_sharpe)",
+      "status": "PASS",
+      "time": 0.00023603439331054688,
+      "module": "test_walk_forward_optimizer"
+    },
+    {
+      "test": "test_custom_train_test_months (test_walk_forward_optimizer.TestWalkForwardOptimizer.test_custom_train_test_months)",
+      "status": "PASS",
+      "time": 0.00035953521728515625,
+      "module": "test_walk_forward_optimizer"
+    },
+    {
+      "test": "test_find_best_params (test_walk_forward_optimizer.TestWalkForwardOptimizer.test_find_best_params)",
+      "status": "PASS",
+      "time": 0.0020532608032226562,
+      "module": "test_walk_forward_optimizer"
+    },
+    {
+      "test": "test_generate_param_combinations_empty (test_walk_forward_optimizer.TestWalkForwardOptimizer.test_generate_param_combinations_empty)",
+      "status": "PASS",
+      "time": 0.000579833984375,
+      "module": "test_walk_forward_optimizer"
+    },
+    {
+      "test": "test_generate_param_combinations_multiple_params (test_walk_forward_optimizer.TestWalkForwardOptimizer.test_generate_param_combinations_multiple_params)",
+      "status": "PASS",
+      "time": 0.0003266334533691406,
+      "module": "test_walk_forward_optimizer"
+    },
+    {
+      "test": "test_generate_param_combinations_single_param (test_walk_forward_optimizer.TestWalkForwardOptimizer.test_generate_param_combinations_single_param)",
+      "status": "PASS",
+      "time": 0.00025177001953125,
+      "module": "test_walk_forward_optimizer"
+    },
+    {
+      "test": "test_generate_param_combinations_three_params (test_walk_forward_optimizer.TestWalkForwardOptimizer.test_generate_param_combinations_three_params)",
+      "status": "PASS",
+      "time": 0.00023317337036132812,
+      "module": "test_walk_forward_optimizer"
+    },
+    {
+      "test": "test_init (test_walk_forward_optimizer.TestWalkForwardOptimizer.test_init)",
+      "status": "PASS",
+      "time": 0.00023865699768066406,
+      "module": "test_walk_forward_optimizer"
+    },
+    {
+      "test": "test_run_backtest (test_walk_forward_optimizer.TestWalkForwardOptimizer.test_run_backtest)",
+      "status": "PASS",
+      "time": 0.003650665283203125,
+      "module": "test_walk_forward_optimizer"
+    },
+    {
+      "test": "test_split_periods_basic (test_walk_forward_optimizer.TestWalkForwardOptimizer.test_split_periods_basic)",
+      "status": "PASS",
+      "time": 0.00039696693420410156,
+      "module": "test_walk_forward_optimizer"
+    },
+    {
+      "test": "test_split_periods_count (test_walk_forward_optimizer.TestWalkForwardOptimizer.test_split_periods_count)",
+      "status": "PASS",
+      "time": 0.0003495216369628906,
+      "module": "test_walk_forward_optimizer"
+    },
+    {
+      "test": "test_split_periods_dates_sequential (test_walk_forward_optimizer.TestWalkForwardOptimizer.test_split_periods_dates_sequential)",
+      "status": "PASS",
+      "time": 0.00031065940856933594,
+      "module": "test_walk_forward_optimizer"
+    },
+    {
+      "test": "test_split_periods_edge_case_exact_fit (test_walk_forward_optimizer.TestWalkForwardOptimizer.test_split_periods_edge_case_exact_fit)",
+      "status": "PASS",
+      "time": 0.00024056434631347656,
+      "module": "test_walk_forward_optimizer"
+    },
+    {
+      "test": "test_split_periods_insufficient_data (test_walk_forward_optimizer.TestWalkForwardOptimizer.test_split_periods_insufficient_data)",
+      "status": "PASS",
+      "time": 0.0002658367156982422,
+      "module": "test_walk_forward_optimizer"
+    },
+    {
+      "test": "test_split_periods_step_size (test_walk_forward_optimizer.TestWalkForwardOptimizer.test_split_periods_step_size)",
+      "status": "PASS",
+      "time": 0.0003323554992675781,
+      "module": "test_walk_forward_optimizer"
+    },
+    {
+      "test": "test_split_periods_train_duration (test_walk_forward_optimizer.TestWalkForwardOptimizer.test_split_periods_train_duration)",
+      "status": "PASS",
+      "time": 0.000324249267578125,
+      "module": "test_walk_forward_optimizer"
+    },
+    {
+      "test": "test_split_periods_train_test_adjacent (test_walk_forward_optimizer.TestWalkForwardOptimizer.test_split_periods_train_test_adjacent)",
+      "status": "PASS",
+      "time": 0.0003209114074707031,
+      "module": "test_walk_forward_optimizer"
+    }
+  ],
+  "failures": [
+    {
+      "test": "test_parallel_vs_serial_grid_search (test_performance_regression.TestPerformanceComparison.test_parallel_vs_serial_grid_search)",
+      "traceback": "Traceback (most recent call last):\n  File \"/home/user/StrategyBuilder/tests/test_performance_regression.py\", line 332, in test_parallel_vs_serial_grid_search\n    self.assertEqual(len(results), combinations)\nAssertionError: 4 != 6\n"
+    }
+  ],
+  "errors": [],
+  "skipped": [
+    {
+      "test": "test_api_documentation_accessible (test_api_integration.TestAPIIntegration.test_api_documentation_accessible)",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_backtest_endpoint_invalid_date_format (test_api_integration.TestAPIIntegration.test_backtest_endpoint_invalid_date_format)",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_backtest_endpoint_invalid_parameters (test_api_integration.TestAPIIntegration.test_backtest_endpoint_invalid_parameters)",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_backtest_endpoint_invalid_strategy (test_api_integration.TestAPIIntegration.test_backtest_endpoint_invalid_strategy)",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_backtest_endpoint_missing_required_fields (test_api_integration.TestAPIIntegration.test_backtest_endpoint_missing_required_fields)",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_backtest_endpoint_with_default_parameters (test_api_integration.TestAPIIntegration.test_backtest_endpoint_with_default_parameters)",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_backtest_endpoint_with_sma_strategy (test_api_integration.TestAPIIntegration.test_backtest_endpoint_with_sma_strategy)",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_backtest_endpoint_with_valid_request (test_api_integration.TestAPIIntegration.test_backtest_endpoint_with_valid_request)",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_backtest_response_includes_execution_time (test_api_integration.TestAPIIntegration.test_backtest_response_includes_execution_time)",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_backtest_results_contain_trades (test_api_integration.TestAPIIntegration.test_backtest_results_contain_trades)",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_config_endpoint (test_api_integration.TestAPIIntegration.test_config_endpoint)",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_health_check_endpoint (test_api_integration.TestAPIIntegration.test_health_check_endpoint)",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_multiple_concurrent_backtest_requests (test_api_integration.TestAPIIntegration.test_multiple_concurrent_backtest_requests)",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_root_endpoint (test_api_integration.TestAPIIntegration.test_root_endpoint)",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_strategies_endpoint (test_api_integration.TestAPIIntegration.test_strategies_endpoint)",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_strategies_endpoint_includes_bollinger_bands (test_api_integration.TestAPIIntegration.test_strategies_endpoint_includes_bollinger_bands)",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_backtest_validates_date_order (test_api_integration.TestAPIValidation.test_backtest_validates_date_order)",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_backtest_validates_ticker_format (test_api_integration.TestAPIValidation.test_backtest_validates_ticker_format)",
+      "reason": "FastAPI not installed"
+    },
+    {
+      "test": "test_pdf_report_generation (test_deployment_validation.TestReportGeneration.test_pdf_report_generation)",
+      "reason": "reportlab not installed: reportlab is required for PDF generation. Install with: pip install reportlab"
+    }
+  ]
+}
