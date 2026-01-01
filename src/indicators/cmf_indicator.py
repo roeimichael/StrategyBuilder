@@ -1,15 +1,15 @@
-"""Chaikin Money Flow (CMF) Indicator"""
 
+
+from typing import Optional
 import backtrader as bt
 
-
 class CMF(bt.Indicator):
-    """Chaikin Money Flow indicator"""
+    
     lines = ('money_flow',)
     params = (('len', 20),)
 
     def __init__(self):
-        """Initialize CMF indicator calculation"""
+        
         self.addminperiod(self.p.len)
         self.plotinfo.plotyhlines = [0]
         c = self.data.close

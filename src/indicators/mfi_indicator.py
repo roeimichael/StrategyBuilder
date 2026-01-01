@@ -1,15 +1,15 @@
-"""Money Flow Index (MFI) Indicator"""
 
+
+from typing import Optional
 import backtrader as bt
 
-
 class MFI(bt.Indicator):
-    """Money Flow Index - Volume-weighted RSI"""
+    
     lines = ('mfi',)
     params = (('period', 14),)
 
     def __init__(self):
-        """Initialize MFI indicator calculation"""
+        
         typical_price = (self.data.high + self.data.low + self.data.close) / 3.0
         raw_money_flow = typical_price * self.data.volume
         pos_flow = bt.If(typical_price > typical_price(-1), raw_money_flow, 0)

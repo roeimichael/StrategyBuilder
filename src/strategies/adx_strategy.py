@@ -1,16 +1,16 @@
-"""ADX adaptive strategy switching between trend following and mean reversion"""
 
+
+from typing import Dict
 import math
 
 import backtrader as bt
 
 from core.strategy_skeleton import Strategy_skeleton
 
-
 class adx_strat(Strategy_skeleton):
 
-    def __init__(self, args):
-        """Initialize ADX, moving averages, and Bollinger Bands"""
+    def __init__(self, args: Dict[str, float]):
+        
         super(adx_strat, self).__init__(args)
         self.type = 0
         self.size = 0
@@ -19,10 +19,7 @@ class adx_strat(Strategy_skeleton):
         self.ma50 = bt.indicators.MovingAverageSimple(period=50)
         self.boll = bt.indicators.BollingerBands(period=14)
 
-    def next(self):
-        """Execute strategy logic on each bar"""
-        self.log('Close, %.2f' % self.data[0])
-        if self.order:
+    def next(self) -> None:        if self.order:
             return
         if len(self) < 51:
             return

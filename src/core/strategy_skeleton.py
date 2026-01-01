@@ -1,24 +1,18 @@
-"""Base strategy class for all backtrader strategies"""
-
+from typing import Dict, List, Optional, Any
 import backtrader as bt
 
-
 class Strategy_skeleton(bt.Strategy):
-    """Base strategy with trade tracking and debugging utilities"""
-
-    def __init__(self, args):
-        """Initialize strategy with parameters"""
+    def __init__(self, args: Dict[str, float]):
         self.args = args
         self.size = 0
-        self.trades = []
-        self.last_buy_price = None
-        self.last_buy_date = None
-        self.last_buy_size = None
-        self.order = None
-        self.val_start = None
+        self.trades: List[Dict[str, Any]] = []
+        self.last_buy_price: Optional[float] = None
+        self.last_buy_date: Optional[Any] = None
+        self.last_buy_size: Optional[float] = None
+        self.order: Optional[bt.Order] = None
+        self.val_start: Optional[float] = None
 
-    def notify_order(self, order):
-        """Track order execution and record trade details"""
+    def notify_order(self, order: bt.Order) -> None:
         if order.status == order.Completed:
             if order.isbuy():
                 self.last_buy_price = order.executed.price
@@ -27,7 +21,6 @@ class Strategy_skeleton(bt.Strategy):
             elif order.issell() and self.last_buy_price is not None:
                 pnl = (order.executed.price - self.last_buy_price) * self.last_buy_size
                 pnl_pct = ((order.executed.price / self.last_buy_price) - 1) * 100
-
                 self.trades.append({
                     'entry_date': self.last_buy_date,
                     'exit_date': self.data.datetime.date(0),
@@ -38,25 +31,18 @@ class Strategy_skeleton(bt.Strategy):
                     'pnl_pct': pnl_pct,
                     'type': 'LONG'
                 })
-
         if not order.alive():
             self.order = None
 
-    def log(self, txt, dt=None):
-        """Log message with timestamp"""
+    def log(self, txt: str, dt: Optional[Any] = None) -> None:
         dt = dt or self.datas[0].datetime.date(0)
-        print(f'{dt.isoformat()}, {txt}')
 
-    def start(self):
-        """Initialize strategy"""
+    def start(self) -> None:
         self.order = None
         self.val_start = self.broker.get_cash()
 
-    def next(self):
-        """Main strategy logic - override in subclasses"""
+    def next(self) -> None:
         pass
 
-    def stop(self):
-        """Calculate and print final ROI"""
+    def stop(self) -> None:
         self.roi = (self.broker.get_value() / self.val_start) - 1.0
-        print(f'ROI: {100.0 * self.roi:.2f}%')

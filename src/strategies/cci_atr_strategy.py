@@ -1,11 +1,11 @@
-"""CCI + ATR Volatility Breakout Strategy"""
 
+
+from typing import Dict
 import math
 
 import backtrader as bt
 
 from core.strategy_skeleton import Strategy_skeleton
-
 
 class CCI_ATR_Strategy(Strategy_skeleton):
     params = (
@@ -15,19 +15,15 @@ class CCI_ATR_Strategy(Strategy_skeleton):
         ("atr_period", 14)
     )
 
-    def __init__(self, args):
-        """Initialize CCI and ATR indicators"""
+    def __init__(self, args: Dict[str, float]):
+        
         super(CCI_ATR_Strategy, self).__init__(args)
         self.size = 0
         self.in_position = False
         self.cci = bt.indicators.CCI(self.data, period=self.p.cci_period)
         self.atr = bt.indicators.ATR(self.data, period=self.p.atr_period)
 
-    def next(self):
-        """Execute strategy logic on each bar"""
-        self.log('Close, %.2f' % self.data[0])
-
-        if self.order:
+    def next(self) -> None:        if self.order:
             return
 
         if len(self) < max(self.p.cci_period, self.p.atr_period) + 1:

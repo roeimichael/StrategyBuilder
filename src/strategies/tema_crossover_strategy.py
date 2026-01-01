@@ -1,16 +1,16 @@
-"""TEMA 20/60 crossover strategy with volume confirmation"""
 
+
+from typing import Dict
 import math
 
 import backtrader as bt
 
 from core.strategy_skeleton import Strategy_skeleton
 
-
 class Tema20_tema60(Strategy_skeleton):
 
-    def __init__(self, args):
-        """Initialize TEMA indicators and crossover signal"""
+    def __init__(self, args: Dict[str, float]):
+        
         super(Tema20_tema60, self).__init__(args)
         self.volume_average = bt.indicators.SMA(self.data.volume, period=14)
         self.tema_20 = bt.indicators.TripleExponentialMovingAverage(self.data.close, period=20)
@@ -18,11 +18,7 @@ class Tema20_tema60(Strategy_skeleton):
         self.tcross = bt.indicators.CrossOver(self.tema_20, self.tema_60)
         self.tcross_flag = 0
 
-    def next(self):
-        """Execute strategy logic on each bar"""
-        self.log('Close, %.2f' % self.data[0])
-
-        if self.tema_60[0] is not None:
+    def next(self) -> None:        if self.tema_60[0] is not None:
             if self.order:
                 return
 

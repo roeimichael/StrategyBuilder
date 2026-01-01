@@ -8,12 +8,12 @@ StrategyBuilder provides a RESTful API for backtesting trading strategies on his
 
 ## Features
 
-- 🚀 **RESTful API** - FastAPI-powered backend with automatic documentation
-- 📊 **Multiple Strategies** - 12+ pre-built trading strategies included
-- 📈 **Market Data** - Real-time data fetching via Yahoo Finance
-- 📉 **Performance Metrics** - Comprehensive analytics including Sharpe ratio, max drawdown, and more
-- 🔧 **Modular Design** - Easy to add custom strategies and indicators
-- 📖 **Auto Documentation** - Interactive API docs via Swagger UI
+-  **RESTful API** - FastAPI-powered backend with automatic documentation
+-  **Multiple Strategies** - 12+ pre-built trading strategies included
+-  **Market Data** - Real-time data fetching via Yahoo Finance
+-  **Performance Metrics** - Comprehensive analytics including Sharpe ratio, max drawdown, and more
+-  **Modular Design** - Easy to add custom strategies and indicators
+-  **Auto Documentation** - Interactive API docs via Swagger UI
 
 ## Project Structure
 

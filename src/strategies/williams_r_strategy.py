@@ -1,11 +1,11 @@
-"""Williams %R Mean Reversion Strategy"""
 
+
+from typing import Dict
 import math
 
 import backtrader as bt
 
 from core.strategy_skeleton import Strategy_skeleton
-
 
 class Williams_R(Strategy_skeleton):
     params = (
@@ -14,17 +14,13 @@ class Williams_R(Strategy_skeleton):
         ("overbought", -20)
     )
 
-    def __init__(self, args):
-        """Initialize Williams %R indicator"""
+    def __init__(self, args: Dict[str, float]):
+        
         super(Williams_R, self).__init__(args)
         self.size = 0
         self.willr = bt.indicators.WilliamsR(self.data, period=self.p.period)
 
-    def next(self):
-        """Execute strategy logic on each bar"""
-        self.log('Close, %.2f' % self.data[0])
-
-        if self.order:
+    def next(self) -> None:        if self.order:
             return
 
         if not self.position:

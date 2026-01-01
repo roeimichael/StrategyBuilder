@@ -1,18 +1,18 @@
-"""On-Balance Volume (OBV) Indicator"""
 
+
+from typing import Optional
 import backtrader as bt
 
-
 class OBV(bt.Indicator):
-    """On-Balance Volume indicator"""
+    
     lines = ('obv',)
 
     def __init__(self):
-        """Initialize OBV indicator calculation"""
+        
         self.change = self.data.close - self.data.close(-1)
 
     def next(self):
-        """Calculate OBV value for each bar"""
+        
         if len(self) == 1:
             self.lines.obv[0] = self.data.volume[0]
         else:

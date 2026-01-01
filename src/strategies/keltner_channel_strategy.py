@@ -1,11 +1,11 @@
-"""Keltner Channel Breakout Strategy using EMA and ATR"""
 
+
+from typing import Dict
 import math
 
 import backtrader as bt
 
 from core.strategy_skeleton import Strategy_skeleton
-
 
 class Keltner_Channel(Strategy_skeleton):
     params = (
@@ -14,8 +14,8 @@ class Keltner_Channel(Strategy_skeleton):
         ("atr_multiplier", 2.0)
     )
 
-    def __init__(self, args):
-        """Initialize Keltner Channel indicators"""
+    def __init__(self, args: Dict[str, float]):
+        
         super(Keltner_Channel, self).__init__(args)
         self.size = 0
         self.ema = bt.indicators.EMA(self.data.close, period=self.p.ema_period)
@@ -23,11 +23,7 @@ class Keltner_Channel(Strategy_skeleton):
         self.upper_band = self.ema + (self.atr * self.p.atr_multiplier)
         self.lower_band = self.ema - (self.atr * self.p.atr_multiplier)
 
-    def next(self):
-        """Execute strategy logic on each bar"""
-        self.log('Close, %.2f' % self.data[0])
-
-        if self.order:
+    def next(self) -> None:        if self.order:
             return
 
         if len(self) < max(self.p.ema_period, self.p.atr_period):

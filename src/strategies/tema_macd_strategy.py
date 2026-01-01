@@ -1,16 +1,16 @@
-"""TEMA and MACD combined strategy"""
 
+
+from typing import Dict
 import math
 
 import backtrader as bt
 
 from core.strategy_skeleton import Strategy_skeleton
 
-
 class TEMA_MACD(Strategy_skeleton):
 
-    def __init__(self, args):
-        """Initialize TEMA and MACD indicators with crossover signals"""
+    def __init__(self, args: Dict[str, float]):
+        
         super(TEMA_MACD, self).__init__(args)
         self.tema_crossed = 0
         self.macd_crossed = 0
@@ -25,10 +25,7 @@ class TEMA_MACD(Strategy_skeleton):
         self.flag_macd = 0
         self.flag_tema = 0
 
-    def next(self):
-        """Execute strategy logic on each bar"""
-        self.log('Close, %.2f' % self.data[0])
-        if self.tema_open[0] is not None:
+    def next(self) -> None:        if self.tema_open[0] is not None:
             if self.flag_tema == 1 and self.tcross == -1:
                 self.flag_tema = 0
             if self.flag_macd == 1 and self.mcross == -1:

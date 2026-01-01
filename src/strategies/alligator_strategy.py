@@ -1,16 +1,16 @@
-"""Alligator indicator strategy with long and short positions"""
 
+
+from typing import Dict
 import math
 
 import backtrader as bt
 
 from core.strategy_skeleton import Strategy_skeleton
 
-
 class Alligator_strategy(Strategy_skeleton):
 
-    def __init__(self, args):
-        """Initialize Alligator indicator (lips, teeth, jaws) and EMA"""
+    def __init__(self, args: Dict[str, float]):
+        
         super(Alligator_strategy, self).__init__(args)
         self.lips = bt.indicators.SmoothedMovingAverage(self.data.close, period=5)
         self.teeth = bt.indicators.SmoothedMovingAverage(self.data.close, period=8)
@@ -21,10 +21,7 @@ class Alligator_strategy(Strategy_skeleton):
         self.short_position = 0
         self.long_position = 0
 
-    def next(self):
-        """Execute strategy logic on each bar"""
-        self.log('Close, %.2f' % self.data[0])
-        if self.ema[0] is not None:
+    def next(self) -> None:        if self.ema[0] is not None:
             if self.order:
                 return
             if not self.position:
