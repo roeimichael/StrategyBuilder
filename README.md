@@ -1,218 +1,274 @@
 # StrategyBuilder
 
-A Python-based backtesting framework for algorithmic trading strategies using Backtrader.
+A clean, modular FastAPI backend for algorithmic trading strategy backtesting using Backtrader.
+
+## Overview
+
+StrategyBuilder provides a RESTful API for backtesting trading strategies on historical market data. Built with FastAPI and Backtrader, it offers a simple yet powerful platform for testing and analyzing trading algorithms.
 
 ## Features
 
-- **Multiple Trading Strategies**: 7+ pre-built strategies including TEMA+MACD, Bollinger Bands, ADX, Alligator, and more
-- **Flexible Configuration**: YAML-based configuration for easy parameter tuning
-- **Performance Analytics**: Built-in Sharpe ratio, drawdown, and ROI calculations
-- **Notifications**: Optional Telegram and Email alerts
-- **Custom Indicators**: Includes custom indicators like CMF (Chaikin Money Flow)
+- 🚀 **RESTful API** - FastAPI-powered backend with automatic documentation
+- 📊 **Multiple Strategies** - 12+ pre-built trading strategies included
+- 📈 **Market Data** - Real-time data fetching via Yahoo Finance
+- 📉 **Performance Metrics** - Comprehensive analytics including Sharpe ratio, max drawdown, and more
+- 🔧 **Modular Design** - Easy to add custom strategies and indicators
+- 📖 **Auto Documentation** - Interactive API docs via Swagger UI
 
 ## Project Structure
 
 ```
 StrategyBuilder/
 ├── src/
-│   ├── core/              # Core backtesting engine
-│   ├── strategies/        # Trading strategy implementations
-│   ├── indicators/        # Custom technical indicators
-│   ├── utils/             # Utilities (scanner, notifications, etc.)
-│   └── main.py           # Main entry point
-├── data/                  # Market data files
-├── config.yaml           # Configuration file
-├── .env.example          # Environment variables template
-└── requirements.txt      # Python dependencies
+│   ├── api/
+│   │   └── main.py              # FastAPI application
+│   ├── core/
+│   │   ├── run_strategy.py      # Backtest execution engine
+│   │   ├── strategy_skeleton.py # Base strategy class
+│   │   └── data_manager.py      # Data handling utilities
+│   ├── strategies/              # Trading strategy implementations
+│   │   ├── bollinger_bands_strategy.py
+│   │   ├── tema_macd_strategy.py
+│   │   ├── rsi_stochastic_strategy.py
+│   │   └── ... (9 more strategies)
+│   ├── indicators/              # Custom technical indicators
+│   │   ├── cmf_indicator.py
+│   │   ├── mfi_indicator.py
+│   │   └── obv_indicator.py
+│   └── utils/
+│       └── performance_analyzer.py  # Advanced metrics calculation
+├── requirements.txt
+└── README.md
 ```
-
-## Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone <your-repo-url>
-   cd StrategyBuilder
-   ```
-
-2. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Configure environment variables** (optional, for notifications)
-   ```bash
-   cp .env.example .env
-   # Edit .env with your credentials
-   ```
-
-4. **Configure parameters**
-   - Edit `config.yaml` to adjust backtesting parameters, indicator settings, and risk management
 
 ## Quick Start
 
-### Running a Backtest
+### Installation
 
 ```bash
-python src/main.py
+# Clone the repository
+git clone <repository-url>
+cd StrategyBuilder
+
+# Install dependencies
+pip install -r requirements.txt
 ```
 
-By default, this runs a Bollinger Bands strategy on AAPL with 1 year of historical data.
+### Running the API
 
-### Customizing the Backtest
+```bash
+# Start the FastAPI server
+cd src
+python -m uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
+```
 
-Edit `src/main.py` to change:
+The API will be available at:
+- **API**: http://localhost:8000
+- **Interactive Docs**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
 
-```python
-# Change ticker
-ticker = "TSLA"
+## API Endpoints
 
-# Change strategy
-from strategies.tema_macd_strategy import TEMA_MACD
-strategy = TEMA_MACD
+### Core Endpoints
 
-# Change time interval
-interval = "1h"  # Options: 1m, 5m, 15m, 30m, 1h, 90m, 1d, 5d, 1wk, 1mo
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/` | GET | API information |
+| `/health` | GET | Health check |
+| `/strategies` | GET | List all available strategies |
+| `/strategies/{name}` | GET | Get strategy details |
+| `/backtest` | POST | Run a backtest |
+| `/market-data` | POST | Fetch market data |
+| `/parameters/default` | GET | Get default parameters |
+
+## Usage Examples
+
+### List Available Strategies
+
+```bash
+curl http://localhost:8000/strategies
+```
+
+### Run a Backtest
+
+```bash
+curl -X POST "http://localhost:8000/backtest" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "ticker": "AAPL",
+    "strategy": "bollinger_bands_strategy",
+    "start_date": "2024-01-01",
+    "end_date": "2024-12-31",
+    "interval": "1h",
+    "cash": 10000
+  }'
+```
+
+### Get Market Data
+
+```bash
+curl -X POST "http://localhost:8000/market-data" \
+  -H "Content-Type": application/json" \
+  -d '{
+    "ticker": "TSLA",
+    "period": "1mo",
+    "interval": "1d"
+  }'
 ```
 
 ## Available Strategies
 
-| Strategy | File | Description |
-|----------|------|-------------|
-| **TEMA + MACD** | `tema_macd_strategy.py` | Combines Triple EMA with MACD for trend confirmation |
-| **CMF + ATR + MACD** | `cmf_atr_macd_strategy.py` | Multi-indicator with volume, volatility, and momentum |
-| **ADX** | `adx_strategy.py` | Adaptive strategy for trending vs range-bound markets |
-| **Alligator** | `alligator_strategy.py` | Bill Williams' Alligator indicator |
-| **Bollinger Bands** | `bollinger_bands_strategy.py` | Mean reversion using Bollinger Bands |
-| **TEMA Crossover** | `tema_crossover_strategy.py` | TEMA 20/60 crossover with volume filter |
-| **Pair Trading** | `pair_trading_strategy.py` | Statistical arbitrage (incomplete) |
+The platform includes 12 pre-built strategies:
 
-## Configuration
+1. **Bollinger Bands** - Mean reversion strategy
+2. **TEMA MACD** - Triple EMA with MACD signals
+3. **TEMA Crossover** - Dual TEMA crossover
+4. **ADX** - Trend strength-based strategy
+5. **Alligator** - Bill Williams' Alligator indicator
+6. **CMF ATR MACD** - Chaikin Money Flow with ATR and MACD
+7. **RSI Stochastic** - RSI and Stochastic oscillator combination
+8. **CCI ATR** - Commodity Channel Index with ATR
+9. **MFI** - Money Flow Index strategy
+10. **Keltner Channel** - Volatility-based channel strategy
+11. **Momentum Multi** - Multi-indicator momentum strategy
+12. **Williams %R** - Williams %R oscillator strategy
 
-### config.yaml
+## Backtest Response Format
 
-Key configuration sections:
-
-```yaml
-backtesting:
-  cash: 10000                    # Starting capital
-  order_percentage: 1.0          # Position size (1.0 = 100%)
-
-indicators:
-  macd:
-    fast_period: 12
-    slow_period: 26
-    signal_period: 9
-
-  atr:
-    period: 14
-    distance: 2.0               # Stop loss/take profit in ATR multiples
-
-data:
-  default_interval: "1d"
-  default_lookback_years: 1
+```json
+{
+  "success": true,
+  "ticker": "AAPL",
+  "strategy": "bollinger_bands_strategy",
+  "start_value": 10000.0,
+  "end_value": 11250.0,
+  "pnl": 1250.0,
+  "return_pct": 12.5,
+  "sharpe_ratio": 1.45,
+  "max_drawdown": -5.2,
+  "total_trades": 15,
+  "interval": "1h",
+  "start_date": "2024-01-01",
+  "end_date": "2024-12-31",
+  "advanced_metrics": {
+    "win_rate": 60.0,
+    "profit_factor": 1.8,
+    ...
+  }
+}
 ```
 
-## Notifications (Optional)
+## Adding Custom Strategies
 
-### Telegram Setup
-
-1. Create a bot via [@BotFather](https://t.me/botfather)
-2. Get your bot token
-3. Add to `.env`:
-   ```
-   TELEGRAM_BOT_TOKEN=your_token_here
-   TELEGRAM_CHAT_ID=your_chat_id
-   ```
-
-### Email Setup
-
-1. Generate an app-specific password (for Gmail)
-2. Add to `.env`:
-   ```
-   EMAIL_ADDRESS=your_email@gmail.com
-   EMAIL_PASSWORD=your_app_password
-   ```
-
-## Development
-
-### Creating a New Strategy
-
-1. Create a new file in `src/strategies/`
-2. Inherit from `Strategy_skeleton`:
+Create a new strategy by extending `Strategy_skeleton`:
 
 ```python
+# src/strategies/my_strategy.py
+
 from core.strategy_skeleton import Strategy_skeleton
 import backtrader as bt
 
 class MyStrategy(Strategy_skeleton):
+    """My custom trading strategy"""
+
+    params = (
+        ("period", 20),
+        ("threshold", 0.02),
+    )
+
     def __init__(self, args):
         super(MyStrategy, self).__init__(args)
-        # Initialize indicators here
+        self.sma = bt.indicators.SMA(period=self.p.period)
 
     def next(self):
-        # Strategy logic here
         if not self.position:
-            if <buy_condition>:
+            if self.data.close[0] > self.sma[0]:
                 self.buy()
         else:
-            if <sell_condition>:
+            if self.data.close[0] < self.sma[0]:
                 self.close()
 ```
 
-3. Import and use in `main.py`
+The strategy will be automatically discovered and available via the API.
 
-## Data Sources
+## Configuration
 
-- **Default**: Yahoo Finance via `yfinance` library
-- Data is downloaded automatically for the specified ticker and timeframe
-- Historical data cached by yfinance
+### Default Parameters
 
-## Requirements
+```python
+{
+    "cash": 10000,
+    "macd1": 12,
+    "macd2": 26,
+    "macdsig": 9,
+    "atrperiod": 14,
+    "atrdist": 2.0,
+    "order_pct": 1.0
+}
+```
 
-- Python 3.7+
-- backtrader
-- yfinance
-- pandas
-- numpy
-- PyYAML
+### CORS Settings
 
-See `requirements.txt` for full list.
+For production, update CORS in `src/api/main.py`:
+
+```python
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://your-frontend-domain.com"],
+    ...
+)
+```
 
 ## Performance Metrics
 
-Each backtest displays:
-- Starting/ending portfolio value
-- Percentage gain/loss
-- Sharpe ratio
-- Maximum drawdown
-- Trade-by-trade breakdown
+Each backtest returns:
+- **ROI** - Return on Investment percentage
+- **Sharpe Ratio** - Risk-adjusted return
+- **Max Drawdown** - Maximum peak-to-trough decline
+- **Total Trades** - Number of trades executed
+- **Win Rate** - Percentage of profitable trades
+- **Profit Factor** - Gross profit / Gross loss
+- **Average Trade P&L** - Mean profit/loss per trade
 
-## Troubleshooting
+## Frontend Integration
 
-**Import errors after reorganization:**
-- Make sure you're running from the project root
-- Ensure `src/` directory has `__init__.py`
+### JavaScript Example
 
-**Data download failures:**
-- Check internet connection
-- Verify ticker symbol is valid
-- Try a different time interval
+```javascript
+const response = await fetch('http://localhost:8000/backtest', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    ticker: 'AAPL',
+    strategy: 'bollinger_bands_strategy',
+    interval: '1h',
+    cash: 10000
+  })
+});
 
-**Notification not working:**
-- Verify `.env` file exists and has correct credentials
-- Enable notifications in `config.yaml`
-- Check API tokens are valid
+const result = await response.json();
+console.log(`ROI: ${result.return_pct}%`);
+```
 
-## License
+### Python Example
 
-MIT License (or specify your license)
+```python
+import requests
+
+response = requests.post('http://localhost:8000/backtest', json={
+    'ticker': 'AAPL',
+    'strategy': 'bollinger_bands_strategy',
+    'interval': '1h',
+    'cash': 10000
+})
+
+result = response.json()
+print(f"ROI: {result['return_pct']}%")
+```
 
 ## Contributing
 
-Contributions welcome! Please:
-1. Fork the repository
-2. Create a feature branch
-3. Submit a pull request
+Contributions welcome! Please feel free to submit a Pull Request.
 
 ## Disclaimer
 

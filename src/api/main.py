@@ -1,299 +1,302 @@
-"""FastAPI REST API for StrategyBuilder automation
-
-This module provides REST API endpoints for programmatic backtesting
-and strategy management.
+"""
+StrategyBuilder FastAPI Application
+Provides RESTful API for algorithmic trading backtesting
 """
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from typing import Dict, Any, List, Optional
+from typing import Optional, List, Dict, Any
 from datetime import datetime, date
+from dateutil.relativedelta import relativedelta
 import sys
 import os
+import importlib
+import inspect
 
-# Add parent directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+# Add src to path for imports
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from src.utils.config_loader import ConfigLoader
-from src.core.vectorized_backtest import (
-    run_vectorized_backtest,
-    VectorizedBollingerBands,
-    VectorizedSMA,
-    VectorizedRSI
-)
-from src.core.run_strategy import Run_strategy
+import backtrader as bt
+import yfinance as yf
+
+from core.run_strategy import Run_strategy
+from core.strategy_skeleton import Strategy_skeleton
 
 # Initialize FastAPI
 app = FastAPI(
     title="StrategyBuilder API",
-    description="REST API for automated strategy backtesting",
-    version="1.0.0"
+    description="Algorithmic Trading Backtesting Platform",
+    version="2.0.0"
 )
 
-# Load configuration
-config = ConfigLoader(os.path.join(os.path.dirname(__file__), '..', '..', 'config.yaml'))
-api_config = config.get_api_config()
+# CORS configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Configure for production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-# Configure CORS
-if api_config.get('cors', {}).get('enabled', True):
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=api_config.get('cors', {}).get('allowed_origins', ["*"]),
-        allow_credentials=True,
-        allow_methods=api_config.get('cors', {}).get('allowed_methods', ["*"]),
-        allow_headers=api_config.get('cors', {}).get('allowed_headers', ["*"]),
-    )
+# ==================== Request/Response Models ====================
 
-
-# Pydantic models for request/response validation
 class BacktestRequest(BaseModel):
-    """Request model for backtest endpoint"""
-    ticker: str = Field(..., description="Stock ticker symbol", example="AAPL")
-    strategy: str = Field(..., description="Strategy name", example="bollinger_bands")
-    start_date: str = Field(..., description="Start date (YYYY-MM-DD)", example="2023-01-01")
-    end_date: str = Field(..., description="End date (YYYY-MM-DD)", example="2024-01-01")
-    parameters: Optional[Dict[str, Any]] = Field(None, description="Strategy parameters")
-    use_vectorized: bool = Field(True, description="Use vectorized backtesting")
-    interval: str = Field("1d", description="Data interval")
+    """Backtest execution request"""
+    ticker: str = Field(..., example="AAPL", description="Stock or crypto ticker symbol")
+    strategy: str = Field(..., example="bollinger_bands_strategy", description="Strategy module name")
+    start_date: Optional[str] = Field(None, example="2024-01-01", description="Start date (YYYY-MM-DD)")
+    end_date: Optional[str] = Field(None, example="2024-12-31", description="End date (YYYY-MM-DD)")
+    interval: str = Field("1d", example="1h", description="Data interval (1m, 5m, 15m, 30m, 1h, 1d, 1wk, 1mo)")
+    cash: float = Field(10000.0, example=10000.0, description="Initial cash")
+    parameters: Optional[Dict[str, Any]] = Field(None, description="Strategy-specific parameters")
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "ticker": "AAPL",
-                "strategy": "bollinger_bands",
-                "start_date": "2023-01-01",
-                "end_date": "2024-01-01",
-                "parameters": {
-                    "period": 20,
-                    "devfactor": 2.0
-                },
-                "use_vectorized": True,
-                "interval": "1d"
-            }
-        }
-
+class MarketDataRequest(BaseModel):
+    """Market data request"""
+    ticker: str = Field(..., example="AAPL")
+    period: str = Field("1mo", example="1mo", description="Period (1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd, max)")
+    interval: str = Field("1d", example="1d")
 
 class BacktestResponse(BaseModel):
-    """Response model for backtest endpoint"""
+    """Backtest results"""
     success: bool
     ticker: str
     strategy: str
+    start_value: float
+    end_value: float
+    pnl: float
+    return_pct: float
+    sharpe_ratio: Optional[float]
+    max_drawdown: Optional[float]
+    total_trades: int
+    interval: str
     start_date: str
     end_date: str
-    results: Dict[str, Any]
-    execution_time_ms: float
+    advanced_metrics: Optional[Dict[str, Any]] = None
 
+# ==================== Utility Functions ====================
 
-class StrategyInfo(BaseModel):
-    """Strategy information model"""
-    name: str
-    description: str
-    default_parameters: Dict[str, Any]
-    optimization_ranges: Dict[str, List]
-    constraints: Dict[str, Dict[str, float]]
-
-
-class StrategyListResponse(BaseModel):
-    """Response model for strategies endpoint"""
-    strategies: List[StrategyInfo]
-    total_count: int
-
-
-# Strategy registry
-AVAILABLE_STRATEGIES = {
-    'bollinger_bands': {
-        'class': VectorizedBollingerBands,
-        'description': 'Bollinger Bands mean reversion strategy',
-        'vectorized': True
-    },
-    'sma_crossover': {
-        'class': VectorizedSMA,
-        'description': 'Simple Moving Average crossover strategy',
-        'vectorized': True
-    },
-    'rsi': {
-        'class': VectorizedRSI,
-        'description': 'RSI overbought/oversold strategy',
-        'vectorized': True
+def get_default_parameters(strategy_params=None):
+    """Get default strategy parameters"""
+    params = {
+        'cash': 10000,
+        'macd1': 12,
+        'macd2': 26,
+        'macdsig': 9,
+        'atrperiod': 14,
+        'atrdist': 2.0,
+        'order_pct': 1.0,
     }
-}
+    if strategy_params:
+        params.update(strategy_params)
+    return params
 
+def load_strategy_class(strategy_name: str):
+    """Dynamically load strategy class from strategies directory"""
+    try:
+        # Remove .py extension if provided
+        if strategy_name.endswith('.py'):
+            strategy_name = strategy_name[:-3]
+
+        # Import the module
+        module = importlib.import_module(f'strategies.{strategy_name}')
+
+        # Find the strategy class in the module
+        for name, obj in inspect.getmembers(module, inspect.isclass):
+            if issubclass(obj, bt.Strategy) and obj not in [bt.Strategy, Strategy_skeleton]:
+                return obj
+
+        raise ValueError(f"No valid strategy class found in {strategy_name}")
+
+    except ImportError as e:
+        raise ValueError(f"Strategy module '{strategy_name}' not found: {str(e)}")
+    except Exception as e:
+        raise ValueError(f"Error loading strategy: {str(e)}")
+
+def list_strategies():
+    """List all available strategy modules"""
+    strategies_dir = os.path.join(os.path.dirname(__file__), '..', 'strategies')
+    strategies = []
+
+    for filename in os.listdir(strategies_dir):
+        if filename.endswith('.py') and not filename.startswith('__'):
+            module_name = filename[:-3]
+            try:
+                module = importlib.import_module(f'strategies.{module_name}')
+                for name, obj in inspect.getmembers(module, inspect.isclass):
+                    if issubclass(obj, bt.Strategy) and obj not in [bt.Strategy, Strategy_skeleton]:
+                        strategies.append({
+                            'module': module_name,
+                            'class_name': name,
+                            'description': obj.__doc__ or "No description"
+                        })
+            except Exception:
+                pass
+
+    return strategies
+
+# ==================== API Endpoints ====================
 
 @app.get("/")
-async def root():
-    """Root endpoint with API information"""
+def root():
+    """API information"""
     return {
         "name": "StrategyBuilder API",
-        "version": "1.0.0",
+        "version": "2.0.0",
+        "status": "running",
+        "docs": "/docs",
         "endpoints": {
-            "POST /backtest": "Run a backtest with specified parameters",
-            "GET /strategies": "List available strategies",
-            "GET /docs": "API documentation (Swagger UI)",
-            "GET /redoc": "API documentation (ReDoc)"
+            "strategies": "/strategies",
+            "backtest": "/backtest",
+            "market_data": "/market-data",
+            "health": "/health"
         }
     }
 
-
-@app.get("/strategies", response_model=StrategyListResponse)
-async def list_strategies():
-    """
-    List all available trading strategies
-
-    Returns:
-        List of available strategies with their configurations
-    """
-    strategies = []
-
-    for strategy_name, strategy_info in AVAILABLE_STRATEGIES.items():
-        # Get strategy config from config file
-        defaults = config.get_strategy_defaults(strategy_name)
-        optimization = config.get_strategy_optimization_ranges(strategy_name)
-        constraints = config.get_strategy_constraints(strategy_name)
-
-        strategies.append(StrategyInfo(
-            name=strategy_name,
-            description=strategy_info['description'],
-            default_parameters=defaults,
-            optimization_ranges=optimization,
-            constraints=constraints
-        ))
-
-    return StrategyListResponse(
-        strategies=strategies,
-        total_count=len(strategies)
-    )
-
-
-@app.post("/backtest", response_model=BacktestResponse)
-async def run_backtest(request: BacktestRequest):
-    """
-    Run a backtest with specified parameters
-
-    Args:
-        request: BacktestRequest with ticker, strategy, dates, and parameters
-
-    Returns:
-        BacktestResponse with results
-
-    Raises:
-        HTTPException: If strategy not found or backtest fails
-    """
-    import time
-    start_time = time.time()
-
-    # Validate strategy
-    if request.strategy not in AVAILABLE_STRATEGIES:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Strategy '{request.strategy}' not found. Available strategies: {list(AVAILABLE_STRATEGIES.keys())}"
-        )
-
-    strategy_info = AVAILABLE_STRATEGIES[request.strategy]
-
-    # Get parameters
-    if request.parameters:
-        params = request.parameters
-    else:
-        params = config.get_strategy_defaults(request.strategy)
-
-    # Validate parameters
-    if not config.validate_parameters(request.strategy, params):
-        raise HTTPException(
-            status_code=400,
-            detail="Parameters violate strategy constraints"
-        )
-
-    # Parse dates
-    try:
-        start_date = datetime.strptime(request.start_date, "%Y-%m-%d")
-        end_date = datetime.strptime(request.end_date, "%Y-%m-%d")
-    except ValueError as e:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid date format. Use YYYY-MM-DD: {str(e)}"
-        )
-
-    # Run backtest
-    try:
-        if request.use_vectorized and strategy_info.get('vectorized'):
-            # Use vectorized backtest
-            results = run_vectorized_backtest(
-                ticker=request.ticker,
-                start_date=start_date,
-                end_date=end_date,
-                strategy_class=strategy_info['class'],
-                params=params
-            )
-        else:
-            # Use traditional backtest
-            runner = Run_strategy(params, strategy_info['class'])
-            results = runner.runstrat(
-                request.ticker,
-                start_date,
-                request.interval,
-                end_date
-            )
-
-        execution_time = (time.time() - start_time) * 1000  # Convert to ms
-
-        # Convert equity curve to list if it's a pandas Series
-        if 'equity_curve' in results:
-            equity_curve = results['equity_curve']
-            if hasattr(equity_curve, 'tolist'):
-                results['equity_curve'] = equity_curve.tolist()
-
-        # Convert trades dates to strings
-        if 'trades' in results:
-            for trade in results['trades']:
-                if 'entry_date' in trade and hasattr(trade['entry_date'], 'strftime'):
-                    trade['entry_date'] = trade['entry_date'].strftime('%Y-%m-%d')
-                if 'exit_date' in trade and hasattr(trade['exit_date'], 'strftime'):
-                    trade['exit_date'] = trade['exit_date'].strftime('%Y-%m-%d')
-
-        return BacktestResponse(
-            success=True,
-            ticker=request.ticker,
-            strategy=request.strategy,
-            start_date=request.start_date,
-            end_date=request.end_date,
-            results=results,
-            execution_time_ms=execution_time
-        )
-
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Backtest failed: {str(e)}"
-        )
-
-
 @app.get("/health")
-async def health_check():
+def health():
     """Health check endpoint"""
     return {
         "status": "healthy",
         "timestamp": datetime.now().isoformat()
     }
 
+@app.get("/strategies")
+def get_strategies():
+    """List all available trading strategies"""
+    try:
+        strategies = list_strategies()
+        return {
+            "success": True,
+            "count": len(strategies),
+            "strategies": strategies
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/config")
-async def get_config():
-    """Get current API configuration"""
+@app.get("/strategies/{strategy_name}")
+def get_strategy_info(strategy_name: str):
+    """Get information about a specific strategy"""
+    try:
+        strategy_class = load_strategy_class(strategy_name)
+
+        # Get strategy parameters
+        params = {}
+        if hasattr(strategy_class, 'params'):
+            for param in strategy_class.params:
+                if isinstance(param, tuple) and len(param) >= 2:
+                    params[param[0]] = param[1]
+
+        return {
+            "success": True,
+            "strategy": {
+                "module": strategy_name,
+                "class_name": strategy_class.__name__,
+                "description": strategy_class.__doc__ or "No description",
+                "parameters": params
+            }
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/backtest", response_model=BacktestResponse)
+def run_backtest(request: BacktestRequest):
+    """Execute a backtest for a given ticker and strategy"""
+    try:
+        # Load strategy
+        strategy_class = load_strategy_class(request.strategy)
+
+        # Prepare parameters
+        params = get_default_parameters(request.parameters)
+        params['cash'] = request.cash
+
+        # Parse dates
+        if request.start_date:
+            start_date = datetime.strptime(request.start_date, "%Y-%m-%d").date()
+        else:
+            start_date = datetime.now().date() - relativedelta(years=1)
+
+        end_date = None
+        if request.end_date:
+            end_date = datetime.strptime(request.end_date, "%Y-%m-%d").date()
+
+        # Run backtest
+        runner = Run_strategy(params, strategy_class)
+        results = runner.runstrat(request.ticker, start_date, request.interval, end_date)
+
+        return BacktestResponse(
+            success=True,
+            ticker=results['ticker'],
+            strategy=request.strategy,
+            start_value=results['start_value'],
+            end_value=results['end_value'],
+            pnl=results['pnl'],
+            return_pct=round(results['return_pct'], 2),
+            sharpe_ratio=round(results['sharpe_ratio'], 2) if results['sharpe_ratio'] else None,
+            max_drawdown=round(results['max_drawdown'], 2) if results['max_drawdown'] else None,
+            total_trades=results['total_trades'],
+            interval=results['interval'],
+            start_date=str(results['start_date']),
+            end_date=str(results['end_date']),
+            advanced_metrics=results.get('advanced_metrics', {})
+        )
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Backtest failed: {str(e)}")
+
+@app.post("/market-data")
+def get_market_data(request: MarketDataRequest):
+    """Fetch historical market data for a ticker"""
+    try:
+        data = yf.download(
+            request.ticker,
+            period=request.period,
+            interval=request.interval,
+            progress=False
+        )
+
+        if data.empty:
+            raise HTTPException(status_code=404, detail=f"No data found for {request.ticker}")
+
+        # Convert to JSON-friendly format
+        data_dict = data.reset_index().to_dict(orient='records')
+
+        # Calculate statistics
+        stats = {
+            'mean': float(data['Close'].mean()) if 'Close' in data else None,
+            'std': float(data['Close'].std()) if 'Close' in data else None,
+            'min': float(data['Close'].min()) if 'Close' in data else None,
+            'max': float(data['Close'].max()) if 'Close' in data else None,
+            'volume_avg': float(data['Volume'].mean()) if 'Volume' in data else None,
+        }
+
+        return {
+            "success": True,
+            "ticker": request.ticker,
+            "period": request.period,
+            "interval": request.interval,
+            "data_points": len(data_dict),
+            "data": data_dict,
+            "statistics": stats
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch market data: {str(e)}")
+
+@app.get("/parameters/default")
+def get_default_params():
+    """Get default strategy parameters"""
     return {
-        "api": config.get_api_config(),
-        "performance": config.get_performance_config(),
-        "available_strategies": list(AVAILABLE_STRATEGIES.keys())
+        "success": True,
+        "parameters": get_default_parameters()
     }
 
+# ==================== Main ====================
 
 if __name__ == "__main__":
     import uvicorn
-
-    host = api_config.get('host', '0.0.0.0')
-    port = api_config.get('port', 8000)
-
-    print(f"Starting StrategyBuilder API on {host}:{port}")
-    print(f"Documentation available at http://{host}:{port}/docs")
-
-    uvicorn.run(app, host=host, port=port)
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)

@@ -1,5 +1,1 @@
-"""REST API module for StrategyBuilder"""
-
-from .main import app
-
-__all__ = ['app']
+"""FastAPI backend for StrategyBuilder"""
