@@ -78,7 +78,7 @@ def load_strategy_class(strategy_name: str) -> Type[bt.Strategy]:
     try:
         if strategy_name.endswith('.py'):
             strategy_name = strategy_name[:-3]
-        module = importlib.import_module(f'strategies.{strategy_name}')
+        module = importlib.import_module(f'src.strategies.{strategy_name}')
         for name, obj in inspect.getmembers(module, inspect.isclass):
             if issubclass(obj, bt.Strategy) and obj not in [bt.Strategy, Strategy_skeleton]:
                 return obj
@@ -95,7 +95,7 @@ def list_strategies() -> List[StrategyInfo]:
         if filename.endswith('.py') and not filename.startswith('__'):
             module_name = filename[:-3]
             try:
-                module = importlib.import_module(f'strategies.{module_name}')
+                module = importlib.import_module(f'src.strategies.{module_name}')
                 for name, obj in inspect.getmembers(module, inspect.isclass):
                     if issubclass(obj, bt.Strategy) and obj not in [bt.Strategy, Strategy_skeleton]:
                         strategies.append(StrategyInfo(
