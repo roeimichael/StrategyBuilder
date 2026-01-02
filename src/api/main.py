@@ -1,7 +1,7 @@
 import os
 import importlib
 import inspect
-from typing import Optional, List, Dict, Type
+from typing import Optional, List, Dict, Type, Any
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
 
@@ -57,7 +57,7 @@ class BacktestResponse(BaseModel):
     interval: str
     start_date: str
     end_date: str
-    advanced_metrics: Optional[Dict[str, float]] = None
+    advanced_metrics: Optional[Dict[str, Any]] = None
 
 class StrategyInfo(BaseModel):
     module: str
