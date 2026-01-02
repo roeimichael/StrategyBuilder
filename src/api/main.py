@@ -14,6 +14,7 @@ import yfinance as yf
 from src.config import Config
 from src.core.run_strategy import Run_strategy
 from src.core.strategy_skeleton import Strategy_skeleton
+from src.utils.api_logger import log_errors, logger
 
 app = FastAPI(
     title=Config.API_TITLE,
@@ -108,6 +109,7 @@ def list_strategies() -> List[StrategyInfo]:
     return strategies
 
 @app.get("/")
+@log_errors
 def root() -> Dict[str, object]:
     return {
         "name": Config.API_TITLE,
@@ -123,6 +125,7 @@ def root() -> Dict[str, object]:
     }
 
 @app.get("/health")
+@log_errors
 def health() -> Dict[str, str]:
     return {
         "status": "healthy",
@@ -130,6 +133,7 @@ def health() -> Dict[str, str]:
     }
 
 @app.get("/strategies")
+@log_errors
 def get_strategies() -> Dict[str, object]:
     try:
         strategies = list_strategies()
@@ -142,14 +146,20 @@ def get_strategies() -> Dict[str, object]:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/strategies/{strategy_name}")
+@log_errors
 def get_strategy_info(strategy_name: str) -> Dict[str, object]:
     try:
         strategy_class = load_strategy_class(strategy_name)
         params = {}
         if hasattr(strategy_class, 'params'):
-            for param in strategy_class.params:
-                if isinstance(param, tuple) and len(param) >= 2:
-                    params[param[0]] = param[1]
+            try:
+                for param_name in dir(strategy_class.params):
+                    if not param_name.startswith('_'):
+                        param_value = getattr(strategy_class.params, param_name, None)
+                        if param_value is not None and not callable(param_value):
+                            params[param_name] = param_value
+            except Exception as e:
+                logger.warning(f"Could not extract params for {strategy_name}: {e}")
         return {
             "success": True,
             "strategy": {
@@ -165,6 +175,7 @@ def get_strategy_info(strategy_name: str) -> Dict[str, object]:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/backtest", response_model=BacktestResponse)
+@log_errors
 def run_backtest(request: BacktestRequest) -> BacktestResponse:
     try:
         strategy_class = load_strategy_class(request.strategy)
@@ -201,6 +212,7 @@ def run_backtest(request: BacktestRequest) -> BacktestResponse:
         raise HTTPException(status_code=500, detail=f"Backtest failed: {str(e)}")
 
 @app.post("/market-data")
+@log_errors
 def get_market_data(request: MarketDataRequest) -> Dict[str, object]:
     try:
         data = yf.download(
@@ -213,11 +225,11 @@ def get_market_data(request: MarketDataRequest) -> Dict[str, object]:
             raise HTTPException(status_code=404, detail=f"No data found for {request.ticker}")
         data_dict = data.reset_index().to_dict(orient='records')
         stats = {
-            'mean': float(data['Close'].mean()) if 'Close' in data else None,
-            'std': float(data['Close'].std()) if 'Close' in data else None,
-            'min': float(data['Close'].min()) if 'Close' in data else None,
-            'max': float(data['Close'].max()) if 'Close' in data else None,
-            'volume_avg': float(data['Volume'].mean()) if 'Volume' in data else None,
+            'mean': data['Close'].mean().item() if 'Close' in data else None,
+            'std': data['Close'].std().item() if 'Close' in data else None,
+            'min': data['Close'].min().item() if 'Close' in data else None,
+            'max': data['Close'].max().item() if 'Close' in data else None,
+            'volume_avg': data['Volume'].mean().item() if 'Volume' in data else None,
         }
         return {
             "success": True,
@@ -232,6 +244,7 @@ def get_market_data(request: MarketDataRequest) -> Dict[str, object]:
         raise HTTPException(status_code=500, detail=f"Failed to fetch market data: {str(e)}")
 
 @app.get("/parameters/default")
+@log_errors
 def get_default_params() -> Dict[str, object]:
     return {
         "success": True,
