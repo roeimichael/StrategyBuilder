@@ -6,7 +6,7 @@ import math
 import backtrader as bt
 
 from indicators.cmf_indicator import CMF
-from core.strategy_skeleton import Strategy_skeleton
+from ..core.strategy_skeleton import Strategy_skeleton
 
 class MACD_CMF_ATR_Strategy(Strategy_skeleton):
 

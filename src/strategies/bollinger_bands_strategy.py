@@ -1,7 +1,7 @@
 import math
 from typing import Dict
 import backtrader as bt
-from core.strategy_skeleton import Strategy_skeleton
+from ..core.strategy_skeleton import Strategy_skeleton
 
 class Bollinger_three(Strategy_skeleton):
     params = (

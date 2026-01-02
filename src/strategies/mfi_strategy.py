@@ -5,7 +5,7 @@ import math
 
 import backtrader as bt
 
-from core.strategy_skeleton import Strategy_skeleton
+from ..core.strategy_skeleton import Strategy_skeleton
 from indicators.mfi_indicator import MFI
 
 class MFI_Strategy(Strategy_skeleton):

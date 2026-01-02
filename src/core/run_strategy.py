@@ -5,7 +5,7 @@ import backtrader as bt
 import pandas as pd
 import yfinance as yf
 
-from utils.performance_analyzer import PerformanceAnalyzer
+from ..utils.performance_analyzer import PerformanceAnalyzer
 
 class Run_strategy:
     def __init__(self, parameters: Dict[str, float], strategy: Type[bt.Strategy], data: Optional[bt.feeds.PandasData] = None):

@@ -1,5 +1,4 @@
 import os
-import sys
 import importlib
 import inspect
 from typing import Optional, List, Dict, Type
@@ -12,11 +11,9 @@ from pydantic import BaseModel, Field
 import backtrader as bt
 import yfinance as yf
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-
-from config import Config
-from core.run_strategy import Run_strategy
-from core.strategy_skeleton import Strategy_skeleton
+from ..config import Config
+from ..core.run_strategy import Run_strategy
+from ..core.strategy_skeleton import Strategy_skeleton
 
 app = FastAPI(
     title=Config.API_TITLE,
