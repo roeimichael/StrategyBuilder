@@ -4,7 +4,7 @@ import math
 
 import backtrader as bt
 
-from indicators.cmf_indicator import CMF
+from src.indicators.cmf_indicator import CMF
 from ..core.strategy_skeleton import Strategy_skeleton
 
 

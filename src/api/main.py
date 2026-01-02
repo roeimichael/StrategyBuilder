@@ -11,9 +11,9 @@ from pydantic import BaseModel, Field
 import backtrader as bt
 import yfinance as yf
 
-from ..config import Config
-from ..core.run_strategy import Run_strategy
-from ..core.strategy_skeleton import Strategy_skeleton
+from src.config import Config
+from src.core.run_strategy import Run_strategy
+from src.core.strategy_skeleton import Strategy_skeleton
 
 app = FastAPI(
     title=Config.API_TITLE,
