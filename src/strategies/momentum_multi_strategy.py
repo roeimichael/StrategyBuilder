@@ -1,12 +1,12 @@
+"""Multi-Indicator Momentum Strategy combining ROC, RSI, and OBV"""
 
-
-from typing import Dict
 import math
 
 import backtrader as bt
 
 from ..core.strategy_skeleton import Strategy_skeleton
 from indicators.obv_indicator import OBV
+
 
 class Momentum_Multi(Strategy_skeleton):
     params = (
@@ -18,15 +18,19 @@ class Momentum_Multi(Strategy_skeleton):
         ("rsi_exit", 70)
     )
 
-    def __init__(self, args: Dict[str, float]):
-        
+    def __init__(self, args):
+        """Initialize ROC, RSI, and OBV indicators"""
         super(Momentum_Multi, self).__init__(args)
         self.size = 0
         self.roc = bt.indicators.ROC(self.data.close, period=self.p.roc_period)
         self.rsi = bt.indicators.RSI(self.data.close, period=self.p.rsi_period)
         self.obv = OBV(self.data)
 
-    def next(self) -> None:        if self.order:
+    def next(self):
+        """Execute strategy logic on each bar"""
+        self.log('Close, %.2f' % self.data[0])
+
+        if self.order:
             return
 
         if len(self) < max(self.p.roc_period, self.p.rsi_period) + 1:

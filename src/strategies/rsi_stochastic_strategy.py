@@ -1,11 +1,11 @@
+"""RSI + Stochastic Oscillator Strategy combining oversold/overbought signals"""
 
-
-from typing import Dict
 import math
 
 import backtrader as bt
 
 from ..core.strategy_skeleton import Strategy_skeleton
+
 
 class RSI_Stochastic(Strategy_skeleton):
     params = (
@@ -17,14 +17,18 @@ class RSI_Stochastic(Strategy_skeleton):
         ("stoch_overbought", 80)
     )
 
-    def __init__(self, args: Dict[str, float]):
-        
+    def __init__(self, args):
+        """Initialize RSI and Stochastic indicators"""
         super(RSI_Stochastic, self).__init__(args)
         self.size = 0
         self.rsi = bt.indicators.RSI(self.data.close, period=self.p.rsi_period)
         self.stoch = bt.indicators.Stochastic(self.data, period=self.p.stoch_period)
 
-    def next(self) -> None:        if self.order:
+    def next(self):
+        """Execute strategy logic on each bar"""
+        self.log('Close, %.2f' % self.data[0])
+
+        if self.order:
             return
 
         if not self.position:

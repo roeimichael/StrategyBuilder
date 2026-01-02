@@ -1,6 +1,5 @@
+"""MACD + CMF + ATR combined strategy with stop loss and take profit"""
 
-
-from typing import Dict
 import math
 
 import backtrader as bt
@@ -8,10 +7,11 @@ import backtrader as bt
 from indicators.cmf_indicator import CMF
 from ..core.strategy_skeleton import Strategy_skeleton
 
+
 class MACD_CMF_ATR_Strategy(Strategy_skeleton):
 
-    def __init__(self, args: Dict[str, float]):
-        
+    def __init__(self, args):
+        """Initialize MACD, CMF, and ATR indicators"""
         super(MACD_CMF_ATR_Strategy, self).__init__(args)
         self.stop_loss_long = 0
         self.take_profit_long = 0
@@ -27,7 +27,11 @@ class MACD_CMF_ATR_Strategy(Strategy_skeleton):
         self.atr = bt.indicators.ATR(self.data, period=self.args['atrperiod'])
         self.cmf = CMF(self.data)
 
-    def next(self) -> None:        if self.order:
+    def next(self):
+        """Execute strategy logic on each bar"""
+        self.log('Close, %.2f' % self.data[0])
+
+        if self.order:
             return
 
         if not self.position:

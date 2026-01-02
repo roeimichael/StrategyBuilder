@@ -1,12 +1,12 @@
+"""MFI (Money Flow Index) Strategy with volume-weighted signals"""
 
-
-from typing import Dict
 import math
 
 import backtrader as bt
 
 from ..core.strategy_skeleton import Strategy_skeleton
 from indicators.mfi_indicator import MFI
+
 
 class MFI_Strategy(Strategy_skeleton):
     params = (
@@ -15,13 +15,17 @@ class MFI_Strategy(Strategy_skeleton):
         ("overbought", 80)
     )
 
-    def __init__(self, args: Dict[str, float]):
-        
+    def __init__(self, args):
+        """Initialize Money Flow Index indicator"""
         super(MFI_Strategy, self).__init__(args)
         self.size = 0
         self.mfi = MFI(self.data, period=self.p.period)
 
-    def next(self) -> None:        if self.order:
+    def next(self):
+        """Execute strategy logic on each bar"""
+        self.log('Close, %.2f' % self.data[0])
+
+        if self.order:
             return
 
         if not self.position:
