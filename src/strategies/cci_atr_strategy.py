@@ -1,9 +1,4 @@
-"""CCI + ATR Volatility Breakout Strategy"""
-
-import math
-
 import backtrader as bt
-
 from ..core.strategy_skeleton import Strategy_skeleton
 
 
@@ -16,15 +11,12 @@ class CCI_ATR_Strategy(Strategy_skeleton):
     )
 
     def __init__(self, args):
-        """Initialize CCI and ATR indicators"""
         super(CCI_ATR_Strategy, self).__init__(args)
-        self.size = 0
         self.in_position = False
         self.cci = bt.indicators.CCI(self.data, period=self.p.cci_period)
         self.atr = bt.indicators.ATR(self.data, period=self.p.atr_period)
 
     def next(self):
-        """Execute strategy logic on each bar"""
         self.log('Close, %.2f' % self.data[0])
 
         if self.order:
@@ -37,9 +29,7 @@ class CCI_ATR_Strategy(Strategy_skeleton):
             if (self.cci[0] > self.p.cci_entry and
                 self.cci[-1] <= self.p.cci_entry and
                 self.atr[0] > self.atr[-1]):
-                amount_to_invest = self.broker.cash
-                self.size = math.floor(amount_to_invest / self.data.low[0])
-                self.buy(size=self.size)
+                self.buy()
                 self.log(f'BUY CREATE (CCI: {self.cci[0]:.2f}, ATR: {self.atr[0]:.2f}), %.2f' % self.data[0])
                 self.in_position = True
         else:
