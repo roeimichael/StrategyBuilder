@@ -3,6 +3,8 @@ import importlib
 import inspect
 from typing import Optional, List, Dict, Type, Any
 from datetime import datetime, date
+
+import pandas as pd
 from dateutil.relativedelta import relativedelta
 
 from fastapi import FastAPI, HTTPException
@@ -211,6 +213,7 @@ def run_backtest(request: BacktestRequest) -> BacktestResponse:
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Backtest failed: {str(e)}")
 
+
 @app.post("/market-data")
 @log_errors
 def get_market_data(request: MarketDataRequest) -> Dict[str, object]:
@@ -223,6 +226,9 @@ def get_market_data(request: MarketDataRequest) -> Dict[str, object]:
         )
         if data.empty:
             raise HTTPException(status_code=404, detail=f"No data found for {request.ticker}")
+        if isinstance(data.columns, pd.MultiIndex):
+            data.columns = data.columns.get_level_values(0)
+        data = data.loc[:, ~data.columns.duplicated()]
         data_dict = data.reset_index().to_dict(orient='records')
         stats = {
             'mean': data['Close'].mean().item() if 'Close' in data else None,
