@@ -213,19 +213,24 @@ class Run_strategy:
 
     def _extract_ohlc_data(self, data_feed: bt.feeds.PandasData) -> List[Dict[str, Any]]:
         ohlc_list = []
-        for i in range(len(data_feed)):
-            try:
-                dt = data_feed.datetime.datetime(i)
-                ohlc_list.append({
-                    'date': dt.isoformat() if hasattr(dt, 'isoformat') else str(dt),
-                    'open': float(data_feed.open[i]),
-                    'high': float(data_feed.high[i]),
-                    'low': float(data_feed.low[i]),
-                    'close': float(data_feed.close[i]),
-                    'volume': float(data_feed.volume[i])
-                })
-            except Exception:
-                continue
+
+        # Access the underlying pandas dataframe directly
+        if hasattr(data_feed, 'p') and hasattr(data_feed.p, 'dataname'):
+            df = data_feed.p.dataname
+            if df is not None and not df.empty:
+                for idx, row in df.iterrows():
+                    try:
+                        ohlc_list.append({
+                            'date': idx.isoformat() if hasattr(idx, 'isoformat') else str(idx),
+                            'open': float(row.get('Open', row.get('open', 0))),
+                            'high': float(row.get('High', row.get('high', 0))),
+                            'low': float(row.get('Low', row.get('low', 0))),
+                            'close': float(row.get('Close', row.get('close', 0))),
+                            'volume': float(row.get('Volume', row.get('volume', 0)))
+                        })
+                    except Exception:
+                        continue
+
         return ohlc_list
 
     def _extract_indicators(self, strat: bt.Strategy, data_length: int) -> Dict[str, List]:
@@ -244,32 +249,33 @@ class Run_strategy:
                     if hasattr(attr, 'lines'):
                         line_names = attr.getlinealiases()
                         if len(line_names) == 1:
+                            # Single line indicator - access the array buffer directly
                             values = []
-                            for i in range(min(len(attr), data_length)):
-                                try:
-                                    val = attr[i - len(attr)]
+                            if hasattr(attr, 'array'):
+                                # Get all values from the internal array
+                                arr = attr.array
+                                for i in range(len(arr)):
+                                    val = arr[i]
                                     if val is not None and not (isinstance(val, float) and (val != val)):
                                         values.append(float(val))
                                     else:
                                         values.append(None)
-                                except Exception:
-                                    values.append(None)
                             indicators_data[attr_name] = values
                         else:
+                            # Multi-line indicator
                             for line_name in line_names:
                                 if line_name:
                                     line = getattr(attr.lines, line_name, None)
                                     if line is not None:
                                         values = []
-                                        for i in range(min(len(line), data_length)):
-                                            try:
-                                                val = line[i - len(line)]
+                                        if hasattr(line, 'array'):
+                                            arr = line.array
+                                            for i in range(len(arr)):
+                                                val = arr[i]
                                                 if val is not None and not (isinstance(val, float) and (val != val)):
                                                     values.append(float(val))
                                                 else:
                                                     values.append(None)
-                                            except Exception:
-                                                values.append(None)
                                         indicators_data[f"{attr_name}_{line_name}"] = values
                 except Exception:
                     continue
