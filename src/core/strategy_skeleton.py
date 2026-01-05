@@ -11,18 +11,27 @@ class Strategy_skeleton(bt.Strategy):
         self.val_start: Optional[float] = None
 
     def notify_trade(self, trade: bt.Trade) -> None:
+        print(f"[DEBUG] notify_trade called - closed: {trade.isclosed}, ref: {trade.ref}")
+
         if not trade.isclosed:
+            print(f"[DEBUG] Trade {trade.ref} not closed yet, skipping")
             return
 
         # Get the trade size - use value if history is not available
         initial_size = 0
+        print(f"[DEBUG] Trade history length: {len(trade.history)}, trade.size: {trade.size}")
+
         if len(trade.history) > 0:
             initial_size = trade.history[0].size
+            print(f"[DEBUG] Got initial_size from history[0]: {initial_size}")
         elif trade.size != 0:
             # Fallback to trade.size if history is not available
             initial_size = abs(trade.size)
+            print(f"[DEBUG] Got initial_size from trade.size: {initial_size}")
 
         if initial_size == 0:
+            print(f"[DEBUG] WARNING: initial_size is 0, trade will not be recorded!")
+            print(f"[DEBUG] Trade details - history: {trade.history}, size: {trade.size}, value: {trade.value}, price: {trade.price}")
             return
 
         pnl = trade.pnlcomm
