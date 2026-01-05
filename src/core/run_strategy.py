@@ -247,32 +247,38 @@ class Run_strategy:
                     if hasattr(indicator_obj, 'lines'):
                         line_names = indicator_obj.getlinealiases()
                         if len(line_names) == 1:
-                            # Single line indicator
-                            values = []
-                            if hasattr(indicator_obj, 'array'):
-                                arr = indicator_obj.array
+                            # Single line indicator - get the first line
+                            line = getattr(indicator_obj.lines, line_names[0], None)
+                            if line is not None and hasattr(line, 'array'):
+                                values = []
+                                arr = line.array
                                 for i in range(len(arr)):
-                                    val = arr[i]
-                                    if val is not None and not (isinstance(val, float) and (val != val)):
-                                        values.append(float(val))
-                                    else:
+                                    try:
+                                        val = arr[i]
+                                        if val is not None and not (isinstance(val, float) and (val != val)):
+                                            values.append(float(val))
+                                        else:
+                                            values.append(None)
+                                    except (IndexError, KeyError):
                                         values.append(None)
-                            indicators_data[indicator_name] = values
+                                indicators_data[indicator_name] = values
                         else:
                             # Multi-line indicator - append line name to indicator name
                             for line_name in line_names:
                                 if line_name:
                                     line = getattr(indicator_obj.lines, line_name, None)
-                                    if line is not None:
+                                    if line is not None and hasattr(line, 'array'):
                                         values = []
-                                        if hasattr(line, 'array'):
-                                            arr = line.array
-                                            for i in range(len(arr)):
+                                        arr = line.array
+                                        for i in range(len(arr)):
+                                            try:
                                                 val = arr[i]
                                                 if val is not None and not (isinstance(val, float) and (val != val)):
                                                     values.append(float(val))
                                                 else:
                                                     values.append(None)
+                                            except (IndexError, KeyError):
+                                                values.append(None)
                                         indicators_data[f"{indicator_name}_{line_name}"] = values
                 except Exception:
                     continue
