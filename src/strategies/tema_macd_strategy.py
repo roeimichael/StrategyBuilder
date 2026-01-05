@@ -11,6 +11,8 @@ class TEMA_MACD(Strategy_skeleton):
                                        period_me2=self.args['macd2'],
                                        period_signal=self.args['macdsig'])
         self.mcross = bt.indicators.CrossOver(self.macd.macd, self.macd.signal)
+        # Calculate MACD histogram manually
+        self.macd_histogram = self.macd.macd - self.macd.signal
         self.tema_open = bt.indicators.TripleExponentialMovingAverage(self.data.open, period=12)
         self.tema_close = bt.indicators.TripleExponentialMovingAverage(self.data.close, period=12)
         self.tcross = bt.indicators.CrossOver(self.tema_close, self.tema_open)
@@ -22,7 +24,7 @@ class TEMA_MACD(Strategy_skeleton):
         return {
             'MACD': self.macd.macd,
             'MACD_Signal': self.macd.signal,
-            'MACD_Histogram': self.macd.histo,
+            'MACD_Histogram': self.macd_histogram,
             'TEMA_Open': self.tema_open,
             'TEMA_Close': self.tema_close
         }

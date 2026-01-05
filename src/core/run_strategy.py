@@ -246,11 +246,27 @@ class Run_strategy:
         if technical_indicators:
             # Use the strategy's defined technical indicators
             for indicator_name, indicator_obj in technical_indicators.items():
-                if indicator_obj is None or not isinstance(indicator_obj, bt.Indicator):
+                if indicator_obj is None:
                     continue
 
                 try:
-                    if hasattr(indicator_obj, 'lines'):
+                    # Check if this is a line object directly (has array attribute)
+                    if hasattr(indicator_obj, 'array') and not isinstance(indicator_obj, bt.Indicator):
+                        # This is a line object (e.g., self.boll.lines.top, self.stoch.percK)
+                        values = []
+                        arr = indicator_obj.array
+                        for i in range(len(arr)):
+                            try:
+                                val = arr[i]
+                                if val is not None and not (isinstance(val, float) and (val != val)):
+                                    values.append(float(val))
+                                else:
+                                    values.append(None)
+                            except (IndexError, KeyError):
+                                values.append(None)
+                        indicators_data[indicator_name] = values
+                    # Check if this is an indicator object
+                    elif isinstance(indicator_obj, bt.Indicator) and hasattr(indicator_obj, 'lines'):
                         line_names = indicator_obj.getlinealiases()
                         if len(line_names) == 1:
                             # Single line indicator - get the first line

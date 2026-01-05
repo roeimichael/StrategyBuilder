@@ -18,6 +18,8 @@ class MACD_CMF_ATR_Strategy(Strategy_skeleton):
                                        period_signal=self.args['macdsig'])
         self.mcross = bt.indicators.CrossOver(self.macd.macd, self.macd.signal)
         self.mcross_short = bt.indicators.CrossOver(self.macd.signal, self.macd.macd)
+        # Calculate MACD histogram manually
+        self.macd_histogram = self.macd.macd - self.macd.signal
         self.atr = bt.indicators.ATR(self.data, period=self.args['atrperiod'])
         self.cmf = CMF(self.data)
 
@@ -26,7 +28,7 @@ class MACD_CMF_ATR_Strategy(Strategy_skeleton):
         return {
             'MACD': self.macd.macd,
             'MACD_Signal': self.macd.signal,
-            'MACD_Histogram': self.macd.histo,
+            'MACD_Histogram': self.macd_histogram,
             'ATR': self.atr,
             'CMF': self.cmf
         }
