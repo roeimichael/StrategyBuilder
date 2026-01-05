@@ -236,10 +236,16 @@ class Run_strategy:
     def _extract_indicators(self, strat: bt.Strategy, data_length: int) -> Dict[str, List]:
         indicators_data = {}
 
-        # Check if strategy has explicitly defined technical_indicators
-        if hasattr(strat, 'technical_indicators') and isinstance(strat.technical_indicators, dict):
+        # Check if strategy has get_technical_indicators method or technical_indicators attribute
+        technical_indicators = None
+        if hasattr(strat, 'get_technical_indicators') and callable(strat.get_technical_indicators):
+            technical_indicators = strat.get_technical_indicators()
+        elif hasattr(strat, 'technical_indicators') and isinstance(strat.technical_indicators, dict):
+            technical_indicators = strat.technical_indicators
+
+        if technical_indicators:
             # Use the strategy's defined technical indicators
-            for indicator_name, indicator_obj in strat.technical_indicators.items():
+            for indicator_name, indicator_obj in technical_indicators.items():
                 if indicator_obj is None or not isinstance(indicator_obj, bt.Indicator):
                     continue
 
