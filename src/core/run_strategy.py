@@ -236,36 +236,33 @@ class Run_strategy:
     def _extract_indicators(self, strat: bt.Strategy, data_length: int) -> Dict[str, List]:
         indicators_data = {}
 
-        for attr_name in dir(strat):
-            if attr_name.startswith('_'):
-                continue
+        # Check if strategy has explicitly defined technical_indicators
+        if hasattr(strat, 'technical_indicators') and isinstance(strat.technical_indicators, dict):
+            # Use the strategy's defined technical indicators
+            for indicator_name, indicator_obj in strat.technical_indicators.items():
+                if indicator_obj is None or not isinstance(indicator_obj, bt.Indicator):
+                    continue
 
-            attr = getattr(strat, attr_name, None)
-            if attr is None:
-                continue
-
-            if isinstance(attr, bt.Indicator):
                 try:
-                    if hasattr(attr, 'lines'):
-                        line_names = attr.getlinealiases()
+                    if hasattr(indicator_obj, 'lines'):
+                        line_names = indicator_obj.getlinealiases()
                         if len(line_names) == 1:
-                            # Single line indicator - access the array buffer directly
+                            # Single line indicator
                             values = []
-                            if hasattr(attr, 'array'):
-                                # Get all values from the internal array
-                                arr = attr.array
+                            if hasattr(indicator_obj, 'array'):
+                                arr = indicator_obj.array
                                 for i in range(len(arr)):
                                     val = arr[i]
                                     if val is not None and not (isinstance(val, float) and (val != val)):
                                         values.append(float(val))
                                     else:
                                         values.append(None)
-                            indicators_data[attr_name] = values
+                            indicators_data[indicator_name] = values
                         else:
-                            # Multi-line indicator
+                            # Multi-line indicator - append line name to indicator name
                             for line_name in line_names:
                                 if line_name:
-                                    line = getattr(attr.lines, line_name, None)
+                                    line = getattr(indicator_obj.lines, line_name, None)
                                     if line is not None:
                                         values = []
                                         if hasattr(line, 'array'):
@@ -276,9 +273,54 @@ class Run_strategy:
                                                     values.append(float(val))
                                                 else:
                                                     values.append(None)
-                                        indicators_data[f"{attr_name}_{line_name}"] = values
+                                        indicators_data[f"{indicator_name}_{line_name}"] = values
                 except Exception:
                     continue
+        else:
+            # Fallback: auto-discover indicators (for backward compatibility)
+            for attr_name in dir(strat):
+                if attr_name.startswith('_'):
+                    continue
+
+                attr = getattr(strat, attr_name, None)
+                if attr is None:
+                    continue
+
+                if isinstance(attr, bt.Indicator):
+                    try:
+                        if hasattr(attr, 'lines'):
+                            line_names = attr.getlinealiases()
+                            if len(line_names) == 1:
+                                # Single line indicator - access the array buffer directly
+                                values = []
+                                if hasattr(attr, 'array'):
+                                    # Get all values from the internal array
+                                    arr = attr.array
+                                    for i in range(len(arr)):
+                                        val = arr[i]
+                                        if val is not None and not (isinstance(val, float) and (val != val)):
+                                            values.append(float(val))
+                                        else:
+                                            values.append(None)
+                                indicators_data[attr_name] = values
+                            else:
+                                # Multi-line indicator
+                                for line_name in line_names:
+                                    if line_name:
+                                        line = getattr(attr.lines, line_name, None)
+                                        if line is not None:
+                                            values = []
+                                            if hasattr(line, 'array'):
+                                                arr = line.array
+                                                for i in range(len(arr)):
+                                                    val = arr[i]
+                                                    if val is not None and not (isinstance(val, float) and (val != val)):
+                                                        values.append(float(val))
+                                                    else:
+                                                        values.append(None)
+                                            indicators_data[f"{attr_name}_{line_name}"] = values
+                    except Exception:
+                        continue
 
         return indicators_data
 

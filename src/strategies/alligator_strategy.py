@@ -14,6 +14,14 @@ class Alligator_strategy(Strategy_skeleton):
         self.long_position = 0
         self.short_position = 0
 
+        # Define technical indicators to be exposed for charting
+        self.technical_indicators = {
+            'Alligator_Lips_SMA5': self.lips,
+            'Alligator_Teeth_SMA8': self.teeth,
+            'Alligator_Jaws_SMA13': self.jaws,
+            'EMA_200': self.ema
+        }
+
     def next(self):
         self.log('Close, %.2f' % self.data[0])
         if self.ema[0] is None:
