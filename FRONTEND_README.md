@@ -171,6 +171,33 @@ User adjusts strategy parameters → User clicks "Test"
 - Trade-by-trade breakdown
 - Equity curve chart
 
+### Chart Visualization
+
+The backtest response includes a `chart_data` field with everything needed for interactive charts:
+
+**What's Included:**
+- **OHLC Data** - Open/High/Low/Close/Volume for each bar
+- **Technical Indicators** - All indicators used by the strategy (dynamically included)
+- **Trade Markers** - Buy/sell positions with dates, prices, and PnL
+
+**Recommended Charting Libraries:**
+- [Recharts](https://recharts.org/) - Simple React charts
+- [Chart.js](https://www.chartjs.org/) - Flexible charting
+- [TradingView Lightweight Charts](https://www.tradingview.com/lightweight-charts/) - Professional trading charts
+
+**Example Data Structure:**
+```javascript
+{
+  chart_data: {
+    ohlc: [{date: "2024-01-01", open: 150, high: 152, low: 149, close: 151, volume: 1000000}, ...],
+    indicators: {"boll_top": [152.5, ...], "boll_mid": [150.0, ...], "boll_bot": [147.5, ...]},
+    trade_markers: [{date: "2024-01-05", price: 149.8, type: "BUY", action: "OPEN"}, ...]
+  }
+}
+```
+
+See [API_DOCUMENTATION.md - Chart Data Visualization](./API_DOCUMENTATION.md#chart-data-visualization-example) for complete React example.
+
 ### Performance Considerations
 
 - **Cache** strategy list (doesn't change)

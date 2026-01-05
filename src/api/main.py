@@ -61,6 +61,7 @@ class BacktestResponse(BaseModel):
     start_date: str
     end_date: str
     advanced_metrics: Optional[Dict[str, Any]] = None
+    chart_data: Optional[Dict[str, Any]] = None
 
 class StrategyInfo(BaseModel):
     module: str
@@ -206,7 +207,8 @@ def run_backtest(request: BacktestRequest) -> BacktestResponse:
             interval=results['interval'],
             start_date=str(results['start_date']),
             end_date=str(results['end_date']),
-            advanced_metrics=results.get('advanced_metrics', {})
+            advanced_metrics=results.get('advanced_metrics', {}),
+            chart_data=results.get('chart_data')
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

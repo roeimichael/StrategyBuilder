@@ -84,6 +84,8 @@ class Run_strategy:
 
         total_trades = trade_analysis.get('total', {}).get('total', len(trades))
 
+        chart_data = self._extract_chart_data(strat, self.data)
+
         return {
             'start_value': start_value,
             'end_value': end_value,
@@ -98,7 +100,8 @@ class Run_strategy:
             'end_date': end_date if end_date else 'today',
             'interval': interval,
             'advanced_metrics': advanced_metrics,
-            'equity_curve': equity_curve
+            'equity_curve': equity_curve,
+            'chart_data': chart_data
         }
 
     def _build_equity_curve(self, time_returns: Dict, start_value: float) -> List[Dict[str, Any]]:
@@ -196,3 +199,103 @@ class Run_strategy:
         if downside_dev == 0:
             return None
         return (avg_return - risk_free_rate) / downside_dev
+
+    def _extract_chart_data(self, strat: bt.Strategy, data_feed: bt.feeds.PandasData) -> Dict[str, Any]:
+        ohlc_data = self._extract_ohlc_data(data_feed)
+        indicators = self._extract_indicators(strat, len(ohlc_data))
+        trade_markers = self._extract_trade_markers(strat)
+
+        return {
+            'ohlc': ohlc_data,
+            'indicators': indicators,
+            'trade_markers': trade_markers
+        }
+
+    def _extract_ohlc_data(self, data_feed: bt.feeds.PandasData) -> List[Dict[str, Any]]:
+        ohlc_list = []
+        for i in range(len(data_feed)):
+            try:
+                dt = data_feed.datetime.datetime(i)
+                ohlc_list.append({
+                    'date': dt.isoformat() if hasattr(dt, 'isoformat') else str(dt),
+                    'open': float(data_feed.open[i]),
+                    'high': float(data_feed.high[i]),
+                    'low': float(data_feed.low[i]),
+                    'close': float(data_feed.close[i]),
+                    'volume': float(data_feed.volume[i])
+                })
+            except Exception:
+                continue
+        return ohlc_list
+
+    def _extract_indicators(self, strat: bt.Strategy, data_length: int) -> Dict[str, List]:
+        indicators_data = {}
+
+        for attr_name in dir(strat):
+            if attr_name.startswith('_'):
+                continue
+
+            attr = getattr(strat, attr_name, None)
+            if attr is None:
+                continue
+
+            if isinstance(attr, bt.Indicator):
+                try:
+                    if hasattr(attr, 'lines'):
+                        line_names = attr.getlinealiases()
+                        if len(line_names) == 1:
+                            values = []
+                            for i in range(min(len(attr), data_length)):
+                                try:
+                                    val = attr[i - len(attr)]
+                                    if val is not None and not (isinstance(val, float) and (val != val)):
+                                        values.append(float(val))
+                                    else:
+                                        values.append(None)
+                                except Exception:
+                                    values.append(None)
+                            indicators_data[attr_name] = values
+                        else:
+                            for line_name in line_names:
+                                if line_name:
+                                    line = getattr(attr.lines, line_name, None)
+                                    if line is not None:
+                                        values = []
+                                        for i in range(min(len(line), data_length)):
+                                            try:
+                                                val = line[i - len(line)]
+                                                if val is not None and not (isinstance(val, float) and (val != val)):
+                                                    values.append(float(val))
+                                                else:
+                                                    values.append(None)
+                                            except Exception:
+                                                values.append(None)
+                                        indicators_data[f"{attr_name}_{line_name}"] = values
+                except Exception:
+                    continue
+
+        return indicators_data
+
+    def _extract_trade_markers(self, strat: bt.Strategy) -> List[Dict[str, Any]]:
+        markers = []
+
+        if not hasattr(strat, 'trades'):
+            return markers
+
+        for trade in strat.trades:
+            markers.append({
+                'date': trade['entry_date'].isoformat() if hasattr(trade['entry_date'], 'isoformat') else str(trade['entry_date']),
+                'price': float(trade['entry_price']),
+                'type': 'BUY' if trade['type'] == 'LONG' else 'SELL',
+                'action': 'OPEN'
+            })
+
+            markers.append({
+                'date': trade['exit_date'].isoformat() if hasattr(trade['exit_date'], 'isoformat') else str(trade['exit_date']),
+                'price': float(trade['exit_price']),
+                'type': 'SELL' if trade['type'] == 'LONG' else 'BUY',
+                'action': 'CLOSE',
+                'pnl': float(trade['pnl'])
+            })
+
+        return sorted(markers, key=lambda x: x['date'])

@@ -108,6 +108,21 @@ fetch('http://localhost:8000/market-data', {
     largest_win: 320.50,       // Best trade ($)
     largest_loss: -180.25,     // Worst trade ($)
     expectancy: 83.38          // Expected $ per trade
+  },
+  chart_data: {
+    ohlc: [                    // OHLC price data for charting
+      {date: "2024-01-01", open: 150.0, high: 152.0, low: 149.5, close: 151.0, volume: 1000000},
+      // ...
+    ],
+    indicators: {              // Technical indicators used by strategy
+      "boll_top": [152.5, ...],
+      "boll_mid": [150.0, ...],
+      "boll_bot": [147.5, ...]
+    },
+    trade_markers: [           // Buy/sell positions with dates and prices
+      {date: "2024-01-05", price: 149.8, type: "BUY", action: "OPEN"},
+      {date: "2024-01-10", price: 151.2, type: "SELL", action: "CLOSE", pnl: 140.0}
+    ]
   }
 }
 ```
@@ -161,6 +176,7 @@ fetch('http://localhost:8000/market-data', {
 3. **Check health endpoint** before running backtests
 4. **Cache strategy list** - it doesn't change often
 5. **Show progress** - Backtests can take 10+ seconds
+6. **Use chart_data** for visualization - includes OHLC, indicators, and trade markers
 
 ---
 

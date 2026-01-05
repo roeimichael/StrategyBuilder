@@ -364,6 +364,50 @@ fetch('http://localhost:8000/strategies/bollinger_bands_strategy')
 | `largest_loss` | number | Largest losing trade ($) |
 | `expectancy` | number | Expected value per trade ($) |
 
+**Chart Data Fields:**
+
+The `chart_data` object contains all data needed for frontend charting and visualization:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `ohlc` | array | OHLC price data for each bar in the backtest |
+| `indicators` | object | Technical indicators used by the strategy |
+| `trade_markers` | array | Buy/sell positions with dates, prices, and PnL |
+
+**OHLC Data Structure:**
+```javascript
+{
+  date: "2024-01-01T00:00:00",  // ISO format datetime
+  open: 150.25,
+  high: 152.10,
+  low: 149.80,
+  close: 151.50,
+  volume: 1000000
+}
+```
+
+**Indicators Structure:**
+The indicators object contains arrays of values for each technical indicator used by the strategy. The keys are indicator names (e.g., `"boll_top"`, `"boll_mid"`, `"boll_bot"` for Bollinger Bands). Each array has the same length as the OHLC data.
+
+```javascript
+{
+  "boll_top": [152.5, 153.0, 153.2, ...],
+  "boll_mid": [150.0, 150.5, 150.8, ...],
+  "boll_bot": [147.5, 148.0, 148.4, ...]
+}
+```
+
+**Trade Markers Structure:**
+```javascript
+{
+  date: "2024-01-05T00:00:00",
+  price: 149.80,
+  type: "BUY",                  // "BUY" or "SELL"
+  action: "OPEN",               // "OPEN" or "CLOSE"
+  pnl: 140.0                    // Only present on "CLOSE" actions
+}
+```
+
 **Typical Response Time:** 2-10 seconds (depends on date range and interval)
 
 ---
@@ -464,6 +508,7 @@ interface BacktestResponse {
   start_date: string;
   end_date: string;
   advanced_metrics: AdvancedMetrics;
+  chart_data?: ChartData;  // Optional charting data for visualization
 }
 
 interface AdvancedMetrics {
@@ -479,6 +524,31 @@ interface AdvancedMetrics {
   largest_win: number;
   largest_loss: number;
   expectancy: number;
+}
+
+interface ChartData {
+  ohlc: OHLCData[];             // OHLC price data for charting
+  indicators: {                 // Technical indicators used by strategy
+    [key: string]: (number | null)[];
+  };
+  trade_markers: TradeMarker[]; // Buy/sell positions
+}
+
+interface OHLCData {
+  date: string;                 // ISO format date/datetime
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+}
+
+interface TradeMarker {
+  date: string;                 // ISO format date/datetime
+  price: number;                // Entry/exit price
+  type: "BUY" | "SELL";         // Trade direction
+  action: "OPEN" | "CLOSE";     // Opening or closing position
+  pnl?: number;                 // Profit/loss (only on CLOSE)
 }
 ```
 
@@ -723,6 +793,174 @@ function BacktestRunner() {
   );
 }
 ```
+
+---
+
+## Chart Data Visualization Example
+
+The `chart_data` field in backtest responses provides everything needed to create interactive charts with indicators and trade markers.
+
+### Using Chart Data with Recharts
+
+```jsx
+import React, { useState } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceDot } from 'recharts';
+
+function BacktestChart() {
+  const [chartData, setChartData] = useState(null);
+
+  const runBacktest = async () => {
+    const response = await fetch('http://localhost:8000/backtest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ticker: "AAPL",
+        strategy: "bollinger_bands_strategy",
+        start_date: "2024-01-01",
+        cash: 10000.0
+      })
+    });
+    const data = await response.json();
+    setChartData(data.chart_data);
+  };
+
+  // Combine OHLC data with indicators for charting
+  const prepareChartData = () => {
+    if (!chartData) return [];
+
+    return chartData.ohlc.map((bar, index) => {
+      const point = {
+        date: bar.date,
+        close: bar.close,
+        open: bar.open,
+        high: bar.high,
+        low: bar.low
+      };
+
+      // Add all indicators
+      Object.keys(chartData.indicators).forEach(key => {
+        point[key] = chartData.indicators[key][index];
+      });
+
+      return point;
+    });
+  };
+
+  // Render trade markers as arrows
+  const renderTradeMarkers = () => {
+    if (!chartData) return null;
+
+    return chartData.trade_markers.map((marker, idx) => {
+      const color = marker.action === 'OPEN'
+        ? (marker.type === 'BUY' ? '#00ff00' : '#ff0000')
+        : (marker.type === 'SELL' ? '#00ff00' : '#ff0000');
+
+      return (
+        <ReferenceDot
+          key={idx}
+          x={marker.date}
+          y={marker.price}
+          r={5}
+          fill={color}
+          stroke={color}
+          label={marker.action === 'OPEN' ? '▼' : '▲'}
+        />
+      );
+    });
+  };
+
+  const data = prepareChartData();
+
+  return (
+    <div>
+      <button onClick={runBacktest}>Run Backtest</button>
+
+      {chartData && (
+        <LineChart width={1200} height={600} data={data}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="date" />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+
+          {/* Price line */}
+          <Line type="monotone" dataKey="close" stroke="#8884d8" name="Close Price" />
+
+          {/* Render all indicators dynamically */}
+          {Object.keys(chartData.indicators).map((key, idx) => (
+            <Line
+              key={key}
+              type="monotone"
+              dataKey={key}
+              stroke={`hsl(${idx * 60}, 70%, 50%)`}
+              name={key}
+              strokeWidth={1}
+            />
+          ))}
+
+          {/* Trade markers */}
+          {renderTradeMarkers()}
+        </LineChart>
+      )}
+    </div>
+  );
+}
+```
+
+### Chart Data Structure Example
+
+For a Bollinger Bands strategy, the chart_data would look like:
+
+```javascript
+{
+  "chart_data": {
+    "ohlc": [
+      {
+        "date": "2024-01-02T00:00:00",
+        "open": 185.36,
+        "high": 186.89,
+        "low": 184.95,
+        "close": 185.64,
+        "volume": 58414460
+      },
+      // ... more bars
+    ],
+    "indicators": {
+      "boll_top": [187.23, 187.45, 187.89, ...],
+      "boll_mid": [185.50, 185.60, 185.75, ...],
+      "boll_bot": [183.77, 183.75, 183.61, ...]
+    },
+    "trade_markers": [
+      {
+        "date": "2024-01-05T00:00:00",
+        "price": 183.92,
+        "type": "BUY",
+        "action": "OPEN"
+      },
+      {
+        "date": "2024-01-10T00:00:00",
+        "price": 186.15,
+        "type": "SELL",
+        "action": "CLOSE",
+        "pnl": 223.0
+      }
+    ]
+  }
+}
+```
+
+### Key Points for Charting
+
+1. **OHLC and Indicators Alignment**: The indicator arrays have the same length as the OHLC data array, so you can combine them by index.
+
+2. **Dynamic Indicators**: Different strategies use different indicators. The indicator keys will vary (e.g., Bollinger Bands has `boll_top`, `boll_mid`, `boll_bot`, while RSI strategy has `rsi`).
+
+3. **Trade Markers**:
+   - `OPEN` actions show where positions were entered
+   - `CLOSE` actions show where positions were exited and include PnL
+   - Use different colors/arrows for BUY vs SELL
+
+4. **Date Format**: All dates are in ISO format and can be used directly in most charting libraries.
 
 ---
 
