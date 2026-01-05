@@ -11,13 +11,13 @@ def test_alligator_indicators():
     print("Testing Alligator Strategy Indicators...")
     print("=" * 80)
 
-    # Run backtest with alligator strategy
+    # Run backtest with alligator strategy (needs longer date range for 200-period EMA)
     response = requests.post(
         f"{API_URL}/backtest",
         json={
             "ticker": "AAPL",
             "strategy": "alligator_strategy",
-            "start_date": "2025-10-01",
+            "start_date": "2024-01-01",
             "end_date": "2026-01-05",
             "interval": "1d",
             "cash": 10000.0
