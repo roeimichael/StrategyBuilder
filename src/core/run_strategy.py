@@ -356,22 +356,47 @@ class Run_strategy:
         markers = []
 
         if not hasattr(strat, 'trades'):
+            print("[DEBUG] Strategy does not have 'trades' attribute")
             return markers
 
-        for trade in strat.trades:
-            markers.append({
-                'date': trade['entry_date'].isoformat() if hasattr(trade['entry_date'], 'isoformat') else str(trade['entry_date']),
-                'price': float(trade['entry_price']),
-                'type': 'BUY' if trade['type'] == 'LONG' else 'SELL',
-                'action': 'OPEN'
-            })
+        print(f"[DEBUG] Extracting trade markers from {len(strat.trades)} trades")
 
-            markers.append({
-                'date': trade['exit_date'].isoformat() if hasattr(trade['exit_date'], 'isoformat') else str(trade['exit_date']),
-                'price': float(trade['exit_price']),
-                'type': 'SELL' if trade['type'] == 'LONG' else 'BUY',
-                'action': 'CLOSE',
-                'pnl': float(trade['pnl'])
-            })
+        for trade in strat.trades:
+            try:
+                # Convert datetime to ISO format string, handling timezone-aware datetimes
+                entry_date = trade['entry_date']
+                if hasattr(entry_date, 'isoformat'):
+                    entry_date_str = entry_date.isoformat()
+                elif hasattr(entry_date, 'strftime'):
+                    entry_date_str = entry_date.strftime('%Y-%m-%dT%H:%M:%S')
+                else:
+                    entry_date_str = str(entry_date)
+
+                exit_date = trade['exit_date']
+                if hasattr(exit_date, 'isoformat'):
+                    exit_date_str = exit_date.isoformat()
+                elif hasattr(exit_date, 'strftime'):
+                    exit_date_str = exit_date.strftime('%Y-%m-%dT%H:%M:%S')
+                else:
+                    exit_date_str = str(exit_date)
+
+                markers.append({
+                    'date': entry_date_str,
+                    'price': float(trade['entry_price']),
+                    'type': 'BUY' if trade['type'] == 'LONG' else 'SELL',
+                    'action': 'OPEN'
+                })
+
+                markers.append({
+                    'date': exit_date_str,
+                    'price': float(trade['exit_price']),
+                    'type': 'SELL' if trade['type'] == 'LONG' else 'BUY',
+                    'action': 'CLOSE',
+                    'pnl': float(trade['pnl'])
+                })
+            except Exception as e:
+                # Log the error but continue processing other trades
+                print(f"Error extracting trade marker: {e}")
+                continue
 
         return sorted(markers, key=lambda x: x['date'])

@@ -14,9 +14,13 @@ class Strategy_skeleton(bt.Strategy):
         if not trade.isclosed:
             return
 
+        # Get the trade size - use value if history is not available
         initial_size = 0
         if len(trade.history) > 0:
             initial_size = trade.history[0].size
+        elif trade.size != 0:
+            # Fallback to trade.size if history is not available
+            initial_size = abs(trade.size)
 
         if initial_size == 0:
             return
@@ -33,7 +37,7 @@ class Strategy_skeleton(bt.Strategy):
         entry_dt = bt.num2date(trade.dtopen)
         exit_dt = bt.num2date(trade.dtclose)
 
-        self.trades.append({
+        trade_dict = {
             'entry_date': entry_dt,
             'exit_date': exit_dt,
             'entry_price': entry_price,
@@ -43,7 +47,10 @@ class Strategy_skeleton(bt.Strategy):
             'pnl_pct': pnl_pct,
             'bar_duration': trade.barlen,
             'type': 'LONG' if initial_size > 0 else 'SHORT'
-        })
+        }
+
+        self.trades.append(trade_dict)
+        print(f"[DEBUG] Trade added to markers: {trade.ref} - {trade_dict['type']} at {trade_dict['entry_price']:.2f}, closed at {trade_dict['exit_price']:.2f}, PNL: {pnl:.2f}")
 
     def notify_order(self, order: bt.Order) -> None:
         if not order.alive():
