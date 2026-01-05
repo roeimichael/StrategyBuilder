@@ -21,6 +21,16 @@ class MACD_CMF_ATR_Strategy(Strategy_skeleton):
         self.atr = bt.indicators.ATR(self.data, period=self.args['atrperiod'])
         self.cmf = CMF(self.data)
 
+    def get_technical_indicators(self):
+        """Return technical indicators to be exposed for charting"""
+        return {
+            'MACD': self.macd.macd,
+            'MACD_Signal': self.macd.signal,
+            'MACD_Histogram': self.macd.histo,
+            'ATR': self.atr,
+            'CMF': self.cmf
+        }
+
     def next(self):
         self.log('Close, %.2f' % self.data[0])
 

@@ -18,6 +18,15 @@ class Keltner_Channel(Strategy_skeleton):
         self.cross_upper = bt.ind.CrossOver(self.data.close, self.upper_band)
         self.cross_ema = bt.ind.CrossOver(self.data.close, self.ema)
 
+    def get_technical_indicators(self):
+        """Return technical indicators to be exposed for charting"""
+        return {
+            'EMA': self.ema,
+            'ATR': self.atr,
+            'Keltner_Upper': self.upper_band,
+            'Keltner_Lower': self.lower_band
+        }
+
     def next(self):
         self.log('Close, %.2f' % self.data[0])
 

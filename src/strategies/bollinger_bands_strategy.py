@@ -14,6 +14,14 @@ class Bollinger_three(Strategy_skeleton):
         self.crossover_bot = bt.ind.CrossOver(self.data.close, self.boll.lines.bot)
         self.crossover_mid = bt.ind.CrossOver(self.data.close, self.boll.lines.mid)
 
+    def get_technical_indicators(self):
+        """Return technical indicators to be exposed for charting"""
+        return {
+            'Bollinger_Upper': self.boll.lines.top,
+            'Bollinger_Middle': self.boll.lines.mid,
+            'Bollinger_Lower': self.boll.lines.bot
+        }
+
     def next(self):
         self.log('Close, %.2f' % self.data[0])
 

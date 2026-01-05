@@ -17,6 +17,16 @@ class TEMA_MACD(Strategy_skeleton):
         self.flag_macd = 0
         self.flag_tema = 0
 
+    def get_technical_indicators(self):
+        """Return technical indicators to be exposed for charting"""
+        return {
+            'MACD': self.macd.macd,
+            'MACD_Signal': self.macd.signal,
+            'MACD_Histogram': self.macd.histo,
+            'TEMA_Open': self.tema_open,
+            'TEMA_Close': self.tema_close
+        }
+
     def next(self):
         self.log('Close, %.2f' % self.data[0])
         if self.tema_open[0] is None:

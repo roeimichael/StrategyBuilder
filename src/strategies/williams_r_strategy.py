@@ -13,6 +13,12 @@ class Williams_R(Strategy_skeleton):
         super(Williams_R, self).__init__(args)
         self.willr = bt.indicators.WilliamsR(self.data, period=self.p.period)
 
+    def get_technical_indicators(self):
+        """Return technical indicators to be exposed for charting"""
+        return {
+            'Williams_R': self.willr
+        }
+
     def next(self):
         self.log('Close, %.2f' % self.data[0])
 

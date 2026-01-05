@@ -15,6 +15,17 @@ class adx_strat(Strategy_skeleton):
         self.boll_cross_bot = bt.ind.CrossOver(self.data.close, self.boll.lines.bot)
         self.boll_cross_mid = bt.ind.CrossOver(self.data.close, self.boll.lines.mid)
 
+    def get_technical_indicators(self):
+        """Return technical indicators to be exposed for charting"""
+        return {
+            'ADX': self.adx,
+            'SMA_20': self.ma20,
+            'SMA_50': self.ma50,
+            'Bollinger_Upper': self.boll.lines.top,
+            'Bollinger_Middle': self.boll.lines.mid,
+            'Bollinger_Lower': self.boll.lines.bot
+        }
+
     def next(self):
         self.log('Close, %.2f' % self.data[0])
         if self.order:

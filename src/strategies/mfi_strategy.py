@@ -14,6 +14,12 @@ class MFI_Strategy(Strategy_skeleton):
         super(MFI_Strategy, self).__init__(args)
         self.mfi = MFI(self.data, period=self.p.period)
 
+    def get_technical_indicators(self):
+        """Return technical indicators to be exposed for charting"""
+        return {
+            'MFI': self.mfi
+        }
+
     def next(self):
         self.log('Close, %.2f' % self.data[0])
 

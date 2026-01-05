@@ -12,6 +12,14 @@ class Tema20_tema60(Strategy_skeleton):
         self.tcross = bt.indicators.CrossOver(self.tema_20, self.tema_60)
         self.tcross_flag = 0
 
+    def get_technical_indicators(self):
+        """Return technical indicators to be exposed for charting"""
+        return {
+            'Volume_SMA': self.volume_average,
+            'TEMA_20': self.tema_20,
+            'TEMA_60': self.tema_60
+        }
+
     def next(self):
         self.log('Close, %.2f' % self.data[0])
 
