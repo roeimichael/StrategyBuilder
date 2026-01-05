@@ -17,7 +17,6 @@ class CCI_ATR_Strategy(Strategy_skeleton):
         self.atr = bt.indicators.ATR(self.data, period=self.p.atr_period)
 
     def get_technical_indicators(self):
-        """Return technical indicators to be exposed for charting"""
         return {
             'CCI': self.cci,
             'ATR': self.atr

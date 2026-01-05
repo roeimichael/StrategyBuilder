@@ -1,5 +1,3 @@
-"""Data management system with SQLite caching and validation"""
-
 import os
 import sqlite3
 import datetime
@@ -10,10 +8,8 @@ from contextlib import contextmanager
 
 
 class DataManager:
-    """Manages OHLCV data with SQLite caching and auto-updates"""
 
     def __init__(self, db_path: str = None, update_schedule: str = 'daily'):
-        """Initialize DataManager with cache database"""
         if db_path is None:
             db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'data', 'market_data.db')
 
@@ -22,7 +18,6 @@ class DataManager:
         self._ensure_db_exists()
 
     def _ensure_db_exists(self):
-        """Create database and tables if they don't exist"""
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
 
         with self._get_connection() as conn:
@@ -62,7 +57,6 @@ class DataManager:
 
     @contextmanager
     def _get_connection(self):
-        """Context manager for database connections"""
         conn = sqlite3.connect(self.db_path)
         try:
             yield conn
@@ -71,7 +65,6 @@ class DataManager:
 
     def get_data(self, ticker: str, start_date: datetime.date, end_date: datetime.date = None,
                  interval: str = '1d', force_update: bool = False) -> pd.DataFrame:
-        """Get OHLCV data with caching and fallback to yfinance"""
         if end_date is None:
             end_date = datetime.date.today()
 
@@ -88,7 +81,6 @@ class DataManager:
 
     def _get_cached_data(self, ticker: str, start_date: datetime.date,
                         end_date: datetime.date, interval: str) -> Optional[pd.DataFrame]:
-        """Retrieve cached data from SQLite"""
         with self._get_connection() as conn:
             query = '''
                 SELECT date, open, high, low, close, volume
@@ -115,7 +107,6 @@ class DataManager:
 
     def _is_cache_complete(self, cached_data: pd.DataFrame,
                           start_date: datetime.date, end_date: datetime.date) -> bool:
-        """Check if cached data covers the requested date range"""
         if cached_data.empty:
             return False
 
@@ -126,7 +117,6 @@ class DataManager:
 
     def _fetch_and_cache_data(self, ticker: str, start_date: datetime.date,
                               end_date: datetime.date, interval: str) -> pd.DataFrame:
-        """Fetch data from yfinance and cache it"""
         data = yf.download(
             ticker,
             start=start_date,
@@ -149,7 +139,6 @@ class DataManager:
         return cleaned_data
 
     def _clean_and_validate_data(self, data: pd.DataFrame) -> pd.DataFrame:
-        """Clean and validate OHLCV data"""
         df = data.copy()
 
         df = df.dropna()
@@ -174,7 +163,6 @@ class DataManager:
         return df
 
     def _cache_data(self, ticker: str, data: pd.DataFrame, interval: str):
-        """Store data in SQLite cache"""
         with self._get_connection() as conn:
             cursor = conn.cursor()
 
@@ -210,7 +198,6 @@ class DataManager:
 
     def bulk_download(self, tickers: List[str], start_date: datetime.date,
                      end_date: datetime.date = None, interval: str = '1d') -> dict:
-        """Download and cache data for multiple tickers"""
         if end_date is None:
             end_date = datetime.date.today()
 
@@ -226,7 +213,6 @@ class DataManager:
         return results
 
     def get_cache_stats(self) -> dict:
-        """Get statistics about cached data"""
         with self._get_connection() as conn:
             cursor = conn.cursor()
 
@@ -248,7 +234,6 @@ class DataManager:
             }
 
     def clear_cache(self, ticker: str = None):
-        """Clear cached data for a ticker or all tickers"""
         with self._get_connection() as conn:
             cursor = conn.cursor()
 
@@ -263,7 +248,6 @@ class DataManager:
 
     @staticmethod
     def get_sp500_tickers() -> List[str]:
-        """Get list of S&P 500 tickers"""
         try:
             table = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
             df = table[0]

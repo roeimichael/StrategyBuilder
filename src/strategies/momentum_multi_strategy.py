@@ -20,7 +20,6 @@ class Momentum_Multi(Strategy_skeleton):
         self.obv = OBV(self.data)
 
     def get_technical_indicators(self):
-        """Return technical indicators to be exposed for charting"""
         return {
             'ROC': self.roc,
             'RSI': self.rsi,

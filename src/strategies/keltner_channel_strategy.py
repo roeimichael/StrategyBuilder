@@ -19,7 +19,6 @@ class Keltner_Channel(Strategy_skeleton):
         self.cross_ema = bt.ind.CrossOver(self.data.close, self.ema)
 
     def get_technical_indicators(self):
-        """Return technical indicators to be exposed for charting"""
         return {
             'EMA': self.ema,
             'ATR': self.atr,

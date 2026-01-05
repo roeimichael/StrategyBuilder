@@ -18,7 +18,6 @@ class RSI_Stochastic(Strategy_skeleton):
         self.stoch = bt.indicators.Stochastic(self.data, period=self.p.stoch_period)
 
     def get_technical_indicators(self):
-        """Return technical indicators to be exposed for charting"""
         return {
             'RSI': self.rsi,
             'Stochastic_K': self.stoch.percK,

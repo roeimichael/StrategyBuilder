@@ -4,16 +4,18 @@ A clean, modular FastAPI backend for algorithmic trading strategy backtesting us
 
 ## Overview
 
-StrategyBuilder provides a RESTful API for backtesting trading strategies on historical market data. Built with FastAPI and Backtrader, it offers a simple yet powerful platform for testing and analyzing trading algorithms.
+StrategyBuilder provides a RESTful API for backtesting trading strategies on historical market data. Built with FastAPI and Backtrader, it offers a simple yet powerful platform for testing and analyzing trading algorithms with comprehensive chart data, technical indicators, and trade visualization support.
 
 ## Features
 
--  **RESTful API** - FastAPI-powered backend with automatic documentation
--  **Multiple Strategies** - 12+ pre-built trading strategies included
--  **Market Data** - Real-time data fetching via Yahoo Finance
--  **Performance Metrics** - Comprehensive analytics including Sharpe ratio, max drawdown, and more
--  **Modular Design** - Easy to add custom strategies and indicators
--  **Auto Documentation** - Interactive API docs via Swagger UI
+- **RESTful API** - FastAPI-powered backend with automatic documentation
+- **Multiple Strategies** - 12+ pre-built trading strategies included
+- **Market Data** - Real-time data fetching via Yahoo Finance
+- **Performance Metrics** - Comprehensive analytics including Sharpe ratio, max drawdown, and more
+- **Chart Data** - OHLC data, technical indicators, and trade markers for visualization
+- **Trade Tracking** - Automatic position tracking with entry/exit markers
+- **Modular Design** - Easy to add custom strategies and indicators
+- **Auto Documentation** - Interactive API docs via Swagger UI
 
 ## Project Structure
 
@@ -36,8 +38,12 @@ StrategyBuilder/
 │   │   ├── mfi_indicator.py
 │   │   └── obv_indicator.py
 │   └── utils/
-│       └── performance_analyzer.py  # Advanced metrics calculation
+│       ├── performance_analyzer.py  # Advanced metrics calculation
+│       └── api_logger.py            # API logging utilities
+├── test_api.py                  # Comprehensive API testing script
+├── API_SUMMARY.md               # Complete API documentation
 ├── requirements.txt
+├── run_api.py                   # API server launcher
 └── README.md
 ```
 
@@ -46,20 +52,15 @@ StrategyBuilder/
 ### Installation
 
 ```bash
-# Clone the repository
 git clone <repository-url>
 cd StrategyBuilder
-
-# Install dependencies
 pip install -r requirements.txt
 ```
 
 ### Running the API
 
 ```bash
-# Start the FastAPI server
-cd src
-python -m uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
+python run_api.py
 ```
 
 The API will be available at:
@@ -81,40 +82,17 @@ The API will be available at:
 | `/market-data` | POST | Fetch market data |
 | `/parameters/default` | GET | Get default parameters |
 
-## Usage Examples
+For complete API documentation, see [API_SUMMARY.md](API_SUMMARY.md)
 
-### List Available Strategies
+## Testing
 
-```bash
-curl http://localhost:8000/strategies
-```
-
-### Run a Backtest
+Run comprehensive API tests:
 
 ```bash
-curl -X POST "http://localhost:8000/backtest" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "ticker": "AAPL",
-    "strategy": "bollinger_bands_strategy",
-    "start_date": "2024-01-01",
-    "end_date": "2024-12-31",
-    "interval": "1h",
-    "cash": 10000
-  }'
+python test_api.py
 ```
 
-### Get Market Data
-
-```bash
-curl -X POST "http://localhost:8000/market-data" \
-  -H "Content-Type": application/json" \
-  -d '{
-    "ticker": "TSLA",
-    "period": "1mo",
-    "interval": "1d"
-  }'
-```
+This will test 5 different configurations and save results to `test_results.json`.
 
 ## Available Strategies
 
@@ -138,39 +116,90 @@ The platform includes 12 pre-built strategies:
 ```json
 {
   "success": true,
-  "ticker": "AAPL",
-  "strategy": "bollinger_bands_strategy",
+  "ticker": "BTC-USD",
+  "strategy": "williams_r_strategy",
   "start_value": 10000.0,
-  "end_value": 11250.0,
-  "pnl": 1250.0,
-  "return_pct": 12.5,
-  "sharpe_ratio": 1.45,
-  "max_drawdown": -5.2,
+  "end_value": 11500.0,
+  "pnl": 1500.0,
+  "return_pct": 15.0,
+  "sharpe_ratio": 1.25,
+  "max_drawdown": 8.5,
   "total_trades": 15,
-  "interval": "1h",
+  "interval": "1d",
   "start_date": "2024-01-01",
   "end_date": "2024-12-31",
   "advanced_metrics": {
     "win_rate": 60.0,
     "profit_factor": 1.8,
-    ...
+    "payoff_ratio": 1.5,
+    "calmar_ratio": 1.76,
+    "sortino_ratio": 1.45,
+    "max_consecutive_wins": 5,
+    "max_consecutive_losses": 3,
+    "avg_win": 150.0,
+    "avg_loss": 100.0,
+    "largest_win": 300.0,
+    "largest_loss": 250.0,
+    "expectancy": 50.0
+  },
+  "chart_data": {
+    "ohlc": [
+      {
+        "date": "2024-01-01T00:00:00",
+        "open": 42000.0,
+        "high": 43000.0,
+        "low": 41500.0,
+        "close": 42500.0,
+        "volume": 1000000.0
+      }
+    ],
+    "indicators": {
+      "Williams_R": [-50.0, -45.0, -60.0]
+    },
+    "trade_markers": [
+      {
+        "date": "2024-03-15T14:30:00",
+        "price": 445.5,
+        "type": "BUY",
+        "action": "OPEN"
+      },
+      {
+        "date": "2024-03-20T10:15:00",
+        "price": 452.3,
+        "type": "SELL",
+        "action": "CLOSE",
+        "pnl": 68.0
+      }
+    ]
   }
 }
 ```
+
+## Chart Data Features
+
+### OHLC Data
+Complete historical price data for visualization with open, high, low, close, and volume.
+
+### Technical Indicators
+Each strategy exposes its technical indicators for charting. Access indicators via `chart_data.indicators`.
+
+### Trade Markers
+Automatic trade tracking with entry and exit markers. Each marker includes:
+- **date**: Timestamp of the trade
+- **price**: Execution price
+- **type**: BUY or SELL
+- **action**: OPEN or CLOSE
+- **pnl**: Profit/loss (on CLOSE markers)
 
 ## Adding Custom Strategies
 
 Create a new strategy by extending `Strategy_skeleton`:
 
 ```python
-# src/strategies/my_strategy.py
-
-from core.strategy_skeleton import Strategy_skeleton
+from src.core.strategy_skeleton import Strategy_skeleton
 import backtrader as bt
 
 class MyStrategy(Strategy_skeleton):
-    """My custom trading strategy"""
-
     params = (
         ("period", 20),
         ("threshold", 0.02),
@@ -179,6 +208,11 @@ class MyStrategy(Strategy_skeleton):
     def __init__(self, args):
         super(MyStrategy, self).__init__(args)
         self.sma = bt.indicators.SMA(period=self.p.period)
+
+    def get_technical_indicators(self):
+        return {
+            'SMA': self.sma
+        }
 
     def next(self):
         if not self.position:
@@ -198,37 +232,37 @@ The strategy will be automatically discovered and available via the API.
 ```python
 {
     "cash": 10000,
+    "commission": 0.001,
+    "position_size_pct": 95.0,
     "macd1": 12,
     "macd2": 26,
     "macdsig": 9,
     "atrperiod": 14,
-    "atrdist": 2.0,
-    "order_pct": 1.0
+    "atrdist": 2.0
 }
 ```
 
 ### CORS Settings
 
-For production, update CORS in `src/api/main.py`:
-
-```python
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["https://your-frontend-domain.com"],
-    ...
-)
-```
+CORS is configured in `src/config.py` for production use.
 
 ## Performance Metrics
 
-Each backtest returns:
+Each backtest returns comprehensive metrics:
+
+### Basic Metrics
 - **ROI** - Return on Investment percentage
 - **Sharpe Ratio** - Risk-adjusted return
 - **Max Drawdown** - Maximum peak-to-trough decline
 - **Total Trades** - Number of trades executed
+
+### Advanced Metrics
 - **Win Rate** - Percentage of profitable trades
 - **Profit Factor** - Gross profit / Gross loss
-- **Average Trade P&L** - Mean profit/loss per trade
+- **Payoff Ratio** - Average win / Average loss
+- **Calmar Ratio** - Annual return / Max drawdown
+- **Sortino Ratio** - Downside risk-adjusted return
+- **Expectancy** - Expected value per trade
 
 ## Frontend Integration
 
@@ -239,15 +273,23 @@ const response = await fetch('http://localhost:8000/backtest', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
-    ticker: 'AAPL',
-    strategy: 'bollinger_bands_strategy',
-    interval: '1h',
-    cash: 10000
+    ticker: 'BTC-USD',
+    strategy: 'williams_r_strategy',
+    start_date: '2024-01-01',
+    end_date: '2024-12-31',
+    interval: '1d',
+    cash: 10000,
+    parameters: {
+      period: 14,
+      lower_bound: -80,
+      upper_bound: -20
+    }
   })
 });
 
 const result = await response.json();
 console.log(`ROI: ${result.return_pct}%`);
+console.log(`Trades: ${result.chart_data.trade_markers.length / 2}`);
 ```
 
 ### Python Example
@@ -256,19 +298,24 @@ console.log(`ROI: ${result.return_pct}%`);
 import requests
 
 response = requests.post('http://localhost:8000/backtest', json={
-    'ticker': 'AAPL',
-    'strategy': 'bollinger_bands_strategy',
-    'interval': '1h',
-    'cash': 10000
+    'ticker': 'BTC-USD',
+    'strategy': 'williams_r_strategy',
+    'start_date': '2024-01-01',
+    'end_date': '2024-12-31',
+    'interval': '1d',
+    'cash': 10000,
+    'parameters': {
+        'period': 14,
+        'lower_bound': -80,
+        'upper_bound': -20
+    }
 })
 
 result = response.json()
 print(f"ROI: {result['return_pct']}%")
+print(f"Chart data points: {len(result['chart_data']['ohlc'])}")
+print(f"Trade markers: {len(result['chart_data']['trade_markers'])}")
 ```
-
-## Contributing
-
-Contributions welcome! Please feel free to submit a Pull Request.
 
 ## Disclaimer
 

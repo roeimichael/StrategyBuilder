@@ -15,7 +15,6 @@ class Alligator_strategy(Strategy_skeleton):
         self.short_position = 0
 
     def get_technical_indicators(self):
-        """Return technical indicators to be exposed for charting"""
         return {
             'Alligator_Lips_SMA5': self.lips,
             'Alligator_Teeth_SMA8': self.teeth,

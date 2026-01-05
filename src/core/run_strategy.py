@@ -214,7 +214,6 @@ class Run_strategy:
     def _extract_ohlc_data(self, data_feed: bt.feeds.PandasData) -> List[Dict[str, Any]]:
         ohlc_list = []
 
-        # Access the underlying pandas dataframe directly
         if hasattr(data_feed, 'p') and hasattr(data_feed.p, 'dataname'):
             df = data_feed.p.dataname
             if df is not None and not df.empty:
@@ -236,7 +235,6 @@ class Run_strategy:
     def _extract_indicators(self, strat: bt.Strategy, data_length: int) -> Dict[str, List]:
         indicators_data = {}
 
-        # Check if strategy has get_technical_indicators method or technical_indicators attribute
         technical_indicators = None
         if hasattr(strat, 'get_technical_indicators') and callable(strat.get_technical_indicators):
             technical_indicators = strat.get_technical_indicators()
@@ -244,15 +242,12 @@ class Run_strategy:
             technical_indicators = strat.technical_indicators
 
         if technical_indicators:
-            # Use the strategy's defined technical indicators
             for indicator_name, indicator_obj in technical_indicators.items():
                 if indicator_obj is None:
                     continue
 
                 try:
-                    # Check if this is a line object directly (has array attribute)
                     if hasattr(indicator_obj, 'array') and not isinstance(indicator_obj, bt.Indicator):
-                        # This is a line object (e.g., self.boll.lines.top, self.stoch.percK)
                         values = []
                         arr = indicator_obj.array
                         for i in range(len(arr)):
@@ -265,11 +260,9 @@ class Run_strategy:
                             except (IndexError, KeyError):
                                 values.append(None)
                         indicators_data[indicator_name] = values
-                    # Check if this is an indicator object
                     elif isinstance(indicator_obj, bt.Indicator) and hasattr(indicator_obj, 'lines'):
                         line_names = indicator_obj.getlinealiases()
                         if len(line_names) == 1:
-                            # Single line indicator - get the first line
                             line = getattr(indicator_obj.lines, line_names[0], None)
                             if line is not None and hasattr(line, 'array'):
                                 values = []
@@ -285,7 +278,6 @@ class Run_strategy:
                                         values.append(None)
                                 indicators_data[indicator_name] = values
                         else:
-                            # Multi-line indicator - append line name to indicator name
                             for line_name in line_names:
                                 if line_name:
                                     line = getattr(indicator_obj.lines, line_name, None)
@@ -305,7 +297,6 @@ class Run_strategy:
                 except Exception:
                     continue
         else:
-            # Fallback: auto-discover indicators (for backward compatibility)
             for attr_name in dir(strat):
                 if attr_name.startswith('_'):
                     continue
@@ -319,10 +310,8 @@ class Run_strategy:
                         if hasattr(attr, 'lines'):
                             line_names = attr.getlinealiases()
                             if len(line_names) == 1:
-                                # Single line indicator - access the array buffer directly
                                 values = []
                                 if hasattr(attr, 'array'):
-                                    # Get all values from the internal array
                                     arr = attr.array
                                     for i in range(len(arr)):
                                         val = arr[i]
@@ -332,7 +321,6 @@ class Run_strategy:
                                             values.append(None)
                                 indicators_data[attr_name] = values
                             else:
-                                # Multi-line indicator
                                 for line_name in line_names:
                                     if line_name:
                                         line = getattr(attr.lines, line_name, None)
@@ -354,16 +342,10 @@ class Run_strategy:
 
     def _extract_trade_markers(self, strat: bt.Strategy) -> List[Dict[str, Any]]:
         markers = []
-
         if not hasattr(strat, 'trades'):
-            print("[DEBUG] Strategy does not have 'trades' attribute")
             return markers
-
-        print(f"[DEBUG] Extracting trade markers from {len(strat.trades)} trades")
-
         for trade in strat.trades:
             try:
-                # Convert datetime to ISO format string, handling timezone-aware datetimes
                 entry_date = trade['entry_date']
                 if hasattr(entry_date, 'isoformat'):
                     entry_date_str = entry_date.isoformat()
@@ -371,7 +353,6 @@ class Run_strategy:
                     entry_date_str = entry_date.strftime('%Y-%m-%dT%H:%M:%S')
                 else:
                     entry_date_str = str(entry_date)
-
                 exit_date = trade['exit_date']
                 if hasattr(exit_date, 'isoformat'):
                     exit_date_str = exit_date.isoformat()
@@ -379,14 +360,12 @@ class Run_strategy:
                     exit_date_str = exit_date.strftime('%Y-%m-%dT%H:%M:%S')
                 else:
                     exit_date_str = str(exit_date)
-
                 markers.append({
                     'date': entry_date_str,
                     'price': float(trade['entry_price']),
                     'type': 'BUY' if trade['type'] == 'LONG' else 'SELL',
                     'action': 'OPEN'
                 })
-
                 markers.append({
                     'date': exit_date_str,
                     'price': float(trade['exit_price']),
@@ -394,9 +373,6 @@ class Run_strategy:
                     'action': 'CLOSE',
                     'pnl': float(trade['pnl'])
                 })
-            except Exception as e:
-                # Log the error but continue processing other trades
-                print(f"Error extracting trade marker: {e}")
+            except Exception:
                 continue
-
         return sorted(markers, key=lambda x: x['date'])

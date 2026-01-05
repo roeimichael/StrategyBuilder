@@ -11,7 +11,6 @@ class TEMA_MACD(Strategy_skeleton):
                                        period_me2=self.args['macd2'],
                                        period_signal=self.args['macdsig'])
         self.mcross = bt.indicators.CrossOver(self.macd.macd, self.macd.signal)
-        # Calculate MACD histogram manually
         self.macd_histogram = self.macd.macd - self.macd.signal
         self.tema_open = bt.indicators.TripleExponentialMovingAverage(self.data.open, period=12)
         self.tema_close = bt.indicators.TripleExponentialMovingAverage(self.data.close, period=12)
@@ -20,7 +19,6 @@ class TEMA_MACD(Strategy_skeleton):
         self.flag_tema = 0
 
     def get_technical_indicators(self):
-        """Return technical indicators to be exposed for charting"""
         return {
             'MACD': self.macd.macd,
             'MACD_Signal': self.macd.signal,

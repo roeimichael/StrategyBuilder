@@ -16,7 +16,6 @@ class adx_strat(Strategy_skeleton):
         self.boll_cross_mid = bt.ind.CrossOver(self.data.close, self.boll.lines.mid)
 
     def get_technical_indicators(self):
-        """Return technical indicators to be exposed for charting"""
         return {
             'ADX': self.adx,
             'SMA_20': self.ma20,

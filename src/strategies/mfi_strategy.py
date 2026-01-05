@@ -15,7 +15,6 @@ class MFI_Strategy(Strategy_skeleton):
         self.mfi = MFI(self.data, period=self.p.period)
 
     def get_technical_indicators(self):
-        """Return technical indicators to be exposed for charting"""
         return {
             'MFI': self.mfi
         }

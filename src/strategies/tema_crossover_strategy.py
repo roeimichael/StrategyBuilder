@@ -13,7 +13,6 @@ class Tema20_tema60(Strategy_skeleton):
         self.tcross_flag = 0
 
     def get_technical_indicators(self):
-        """Return technical indicators to be exposed for charting"""
         return {
             'Volume_SMA': self.volume_average,
             'TEMA_20': self.tema_20,

@@ -1,5 +1,3 @@
-"""Advanced performance analytics for backtesting results"""
-
 import pandas as pd
 import numpy as np
 from typing import List, Dict, Any, Optional
@@ -7,18 +5,15 @@ import datetime
 
 
 class PerformanceAnalyzer:
-    """Calculate advanced performance metrics from backtest results"""
 
     def __init__(self, trades: List[Dict[str, Any]], start_value: float, end_value: float,
                  equity_curve: Optional[pd.Series] = None):
-        """Initialize performance analyzer"""
         self.trades = trades
         self.start_value = start_value
         self.end_value = end_value
         self.equity_curve = equity_curve
 
     def calculate_all_metrics(self) -> Dict[str, Any]:
-        """Calculate all performance metrics"""
         if not self.trades:
             return self._get_empty_metrics()
 
@@ -40,7 +35,6 @@ class PerformanceAnalyzer:
         }
 
     def calculate_win_rate(self) -> float:
-        """Calculate percentage of winning trades"""
         if not self.trades:
             return 0.0
 
@@ -48,7 +42,6 @@ class PerformanceAnalyzer:
         return (winning_trades / len(self.trades)) * 100
 
     def calculate_profit_factor(self) -> Optional[float]:
-        """Calculate profit factor (gross profit / gross loss)"""
         if not self.trades:
             return None
 
@@ -61,7 +54,6 @@ class PerformanceAnalyzer:
         return gross_profit / gross_loss
 
     def calculate_payoff_ratio(self) -> Optional[float]:
-        """Calculate payoff ratio (average win / average loss)"""
         avg_win = self.calculate_avg_win()
         avg_loss = abs(self.calculate_avg_loss())
 
@@ -71,7 +63,6 @@ class PerformanceAnalyzer:
         return avg_win / avg_loss
 
     def calculate_calmar_ratio(self) -> Optional[float]:
-        """Calculate Calmar ratio (annual return / max drawdown)"""
         if not self.trades or self.equity_curve is None or len(self.equity_curve) == 0:
             return None
 
@@ -84,7 +75,6 @@ class PerformanceAnalyzer:
         return annual_return / abs(max_dd)
 
     def calculate_sortino_ratio(self, risk_free_rate: float = 0.0) -> Optional[float]:
-        """Calculate Sortino ratio (return / downside deviation)"""
         if self.equity_curve is None or len(self.equity_curve) == 0:
             return None
 
@@ -107,7 +97,6 @@ class PerformanceAnalyzer:
         return np.mean(excess_returns) / downside_deviation
 
     def calculate_max_consecutive_wins(self) -> int:
-        """Calculate maximum consecutive winning trades"""
         if not self.trades:
             return 0
 
@@ -124,7 +113,6 @@ class PerformanceAnalyzer:
         return max_streak
 
     def calculate_max_consecutive_losses(self) -> int:
-        """Calculate maximum consecutive losing trades"""
         if not self.trades:
             return 0
 
@@ -141,7 +129,6 @@ class PerformanceAnalyzer:
         return max_streak
 
     def calculate_avg_win(self) -> float:
-        """Calculate average winning trade"""
         if not self.trades:
             return 0.0
 
@@ -153,7 +140,6 @@ class PerformanceAnalyzer:
         return sum(winning_trades) / len(winning_trades)
 
     def calculate_avg_loss(self) -> float:
-        """Calculate average losing trade"""
         if not self.trades:
             return 0.0
 
@@ -165,7 +151,6 @@ class PerformanceAnalyzer:
         return sum(losing_trades) / len(losing_trades)
 
     def calculate_largest_win(self) -> float:
-        """Calculate largest winning trade"""
         if not self.trades:
             return 0.0
 
@@ -177,7 +162,6 @@ class PerformanceAnalyzer:
         return max(winning_trades)
 
     def calculate_largest_loss(self) -> float:
-        """Calculate largest losing trade"""
         if not self.trades:
             return 0.0
 
@@ -189,7 +173,6 @@ class PerformanceAnalyzer:
         return min(losing_trades)
 
     def calculate_avg_trade_duration(self) -> Optional[float]:
-        """Calculate average trade duration in days"""
         if not self.trades:
             return None
 
@@ -214,7 +197,6 @@ class PerformanceAnalyzer:
         return sum(durations) / len(durations)
 
     def calculate_recovery_periods(self) -> List[Dict[str, Any]]:
-        """Calculate recovery periods from drawdowns"""
         if self.equity_curve is None or len(self.equity_curve) == 0:
             return []
 
@@ -240,7 +222,6 @@ class PerformanceAnalyzer:
         return recovery_periods
 
     def calculate_expectancy(self) -> float:
-        """Calculate trade expectancy (expected value per trade)"""
         if not self.trades:
             return 0.0
 
@@ -251,7 +232,6 @@ class PerformanceAnalyzer:
         return (win_rate * avg_win) - ((1 - win_rate) * avg_loss)
 
     def _calculate_annual_return(self) -> float:
-        """Calculate annualized return"""
         if not self.trades:
             return 0.0
 
@@ -282,7 +262,6 @@ class PerformanceAnalyzer:
         return annual_return
 
     def _calculate_max_drawdown(self) -> float:
-        """Calculate maximum drawdown percentage"""
         if self.equity_curve is None or len(self.equity_curve) == 0:
             return 0.0
 
@@ -299,7 +278,6 @@ class PerformanceAnalyzer:
         return max_dd
 
     def _get_empty_metrics(self) -> Dict[str, Any]:
-        """Return empty metrics when no trades"""
         return {
             'win_rate': 0.0,
             'profit_factor': None,
@@ -319,7 +297,6 @@ class PerformanceAnalyzer:
 
     @staticmethod
     def create_equity_curve(trades: List[Dict[str, Any]], start_value: float) -> pd.Series:
-        """Create equity curve from trade list"""
         if not trades:
             return pd.Series([start_value])
 
