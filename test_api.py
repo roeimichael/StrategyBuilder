@@ -112,42 +112,30 @@ def test_backtest_rsi_stochastic():
         "response": response.json() if response.status_code == 200 else response.text
     }
 
-def test_backtest_macd_cmf_atr():
+def test_backtest_bollinger_bands():
     response = requests.post(
         f"{BASE_URL}/backtest",
         json={
             "ticker": "BTC-USD",
-            "strategy": "cmf_atr_macd_strategy",
+            "strategy": "bollinger_bands_strategy",
             "start_date": "2024-06-01",
             "end_date": "2024-12-31",
             "interval": "1d",
             "cash": 20000.0,
-            "parameters": {
-                "macd1": 12,
-                "macd2": 26,
-                "macdsig": 9,
-                "atrperiod": 14,
-                "atrdist": 2.0
-            }
+            "parameters": {}
         }
     )
     return {
-        "test_name": "Backtest - MACD CMF ATR Strategy",
+        "test_name": "Backtest - Bollinger Bands Strategy",
         "endpoint": "/backtest",
         "body": {
             "ticker": "BTC-USD",
-            "strategy": "cmf_atr_macd_strategy",
+            "strategy": "bollinger_bands_strategy",
             "start_date": "2024-06-01",
             "end_date": "2024-12-31",
             "interval": "1d",
             "cash": 20000.0,
-            "parameters": {
-                "macd1": 12,
-                "macd2": 26,
-                "macdsig": 9,
-                "atrperiod": 14,
-                "atrdist": 2.0
-            }
+            "parameters": {}
         },
         "status_code": response.status_code,
         "response": response.json() if response.status_code == 200 else response.text
@@ -163,7 +151,7 @@ def run_all_tests():
         test_market_data_eth,
         test_backtest_williams_r,
         test_backtest_rsi_stochastic,
-        test_backtest_macd_cmf_atr
+        test_backtest_bollinger_bands
     ]
 
     results = {
