@@ -61,7 +61,7 @@ class BacktestResponse(BaseModel):
     start_date: str
     end_date: str
     advanced_metrics: Optional[Dict[str, Any]] = None
-    chart_data: Optional[Dict[str, Any]] = None
+    chart_data: Optional[List[Dict[str, Any]]] = None
 
 class StrategyInfo(BaseModel):
     module: str
