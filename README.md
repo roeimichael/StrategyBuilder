@@ -142,54 +142,97 @@ The platform includes 12 pre-built strategies:
     "largest_loss": 250.0,
     "expectancy": 50.0
   },
-  "chart_data": {
-    "ohlc": [
-      {
-        "date": "2024-01-01T00:00:00",
-        "open": 42000.0,
-        "high": 43000.0,
-        "low": 41500.0,
-        "close": 42500.0,
-        "volume": 1000000.0
-      }
-    ],
-    "indicators": {
-      "Williams_R": [-50.0, -45.0, -60.0]
-    },
-    "trade_markers": [
-      {
-        "date": "2024-03-15T14:30:00",
-        "price": 445.5,
-        "type": "BUY",
-        "action": "OPEN"
+  "chart_data": [
+    {
+      "date": "2024-01-01T00:00:00",
+      "open": 42000.0,
+      "high": 43000.0,
+      "low": 41500.0,
+      "close": 42500.0,
+      "volume": 1000000.0,
+      "indicators": {
+        "Williams_R": -50.0
       },
-      {
-        "date": "2024-03-20T10:15:00",
-        "price": 452.3,
-        "type": "SELL",
-        "action": "CLOSE",
-        "pnl": 68.0
-      }
-    ]
-  }
+      "trade_markers": []
+    },
+    {
+      "date": "2024-01-02T00:00:00",
+      "open": 42500.0,
+      "high": 43200.0,
+      "low": 42300.0,
+      "close": 43000.0,
+      "volume": 1200000.0,
+      "indicators": {
+        "Williams_R": -45.0
+      },
+      "trade_markers": [
+        {
+          "type": "BUY",
+          "action": "OPEN",
+          "price": 42500.0,
+          "pnl": null
+        }
+      ]
+    },
+    {
+      "date": "2024-01-03T00:00:00",
+      "open": 43000.0,
+      "high": 43500.0,
+      "low": 42800.0,
+      "close": 43200.0,
+      "volume": 1100000.0,
+      "indicators": {
+        "Williams_R": -30.0
+      },
+      "trade_markers": [
+        {
+          "type": "SELL",
+          "action": "CLOSE",
+          "price": 43200.0,
+          "pnl": 68.0
+        }
+      ]
+    }
+  ]
 }
 ```
 
 ## Chart Data Features
 
-### OHLC Data
-Complete historical price data for visualization with open, high, low, close, and volume.
+The API returns chart data as a **unified timeline** where each data point contains all information for that specific timestamp. This makes frontend charting simple and efficient.
 
-### Technical Indicators
-Each strategy exposes its technical indicators for charting. Access indicators via `chart_data.indicators`.
+### Unified Data Structure
 
-### Trade Markers
-Automatic trade tracking with entry and exit markers. Each marker includes:
-- **date**: Timestamp of the trade
-- **price**: Execution price
-- **type**: BUY or SELL
-- **action**: OPEN or CLOSE
-- **pnl**: Profit/loss (on CLOSE markers)
+Each data point in the `chart_data` array contains:
+
+- **OHLC Data**: Open, High, Low, Close prices and Volume
+- **Technical Indicators**: All strategy indicators aligned to this timestamp
+- **Trade Markers**: Any trades that opened/closed at this timestamp
+
+### Benefits
+
+- **Easy Alignment**: No need to manually sync indicators with dates
+- **Single Iteration**: Loop through once to plot everything
+- **Clean Code**: Frontend charting becomes trivial
+
+### Example Usage
+
+```javascript
+chartData.forEach(point => {
+  // Plot candlestick
+  plotCandle(point.date, point.open, point.high, point.low, point.close);
+
+  // Plot indicators
+  if (point.indicators.Williams_R !== null) {
+    plotIndicator(point.date, point.indicators.Williams_R);
+  }
+
+  // Plot trade markers
+  point.trade_markers.forEach(marker => {
+    plotMarker(point.date, marker.price, marker.type, marker.action);
+  });
+});
+```
 
 ## Adding Custom Strategies
 
@@ -289,7 +332,15 @@ const response = await fetch('http://localhost:8000/backtest', {
 
 const result = await response.json();
 console.log(`ROI: ${result.return_pct}%`);
-console.log(`Trades: ${result.chart_data.trade_markers.length / 2}`);
+
+result.chart_data.forEach(point => {
+  console.log(`${point.date}: Close ${point.close}`);
+  if (point.trade_markers.length > 0) {
+    point.trade_markers.forEach(marker => {
+      console.log(`  ${marker.action} ${marker.type} @ ${marker.price}`);
+    });
+  }
+});
 ```
 
 ### Python Example
@@ -313,8 +364,12 @@ response = requests.post('http://localhost:8000/backtest', json={
 
 result = response.json()
 print(f"ROI: {result['return_pct']}%")
-print(f"Chart data points: {len(result['chart_data']['ohlc'])}")
-print(f"Trade markers: {len(result['chart_data']['trade_markers'])}")
+print(f"Chart data points: {len(result['chart_data'])}")
+
+for point in result['chart_data']:
+    print(f"{point['date']}: Close {point['close']}")
+    for marker in point['trade_markers']:
+        print(f"  {marker['action']} {marker['type']} @ {marker['price']}")
 ```
 
 ## Disclaimer

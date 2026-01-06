@@ -153,36 +153,61 @@ Base URL: `http://localhost:8000`
     "recovery_periods": [],
     "expectancy": 50.0
   },
-  "chart_data": {
-    "ohlc": [
-      {
-        "date": "2024-01-01T00:00:00",
-        "open": 42000.0,
-        "high": 43000.0,
-        "low": 41500.0,
-        "close": 42500.0,
-        "volume": 1000000.0
-      }
-    ],
-    "indicators": {
-      "Williams_R": [-50.0, -45.0, -60.0]
-    },
-    "trade_markers": [
-      {
-        "date": "2024-03-15T14:30:00",
-        "price": 445.5,
-        "type": "BUY",
-        "action": "OPEN"
+  "chart_data": [
+    {
+      "date": "2024-01-01T00:00:00",
+      "open": 42000.0,
+      "high": 43000.0,
+      "low": 41500.0,
+      "close": 42500.0,
+      "volume": 1000000.0,
+      "indicators": {
+        "Williams_R": -50.0,
+        "SMA_20": 42100.0
       },
-      {
-        "date": "2024-03-20T10:15:00",
-        "price": 452.3,
-        "type": "SELL",
-        "action": "CLOSE",
-        "pnl": 68.0
-      }
-    ]
-  }
+      "trade_markers": []
+    },
+    {
+      "date": "2024-01-02T00:00:00",
+      "open": 42500.0,
+      "high": 43200.0,
+      "low": 42300.0,
+      "close": 43000.0,
+      "volume": 1200000.0,
+      "indicators": {
+        "Williams_R": -45.0,
+        "SMA_20": 42150.0
+      },
+      "trade_markers": [
+        {
+          "type": "BUY",
+          "action": "OPEN",
+          "price": 42500.0,
+          "pnl": null
+        }
+      ]
+    },
+    {
+      "date": "2024-01-03T00:00:00",
+      "open": 43000.0,
+      "high": 43500.0,
+      "low": 42800.0,
+      "close": 43200.0,
+      "volume": 1100000.0,
+      "indicators": {
+        "Williams_R": -30.0,
+        "SMA_20": 42200.0
+      },
+      "trade_markers": [
+        {
+          "type": "SELL",
+          "action": "CLOSE",
+          "price": 43200.0,
+          "pnl": 68.0
+        }
+      ]
+    }
+  ]
 }
 ```
 

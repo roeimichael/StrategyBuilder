@@ -200,16 +200,40 @@ class Run_strategy:
             return None
         return (avg_return - risk_free_rate) / downside_dev
 
-    def _extract_chart_data(self, strat: bt.Strategy, data_feed: bt.feeds.PandasData) -> Dict[str, Any]:
+    def _extract_chart_data(self, strat: bt.Strategy, data_feed: bt.feeds.PandasData) -> List[Dict[str, Any]]:
         ohlc_data = self._extract_ohlc_data(data_feed)
         indicators = self._extract_indicators(strat, len(ohlc_data))
         trade_markers = self._extract_trade_markers(strat)
-
-        return {
-            'ohlc': ohlc_data,
-            'indicators': indicators,
-            'trade_markers': trade_markers
-        }
+        trade_markers_by_date = {}
+        for marker in trade_markers:
+            date = marker['date']
+            if date not in trade_markers_by_date:
+                trade_markers_by_date[date] = []
+            trade_markers_by_date[date].append({
+                'type': marker['type'],
+                'action': marker['action'],
+                'price': marker['price'],
+                'pnl': marker.get('pnl')
+            })
+        unified_data = []
+        for i, ohlc in enumerate(ohlc_data):
+            data_point = {
+                'date': ohlc['date'],
+                'open': ohlc['open'],
+                'high': ohlc['high'],
+                'low': ohlc['low'],
+                'close': ohlc['close'],
+                'volume': ohlc['volume'],
+                'indicators': {},
+                'trade_markers': trade_markers_by_date.get(ohlc['date'], [])
+            }
+            for indicator_name, values in indicators.items():
+                if i < len(values):
+                    data_point['indicators'][indicator_name] = values[i]
+                else:
+                    data_point['indicators'][indicator_name] = None
+            unified_data.append(data_point)
+        return unified_data
 
     def _extract_ohlc_data(self, data_feed: bt.feeds.PandasData) -> List[Dict[str, Any]]:
         ohlc_list = []
