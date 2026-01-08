@@ -1,4 +1,4 @@
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Union
 from pydantic import BaseModel
 
 class BacktestResponse(BaseModel):
@@ -16,7 +16,7 @@ class BacktestResponse(BaseModel):
     start_date: str
     end_date: str
     advanced_metrics: Optional[Dict[str, Any]] = None
-    chart_data: Optional[List[Dict[str, Any]]] = None
+    chart_data: Optional[Union[List[Dict[str, Any]], Dict[str, List[Any]]]] = None
 
 class StrategyInfo(BaseModel):
     module: str

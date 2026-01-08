@@ -117,11 +117,30 @@ Base URL: `http://localhost:8000`
     "period": 14,
     "lower_bound": -80,
     "upper_bound": -20
-  }
+  },
+  "include_chart_data": false,
+  "columnar_format": true
 }
 ```
 
-**Response**:
+**Request Parameters**:
+- `ticker` (string, required): Stock/crypto ticker symbol (e.g., "AAPL", "BTC-USD")
+- `strategy` (string, required): Strategy module name
+- `start_date` (string, optional): Backtest start date in "YYYY-MM-DD" format
+- `end_date` (string, optional): Backtest end date in "YYYY-MM-DD" format
+- `interval` (string, optional): Data interval (default: "1h")
+- `cash` (float, optional): Initial capital (default: 10000.0)
+- `parameters` (object, optional): Strategy-specific parameters
+- `include_chart_data` (boolean, optional): Include chart data in response (default: false)
+- `columnar_format` (boolean, optional): Use columnar format for chart data (default: true)
+
+**⚠️ Performance Note**:
+- Without chart data: Response ~1KB
+- With chart data (row format): Response ~1-2MB (10,000+ lines)
+- With chart data (columnar format): Response ~500KB-1MB
+- **Recommendation**: Set `include_chart_data: false` for performance testing and only request chart data when needed for visualization
+
+**Response (without chart data)**:
 ```json
 {
   "success": true,
@@ -153,60 +172,72 @@ Base URL: `http://localhost:8000`
     "recovery_periods": [],
     "expectancy": 50.0
   },
-  "chart_data": [
-    {
-      "date": "2024-01-01T00:00:00",
-      "open": 42000.0,
-      "high": 43000.0,
-      "low": 41500.0,
-      "close": 42500.0,
-      "volume": 1000000.0,
-      "indicators": {
-        "Williams_R": -50.0,
-        "SMA_20": 42100.0
-      },
-      "trade_markers": []
+  "chart_data": null
+}
+```
+
+## Chart Data Formats
+
+### Row Format (columnar_format: false)
+**Use case**: When you need to iterate through data points sequentially
+
+```json
+"chart_data": [
+  {
+    "date": "2024-01-01T00:00:00",
+    "open": 42000.0,
+    "high": 43000.0,
+    "low": 41500.0,
+    "close": 42500.0,
+    "volume": 1000000.0,
+    "indicators": {
+      "Williams_R": -50.0,
+      "SMA_20": 42100.0
     },
-    {
-      "date": "2024-01-02T00:00:00",
-      "open": 42500.0,
-      "high": 43200.0,
-      "low": 42300.0,
-      "close": 43000.0,
-      "volume": 1200000.0,
-      "indicators": {
-        "Williams_R": -45.0,
-        "SMA_20": 42150.0
-      },
-      "trade_markers": [
-        {
-          "type": "BUY",
-          "action": "OPEN",
-          "price": 42500.0,
-          "pnl": null
-        }
-      ]
+    "trade_markers": []
+  },
+  {
+    "date": "2024-01-02T00:00:00",
+    "open": 42500.0,
+    "high": 43200.0,
+    "low": 42300.0,
+    "close": 43000.0,
+    "volume": 1200000.0,
+    "indicators": {
+      "Williams_R": -45.0,
+      "SMA_20": 42150.0
     },
-    {
-      "date": "2024-01-03T00:00:00",
-      "open": 43000.0,
-      "high": 43500.0,
-      "low": 42800.0,
-      "close": 43200.0,
-      "volume": 1100000.0,
-      "indicators": {
-        "Williams_R": -30.0,
-        "SMA_20": 42200.0
-      },
-      "trade_markers": [
-        {
-          "type": "SELL",
-          "action": "CLOSE",
-          "price": 43200.0,
-          "pnl": 68.0
-        }
-      ]
-    }
+    "trade_markers": [
+      {
+        "type": "BUY",
+        "action": "OPEN",
+        "price": 42500.0,
+        "pnl": null
+      }
+    ]
+  }
+]
+```
+
+### Columnar Format (columnar_format: true) - **Recommended**
+**Use case**: For charting libraries (Chart.js, Plotly, TradingView) and better compression
+
+```json
+"chart_data": {
+  "date": ["2024-01-01T00:00:00", "2024-01-02T00:00:00", "2024-01-03T00:00:00"],
+  "open": [42000.0, 42500.0, 43000.0],
+  "high": [43000.0, 43200.0, 43500.0],
+  "low": [41500.0, 42300.0, 42800.0],
+  "close": [42500.0, 43000.0, 43200.0],
+  "volume": [1000000.0, 1200000.0, 1100000.0],
+  "indicators": {
+    "Williams_R": [-50.0, -45.0, -30.0],
+    "SMA_20": [42100.0, 42150.0, 42200.0]
+  },
+  "trade_markers": [
+    [],
+    [{"type": "BUY", "action": "OPEN", "price": 42500.0, "pnl": null}],
+    [{"type": "SELL", "action": "CLOSE", "price": 43200.0, "pnl": 68.0}]
   ]
 }
 ```
@@ -250,6 +281,222 @@ Base URL: `http://localhost:8000`
     "max": 45000.0,
     "volume_avg": 950000.0
   }
+}
+```
+
+## Indicator Naming Conventions
+
+All indicators in the `chart_data.indicators` object follow these naming patterns:
+
+### Single-Line Indicators
+Simple indicators return a single value and are named by their acronym or full name:
+
+- `RSI` - Relative Strength Index
+- `Williams_R` - Williams %R
+- `MFI` - Money Flow Index
+- `CCI` - Commodity Channel Index
+- `ADX` - Average Directional Index
+- `CMF` - Chaikin Money Flow
+
+### Multi-Line Indicators
+Indicators with multiple lines use suffix patterns:
+
+**Moving Averages:**
+- `SMA_<period>` - Simple Moving Average (e.g., `SMA_20`, `SMA_50`)
+- `EMA_<period>` - Exponential Moving Average (e.g., `EMA_12`, `EMA_26`)
+- `TEMA_<period>` - Triple Exponential Moving Average (e.g., `TEMA_10`)
+
+**Bollinger Bands:**
+- `Bollinger_Upper` - Upper band
+- `Bollinger_Middle` - Middle band (SMA)
+- `Bollinger_Lower` - Lower band
+
+**MACD:**
+- `MACD` - MACD line
+- `MACD_Signal` - Signal line
+- `MACD_Histogram` - Histogram
+
+**Stochastic:**
+- `Stochastic_K` - %K line (fast)
+- `Stochastic_D` - %D line (slow)
+
+**Keltner Channels:**
+- `Keltner_Upper` - Upper channel
+- `Keltner_Middle` - Middle line (EMA)
+- `Keltner_Lower` - Lower channel
+
+**Alligator:**
+- `Alligator_Jaw` - Jaw line (blue, slowest)
+- `Alligator_Teeth` - Teeth line (red, medium)
+- `Alligator_Lips` - Lips line (green, fastest)
+
+### ATR (Average True Range)
+- `ATR` - Average True Range value
+
+## Strategy Parameter Naming Conventions
+
+Parameters passed in the `parameters` object follow strategy-specific naming:
+
+### Common Parameters (All Strategies)
+- `cash` - Initial capital (default: 10000.0)
+- `commission` - Commission per trade (default: 0.001)
+- `position_size_pct` - Position size as percentage (default: 95.0)
+
+### Strategy-Specific Parameters
+
+**RSI-based strategies:**
+- `period` - RSI period (default: 14)
+- `lower_bound` - Oversold threshold (default: 30)
+- `upper_bound` - Overbought threshold (default: 70)
+
+**MACD-based strategies:**
+- `macd1` - Fast period (default: 12)
+- `macd2` - Slow period (default: 26)
+- `macdsig` - Signal period (default: 9)
+
+**Bollinger Bands strategies:**
+- `period` - Period for middle band SMA (default: 20)
+- `devfactor` - Standard deviation multiplier (default: 2.0)
+
+**Williams %R strategies:**
+- `period` - Lookback period (default: 14)
+- `lower_bound` - Oversold level (default: -80)
+- `upper_bound` - Overbought level (default: -20)
+
+**ATR-based strategies:**
+- `atrperiod` - ATR calculation period (default: 14)
+- `atrdist` - ATR distance multiplier (default: 2.0)
+
+**Stochastic strategies:**
+- `period` - %K period (default: 14)
+- `period_dfast` - %K smoothing (default: 3)
+- `period_dslow` - %D period (default: 3)
+- `lower_bound` - Oversold threshold (default: 20)
+- `upper_bound` - Overbought threshold (default: 80)
+
+**ADX strategies:**
+- `period` - ADX period (default: 14)
+- `threshold` - Trend strength threshold (default: 25)
+
+**MFI strategies:**
+- `period` - MFI period (default: 14)
+- `lower_bound` - Oversold threshold (default: 20)
+- `upper_bound` - Overbought threshold (default: 80)
+
+**TEMA strategies:**
+- `tema_period` - TEMA period (default: 10)
+- `signal_period` - Signal line period (default: 5)
+
+**Alligator strategies:**
+- `jaw_period` - Jaw period (default: 13)
+- `teeth_period` - Teeth period (default: 8)
+- `lips_period` - Lips period (default: 5)
+
+**CCI strategies:**
+- `period` - CCI period (default: 20)
+- `threshold` - Trend strength threshold (default: 100)
+
+**Keltner Channel strategies:**
+- `ema_period` - EMA period (default: 20)
+- `atr_period` - ATR period (default: 10)
+- `atr_multiplier` - ATR multiplier (default: 2.0)
+
+## Frontend Integration Guide
+
+### Using Columnar Format with Chart.js
+
+```javascript
+const response = await fetch('/backtest', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    ticker: 'BTC-USD',
+    strategy: 'williams_r_strategy',
+    interval: '1d',
+    include_chart_data: true,
+    columnar_format: true
+  })
+});
+
+const data = await response.json();
+const chartData = data.chart_data;
+
+// Create OHLC chart
+const ohlcChart = {
+  labels: chartData.date,
+  datasets: [{
+    label: 'Close Price',
+    data: chartData.close,
+    borderColor: 'rgb(75, 192, 192)',
+    tension: 0.1
+  }]
+};
+
+// Add indicators
+Object.entries(chartData.indicators).forEach(([name, values]) => {
+  ohlcChart.datasets.push({
+    label: name,
+    data: values,
+    borderColor: getColorForIndicator(name),
+    tension: 0.1
+  });
+});
+```
+
+### Using Row Format for Data Tables
+
+```javascript
+const response = await fetch('/backtest', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    ticker: 'AAPL',
+    strategy: 'rsi_stochastic_strategy',
+    interval: '1h',
+    include_chart_data: true,
+    columnar_format: false
+  })
+});
+
+const data = await response.json();
+
+// Display in table
+data.chart_data.forEach(point => {
+  console.log(`${point.date}: Close=${point.close}, RSI=${point.indicators.RSI}`);
+});
+```
+
+### Detecting Format Type
+
+```javascript
+function isColumnarFormat(chartData) {
+  return chartData && !Array.isArray(chartData);
+}
+
+function normalizeChartData(chartData) {
+  if (isColumnarFormat(chartData)) {
+    // Convert columnar to row format if needed
+    const length = chartData.date.length;
+    const rows = [];
+    for (let i = 0; i < length; i++) {
+      const row = {
+        date: chartData.date[i],
+        open: chartData.open[i],
+        high: chartData.high[i],
+        low: chartData.low[i],
+        close: chartData.close[i],
+        volume: chartData.volume[i],
+        indicators: {},
+        trade_markers: chartData.trade_markers[i]
+      };
+      Object.entries(chartData.indicators).forEach(([key, values]) => {
+        row.indicators[key] = values[i];
+      });
+      rows.push(row);
+    }
+    return rows;
+  }
+  return chartData;
 }
 ```
 

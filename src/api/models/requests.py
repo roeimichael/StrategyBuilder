@@ -10,6 +10,8 @@ class BacktestRequest(BaseModel):
     interval: str = Field(BacktestConfig.DEFAULT_INTERVAL, example="1h")
     cash: float = Field(BacktestConfig.DEFAULT_CASH, example=10000.0)
     parameters: Optional[Dict[str, float]] = Field(None)
+    include_chart_data: bool = Field(False, example=False)
+    columnar_format: bool = Field(True, example=True)
 
 class MarketDataRequest(BaseModel):
     ticker: str = Field(..., example="AAPL")

@@ -4,6 +4,7 @@ import datetime as dt
 import pandas as pd
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from src.config import Config
 from src.services.strategy_service import StrategyService
 from src.services.backtest_service import BacktestService, BacktestRequest as ServiceBacktestRequest
@@ -15,9 +16,18 @@ from src.exceptions import StrategyNotFoundError, StrategyLoadError
 app = FastAPI(title=Config.API_TITLE, description="Algorithmic Trading Backtesting Platform", version=Config.API_VERSION)
 app.add_middleware(CORSMiddleware, allow_origins=Config.CORS_ORIGINS, allow_credentials=Config.CORS_CREDENTIALS,
                    allow_methods=Config.CORS_METHODS, allow_headers=Config.CORS_HEADERS)
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 strategy_service = StrategyService()
 backtest_service = BacktestService()
 data_manager = DataManager()
+
+def convert_to_columnar(chart_data: List[Dict[str, Any]]) -> Dict[str, List[Any]]:
+    if not chart_data:
+        return {}
+    columnar = {}
+    for key in chart_data[0].keys():
+        columnar[key] = [point.get(key) for point in chart_data]
+    return columnar
 
 @app.get("/")
 @log_errors
@@ -61,7 +71,12 @@ def run_backtest(request: BacktestRequest) -> BacktestResponse:
             end_date=request.end_date, interval=request.interval, cash=request.cash, parameters=request.parameters
         )
         response = backtest_service.run_backtest(service_request)
-        return BacktestResponse(**response.dict())
+        response_dict = response.dict()
+        if not request.include_chart_data:
+            response_dict['chart_data'] = None
+        elif request.columnar_format and response_dict.get('chart_data'):
+            response_dict['chart_data'] = convert_to_columnar(response_dict['chart_data'])
+        return BacktestResponse(**response_dict)
     except (StrategyNotFoundError, StrategyLoadError) as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
