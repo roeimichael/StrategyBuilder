@@ -1,0 +1,2 @@
+class StrategyBuilderError(Exception):
+    pass
