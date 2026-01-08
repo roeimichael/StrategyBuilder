@@ -46,44 +46,40 @@ def test_market_data_eth():
         "response": response.json() if response.status_code == 200 else response.text
     }
 
-def test_backtest_williams_r():
+def test_backtest_1_intraday_hourly():
     response = requests.post(
         f"{BASE_URL}/backtest",
         json={
             "ticker": "BTC-USD",
             "strategy": "williams_r_strategy",
-            "start_date": "2024-01-01",
+            "start_date": "2025-12-01",
             "end_date": "2025-12-31",
-            "interval": "1d",
+            "interval": "1h",
             "cash": 10000.0,
             "parameters": {
                 "period": 14,
                 "lower_bound": -80,
                 "upper_bound": -20
-            }
+            },
+            "include_chart_data": True,
+            "columnar_format": True
         }
     )
     return {
-        "test_name": "Backtest - Williams R Strategy",
+        "test_name": "Test 1: BTC 1h Williams R (Columnar)",
         "endpoint": "/backtest",
         "body": {
             "ticker": "BTC-USD",
             "strategy": "williams_r_strategy",
-            "start_date": "2024-01-01",
-            "end_date": "2025-12-31",
-            "interval": "1d",
-            "cash": 10000.0,
-            "parameters": {
-                "period": 14,
-                "lower_bound": -80,
-                "upper_bound": -20
-            }
+            "interval": "1h",
+            "window": "1 month",
+            "chart_format": "columnar"
         },
         "status_code": response.status_code,
         "response": response.json() if response.status_code == 200 else response.text
     }
 
-def test_backtest_rsi_stochastic():
+def test_backtest_2_daily_rsi():
     response = requests.post(
         f"{BASE_URL}/backtest",
         json={
@@ -93,49 +89,125 @@ def test_backtest_rsi_stochastic():
             "end_date": "2025-12-31",
             "interval": "1d",
             "cash": 5000.0,
-            "parameters": {}
+            "parameters": {
+                "period": 14,
+                "period_dfast": 3,
+                "period_dslow": 3,
+                "lower_bound": 20,
+                "upper_bound": 80
+            },
+            "include_chart_data": True,
+            "columnar_format": False
         }
     )
     return {
-        "test_name": "Backtest - RSI Stochastic Strategy",
+        "test_name": "Test 2: ETH 1d RSI+Stochastic (Row)",
         "endpoint": "/backtest",
         "body": {
             "ticker": "ETH-USD",
             "strategy": "rsi_stochastic_strategy",
-            "start_date": "2025-06-01",
-            "end_date": "2025-12-31",
             "interval": "1d",
-            "cash": 5000.0,
-            "parameters": {}
+            "window": "7 months",
+            "chart_format": "row"
         },
         "status_code": response.status_code,
         "response": response.json() if response.status_code == 200 else response.text
     }
 
-def test_backtest_bollinger_bands():
+def test_backtest_3_daily_bollinger():
     response = requests.post(
         f"{BASE_URL}/backtest",
         json={
             "ticker": "BTC-USD",
             "strategy": "bollinger_bands_strategy",
-            "start_date": "2024-06-01",
-            "end_date": "2024-12-31",
+            "start_date": "2024-01-01",
+            "end_date": "2025-12-31",
             "interval": "1d",
             "cash": 20000.0,
-            "parameters": {}
+            "parameters": {
+                "period": 20,
+                "devfactor": 2.0
+            },
+            "include_chart_data": False,
+            "columnar_format": True
         }
     )
     return {
-        "test_name": "Backtest - Bollinger Bands Strategy",
+        "test_name": "Test 3: BTC 1d Bollinger (No Chart)",
         "endpoint": "/backtest",
         "body": {
             "ticker": "BTC-USD",
             "strategy": "bollinger_bands_strategy",
-            "start_date": "2024-06-01",
-            "end_date": "2024-12-31",
             "interval": "1d",
-            "cash": 20000.0,
-            "parameters": {}
+            "window": "2 years",
+            "chart_format": "none"
+        },
+        "status_code": response.status_code,
+        "response": response.json() if response.status_code == 200 else response.text
+    }
+
+def test_backtest_4_hourly_macd():
+    response = requests.post(
+        f"{BASE_URL}/backtest",
+        json={
+            "ticker": "ETH-USD",
+            "strategy": "tema_macd_strategy",
+            "start_date": "2025-12-01",
+            "end_date": "2025-12-31",
+            "interval": "1h",
+            "cash": 15000.0,
+            "parameters": {
+                "tema_period": 10,
+                "macd1": 12,
+                "macd2": 26,
+                "macdsig": 9
+            },
+            "include_chart_data": True,
+            "columnar_format": True
+        }
+    )
+    return {
+        "test_name": "Test 4: ETH 1h TEMA+MACD (Columnar)",
+        "endpoint": "/backtest",
+        "body": {
+            "ticker": "ETH-USD",
+            "strategy": "tema_macd_strategy",
+            "interval": "1h",
+            "window": "1 month",
+            "chart_format": "columnar"
+        },
+        "status_code": response.status_code,
+        "response": response.json() if response.status_code == 200 else response.text
+    }
+
+def test_backtest_5_daily_mfi():
+    response = requests.post(
+        f"{BASE_URL}/backtest",
+        json={
+            "ticker": "BTC-USD",
+            "strategy": "mfi_strategy",
+            "start_date": "2024-06-01",
+            "end_date": "2025-12-31",
+            "interval": "1d",
+            "cash": 25000.0,
+            "parameters": {
+                "period": 14,
+                "lower_bound": 20,
+                "upper_bound": 80
+            },
+            "include_chart_data": True,
+            "columnar_format": True
+        }
+    )
+    return {
+        "test_name": "Test 5: BTC 1d MFI (Columnar)",
+        "endpoint": "/backtest",
+        "body": {
+            "ticker": "BTC-USD",
+            "strategy": "mfi_strategy",
+            "interval": "1d",
+            "window": "1.5 years",
+            "chart_format": "columnar"
         },
         "status_code": response.status_code,
         "response": response.json() if response.status_code == 200 else response.text
@@ -149,9 +221,11 @@ def run_all_tests():
     tests = [
         test_market_data_btc,
         test_market_data_eth,
-        test_backtest_williams_r,
-        test_backtest_rsi_stochastic,
-        test_backtest_bollinger_bands
+        test_backtest_1_intraday_hourly,
+        test_backtest_2_daily_rsi,
+        test_backtest_3_daily_bollinger,
+        test_backtest_4_hourly_macd,
+        test_backtest_5_daily_mfi
     ]
 
     results = {
