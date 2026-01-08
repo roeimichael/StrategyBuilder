@@ -1,44 +1,71 @@
 from typing import Dict, Optional, Type, List, Any
 from datetime import date
+import datetime
 
 import backtrader as bt
 import pandas as pd
-import yfinance as yf
 
+from src.core.data_manager import DataManager
 from src.core.extractors.chart_data_extractor import ChartDataExtractor
+from src.utils.performance_analyzer import PerformanceAnalyzer
 
 
 class Run_strategy:
     """
     Lightweight orchestrator for running backtests.
-    Delegates data extraction to specialized extractor classes.
+    Uses DataManager for data fetching with caching.
+    Uses PerformanceAnalyzer for metrics calculation.
+    Delegates chart extraction to specialized extractors.
     """
-    def __init__(self, parameters: Dict[str, float], strategy: Type[bt.Strategy], data: Optional[bt.feeds.PandasData] = None):
+
+    def __init__(
+        self,
+        parameters: Dict[str, float],
+        strategy: Type[bt.Strategy],
+        data: Optional[bt.feeds.PandasData] = None,
+        data_manager: Optional[DataManager] = None
+    ):
         self.cerebro = bt.Cerebro()
         self.args = parameters
         self.data = data
         self.strategy = strategy
         self.chart_extractor = ChartDataExtractor()
+        self.data_manager = data_manager or DataManager()
 
     def add_analyzers(self, data: bt.feeds.PandasData) -> None:
         """Add Backtrader analyzers for performance metrics"""
-        self.cerebro.addanalyzer(bt.analyzers.TimeReturn, _name='alltime_roi',
-                                timeframe=bt.TimeFrame.NoTimeFrame)
-        self.cerebro.addanalyzer(bt.analyzers.TimeReturn, data=data, _name='benchmark',
-                                timeframe=bt.TimeFrame.NoTimeFrame)
-        self.cerebro.addanalyzer(bt.analyzers.TimeReturn, _name='timereturn',
-                                timeframe=bt.TimeFrame.NoTimeFrame)
+        self.cerebro.addanalyzer(
+            bt.analyzers.TimeReturn,
+            _name='alltime_roi',
+            timeframe=bt.TimeFrame.NoTimeFrame
+        )
+        self.cerebro.addanalyzer(
+            bt.analyzers.TimeReturn,
+            data=data,
+            _name='benchmark',
+            timeframe=bt.TimeFrame.NoTimeFrame
+        )
+        self.cerebro.addanalyzer(
+            bt.analyzers.TimeReturn,
+            _name='timereturn',
+            timeframe=bt.TimeFrame.NoTimeFrame
+        )
         self.cerebro.addanalyzer(bt.analyzers.SharpeRatio, _name='mysharpe')
         self.cerebro.addanalyzer(bt.analyzers.TradeAnalyzer, _name='tradeanalyzer')
         self.cerebro.addanalyzer(bt.analyzers.DrawDown, _name='drawdown')
         self.cerebro.addobserver(bt.observers.DrawDown)
 
-    def add_data(self, cerebro: bt.Cerebro, ticker: str, start_date: date, interval: str, end_date: Optional[date] = None) -> bt.feeds.PandasData:
+    def _fetch_and_add_data(
+        self,
+        ticker: str,
+        start_date: date,
+        interval: str,
+        end_date: Optional[date] = None
+    ) -> bt.feeds.PandasData:
         """
-        Fetch and add market data to Cerebro.
+        Fetch market data using DataManager and add to Cerebro.
 
         Args:
-            cerebro: Backtrader Cerebro instance
             ticker: Ticker symbol
             start_date: Start date for data
             interval: Data interval (1d, 1h, etc.)
@@ -47,31 +74,43 @@ class Run_strategy:
         Returns:
             Backtrader PandasData feed
         """
-        start_str = start_date.strftime('%Y-%m-%d') if hasattr(start_date, 'strftime') else str(start_date)
-        end_str = end_date.strftime('%Y-%m-%d') if end_date and hasattr(end_date, 'strftime') else None
+        # Convert date objects if needed
+        if isinstance(start_date, datetime.date) and not isinstance(start_date, datetime.datetime):
+            start_date_obj = start_date
+        else:
+            start_date_obj = start_date
 
+        if end_date:
+            if isinstance(end_date, datetime.date) and not isinstance(end_date, datetime.datetime):
+                end_date_obj = end_date
+            else:
+                end_date_obj = end_date
+        else:
+            end_date_obj = datetime.date.today()
+
+        # Fetch data using DataManager (with caching)
         try:
-            data = yf.download(ticker, start=start_str, end=end_str, interval=interval, progress=False, auto_adjust=False) \
-                   if end_str else yf.download(ticker, start=start_str, interval=interval, progress=False, auto_adjust=False)
+            data_df = self.data_manager.get_data(
+                ticker=ticker,
+                start_date=start_date_obj,
+                end_date=end_date_obj,
+                interval=interval
+            )
 
-            if data.empty:
+            if data_df.empty:
                 raise ValueError(f"No data available for {ticker}")
 
-            if isinstance(data.columns, pd.MultiIndex):
-                data.columns = data.columns.get_level_values(0)
-
-            if len(data.columns) > 0 and isinstance(data.columns[0], tuple):
-                data.columns = [col[0] if isinstance(col, tuple) else col for col in data.columns]
-
         except Exception as e:
-            raise ValueError(f"Failed to download data for {ticker}: {str(e)}")
+            raise ValueError(f"Failed to fetch data for {ticker}: {str(e)}")
 
-        data = bt.feeds.PandasData(dataname=data)
-        self.data = data
-        cerebro.adddata(data)
-        return data
+        # Convert to Backtrader feed
+        data_feed = bt.feeds.PandasData(dataname=data_df)
+        self.data = data_feed
+        self.cerebro.adddata(data_feed)
 
-    def print_data(self) -> tuple:
+        return data_feed
+
+    def _execute_backtest(self) -> tuple:
         """
         Run the backtest and return results.
 
@@ -83,7 +122,13 @@ class Run_strategy:
         end_value = self.cerebro.broker.getvalue()
         return results, start_value, end_value
 
-    def runstrat(self, ticker: str, start_date: date, interval: str, end_date: Optional[date] = None) -> Dict[str, Any]:
+    def runstrat(
+        self,
+        ticker: str,
+        start_date: date,
+        interval: str,
+        end_date: Optional[date] = None
+    ) -> Dict[str, Any]:
         """
         Execute a complete backtest.
 
@@ -100,7 +145,7 @@ class Run_strategy:
         self.cerebro.broker.set_cash(self.args['cash'])
 
         if self.data is None:
-            self.add_data(self.cerebro, ticker, start_date, interval, end_date)
+            self._fetch_and_add_data(ticker, start_date, interval, end_date)
 
         sizer_percent = self.args.get('position_size_pct', 95)
         self.cerebro.addsizer(bt.sizers.PercentSizer, percents=sizer_percent)
@@ -109,10 +154,10 @@ class Run_strategy:
         self.add_analyzers(self.data)
 
         # Execute
-        results, start_value, end_value = self.print_data()
+        results, start_value, end_value = self._execute_backtest()
         strat = results[0]
 
-        # Extract basic metrics
+        # Extract basic metrics from Backtrader analyzers
         sharpe_ratio = strat.analyzers.mysharpe.get_analysis().get('sharperatio', None)
         pnl = end_value - start_value
         return_pct = (end_value / start_value - 1) * 100
@@ -121,20 +166,19 @@ class Run_strategy:
         max_drawdown = dd_analyzer.get('max', {}).get('drawdown', None)
 
         trade_analysis = strat.analyzers.tradeanalyzer.get_analysis()
-
-        # Build equity curve
-        time_returns = strat.analyzers.timereturn.get_analysis()
-        equity_curve = self._build_equity_curve(time_returns, start_value)
+        total_trades = trade_analysis.get('total', {}).get('total', 0)
 
         # Get trades from strategy
         trades = strat.trades if hasattr(strat, 'trades') else []
 
-        # Calculate advanced metrics
-        advanced_metrics = self._extract_advanced_metrics(
-            trade_analysis, trades, start_value, end_value, equity_curve
-        )
+        # Build equity curve using time returns
+        time_returns = strat.analyzers.timereturn.get_analysis()
+        equity_curve_list = self._build_equity_curve_list(time_returns, start_value)
 
-        total_trades = trade_analysis.get('total', {}).get('total', len(trades))
+        # Calculate advanced metrics using PerformanceAnalyzer
+        advanced_metrics = self._calculate_metrics_with_analyzer(
+            trades, start_value, end_value, equity_curve_list
+        )
 
         # Extract chart data using the extractor
         chart_data = self.chart_extractor.extract(strat, self.data)
@@ -146,27 +190,31 @@ class Run_strategy:
             'return_pct': return_pct,
             'sharpe_ratio': sharpe_ratio,
             'max_drawdown': max_drawdown,
-            'total_trades': total_trades,
+            'total_trades': total_trades if total_trades > 0 else len(trades),
             'trades': trades,
             'ticker': ticker,
             'start_date': start_date,
             'end_date': end_date if end_date else 'today',
             'interval': interval,
             'advanced_metrics': advanced_metrics,
-            'equity_curve': equity_curve,
+            'equity_curve': equity_curve_list,
             'chart_data': chart_data
         }
 
-    def _build_equity_curve(self, time_returns: Dict, start_value: float) -> List[Dict[str, Any]]:
+    def _build_equity_curve_list(
+        self,
+        time_returns: Dict,
+        start_value: float
+    ) -> List[Dict[str, Any]]:
         """
-        Build equity curve from time returns.
+        Build equity curve list from time returns for API response.
 
         Args:
             time_returns: Dictionary of date to return values
             start_value: Starting portfolio value
 
         Returns:
-            List of equity curve points
+            List of equity curve points for API
         """
         equity_curve = []
         current_value = start_value
@@ -183,109 +231,53 @@ class Run_strategy:
 
         return equity_curve
 
-    def _extract_advanced_metrics(self, trade_analysis: Dict, trades: List, start_value: float,
-                                   end_value: float, equity_curve: List) -> Dict[str, Any]:
+    def _calculate_metrics_with_analyzer(
+        self,
+        trades: List[Dict[str, Any]],
+        start_value: float,
+        end_value: float,
+        equity_curve_list: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """
-        Extract advanced performance metrics.
+        Calculate advanced performance metrics using PerformanceAnalyzer.
 
         Args:
-            trade_analysis: Backtrader trade analysis results
             trades: List of trade dictionaries
             start_value: Starting portfolio value
             end_value: Ending portfolio value
-            equity_curve: Equity curve data
+            equity_curve_list: Equity curve as list of dicts
 
         Returns:
             Dictionary of advanced metrics
         """
-        total = trade_analysis.get('total', {})
-        won = trade_analysis.get('won', {})
-        lost = trade_analysis.get('lost', {})
-        streak = trade_analysis.get('streak', {})
+        if not trades:
+            return {
+                'win_rate': 0.0,
+                'profit_factor': None,
+                'payoff_ratio': None,
+                'calmar_ratio': None,
+                'sortino_ratio': None,
+                'max_consecutive_wins': 0,
+                'max_consecutive_losses': 0,
+                'avg_win': 0.0,
+                'avg_loss': 0.0,
+                'largest_win': 0.0,
+                'largest_loss': 0.0,
+                'avg_trade_duration': None,
+                'recovery_periods': [],
+                'expectancy': 0.0
+            }
 
-        total_trades = total.get('total', 0)
-        win_rate = (won.get('total', 0) / total_trades * 100) if total_trades > 0 else 0.0
+        # Convert equity curve list to pandas Series for PerformanceAnalyzer
+        equity_values = [start_value] + [point['value'] for point in equity_curve_list]
+        equity_series = pd.Series(equity_values)
 
-        gross_profit = won.get('pnl', {}).get('total', 0)
-        gross_loss = abs(lost.get('pnl', {}).get('total', 0))
-        profit_factor = (gross_profit / gross_loss) if gross_loss > 0 else None
+        # Create PerformanceAnalyzer and calculate all metrics
+        analyzer = PerformanceAnalyzer(
+            trades=trades,
+            start_value=start_value,
+            end_value=end_value,
+            equity_curve=equity_series
+        )
 
-        avg_win = won.get('pnl', {}).get('average', 0.0)
-        avg_loss = abs(lost.get('pnl', {}).get('average', 0.0))
-        payoff_ratio = (avg_win / avg_loss) if avg_loss > 0 else None
-
-        max_consecutive_wins = streak.get('won', {}).get('longest', 0)
-        max_consecutive_losses = streak.get('lost', {}).get('longest', 0)
-
-        largest_win = won.get('pnl', {}).get('max', 0.0)
-        largest_loss = lost.get('pnl', {}).get('max', 0.0)
-
-        total_return = (end_value - start_value) / start_value if start_value > 0 else 0
-        days_traded = len(equity_curve)
-        years = days_traded / 365.25 if days_traded > 0 else 1
-        annual_return = ((1 + total_return) ** (1 / years) - 1) * 100 if years > 0 else 0
-
-        max_dd = self._calculate_max_drawdown_from_curve(equity_curve)
-        calmar_ratio = (annual_return / abs(max_dd)) if max_dd and max_dd != 0 else None
-
-        sortino_ratio = self._calculate_sortino_ratio(equity_curve)
-
-        expectancy = (win_rate / 100 * avg_win) - ((1 - win_rate / 100) * avg_loss) if total_trades > 0 else 0.0
-
-        return {
-            'win_rate': win_rate,
-            'profit_factor': profit_factor,
-            'payoff_ratio': payoff_ratio,
-            'calmar_ratio': calmar_ratio,
-            'sortino_ratio': sortino_ratio,
-            'max_consecutive_wins': max_consecutive_wins,
-            'max_consecutive_losses': max_consecutive_losses,
-            'avg_win': avg_win,
-            'avg_loss': avg_loss,
-            'largest_win': largest_win,
-            'largest_loss': largest_loss,
-            'avg_trade_duration': None,
-            'recovery_periods': [],
-            'expectancy': expectancy
-        }
-
-    def _calculate_max_drawdown_from_curve(self, equity_curve: List[Dict]) -> Optional[float]:
-        """Calculate maximum drawdown from equity curve"""
-        if not equity_curve:
-            return None
-
-        values = [point['value'] for point in equity_curve]
-        peak = values[0]
-        max_dd = 0
-
-        for value in values:
-            if value > peak:
-                peak = value
-            dd = ((peak - value) / peak) * 100 if peak > 0 else 0
-            max_dd = max(max_dd, dd)
-
-        return max_dd if max_dd > 0 else None
-
-    def _calculate_sortino_ratio(self, equity_curve: List[Dict], risk_free_rate: float = 0.0) -> Optional[float]:
-        """Calculate Sortino ratio from equity curve"""
-        if len(equity_curve) < 2:
-            return None
-
-        values = [point['value'] for point in equity_curve]
-        returns = [(values[i] - values[i-1]) / values[i-1] for i in range(1, len(values)) if values[i-1] > 0]
-
-        if not returns:
-            return None
-
-        downside_returns = [r for r in returns if r < 0]
-        if not downside_returns:
-            return None
-
-        import math
-        avg_return = sum(returns) / len(returns)
-        downside_dev = math.sqrt(sum(r ** 2 for r in downside_returns) / len(downside_returns))
-
-        if downside_dev == 0:
-            return None
-
-        return (avg_return - risk_free_rate) / downside_dev
+        return analyzer.calculate_all_metrics()

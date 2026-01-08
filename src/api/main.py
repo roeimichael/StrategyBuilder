@@ -1,15 +1,16 @@
 from typing import Optional, List, Dict, Any
 from datetime import datetime
+import datetime as dt
 
 import pandas as pd
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-import yfinance as yf
 
 from src.config import Config
 from src.services.strategy_service import StrategyService
 from src.services.backtest_service import BacktestService, BacktestRequest as ServiceBacktestRequest
+from src.core.data_manager import DataManager
 from src.utils.api_logger import log_errors, logger
 
 
@@ -30,6 +31,7 @@ app.add_middleware(
 # Initialize services
 strategy_service = StrategyService()
 backtest_service = BacktestService()
+data_manager = DataManager()
 
 
 # API Models
@@ -175,24 +177,42 @@ def run_backtest(request: BacktestRequest) -> BacktestResponse:
 @app.post("/market-data")
 @log_errors
 def get_market_data(request: MarketDataRequest) -> Dict[str, object]:
-    """Fetch historical market data for a ticker"""
+    """Fetch historical market data for a ticker using DataManager with caching"""
     try:
-        data = yf.download(
-            request.ticker,
-            period=request.period,
-            interval=request.interval,
-            progress=False
+        # Convert period string to date range
+        # For simplicity, we use relative periods from today
+        end_date = dt.date.today()
+
+        # Parse period string (e.g., "1mo", "3mo", "1y")
+        period_map = {
+            '1mo': 30,
+            '3mo': 90,
+            '6mo': 180,
+            '1y': 365,
+            '2y': 730,
+            '5y': 1825,
+            'ytd': (dt.date.today() - dt.date(dt.date.today().year, 1, 1)).days,
+            'max': 3650  # 10 years
+        }
+
+        days = period_map.get(request.period, 365)
+        start_date = end_date - dt.timedelta(days=days)
+
+        # Fetch data using DataManager (with caching)
+        data = data_manager.get_data(
+            ticker=request.ticker,
+            start_date=start_date,
+            end_date=end_date,
+            interval=request.interval
         )
 
         if data.empty:
             raise HTTPException(status_code=404, detail=f"No data found for {request.ticker}")
 
-        if isinstance(data.columns, pd.MultiIndex):
-            data.columns = data.columns.get_level_values(0)
-
-        data = data.loc[:, ~data.columns.duplicated()]
+        # Convert to dict for API response
         data_dict = data.reset_index().to_dict(orient='records')
 
+        # Calculate statistics
         stats = {
             'mean': data['Close'].mean().item() if 'Close' in data else None,
             'std': data['Close'].std().item() if 'Close' in data else None,
@@ -210,6 +230,8 @@ def get_market_data(request: MarketDataRequest) -> Dict[str, object]:
             "data": data_dict,
             "statistics": stats
         }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch market data: {str(e)}")
 
