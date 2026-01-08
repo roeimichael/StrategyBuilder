@@ -5,16 +5,23 @@ import backtrader as bt
 import pandas as pd
 import yfinance as yf
 
-from src.utils.performance_analyzer import PerformanceAnalyzer
+from src.core.extractors.chart_data_extractor import ChartDataExtractor
+
 
 class Run_strategy:
+    """
+    Lightweight orchestrator for running backtests.
+    Delegates data extraction to specialized extractor classes.
+    """
     def __init__(self, parameters: Dict[str, float], strategy: Type[bt.Strategy], data: Optional[bt.feeds.PandasData] = None):
         self.cerebro = bt.Cerebro()
         self.args = parameters
         self.data = data
         self.strategy = strategy
+        self.chart_extractor = ChartDataExtractor()
 
     def add_analyzers(self, data: bt.feeds.PandasData) -> None:
+        """Add Backtrader analyzers for performance metrics"""
         self.cerebro.addanalyzer(bt.analyzers.TimeReturn, _name='alltime_roi',
                                 timeframe=bt.TimeFrame.NoTimeFrame)
         self.cerebro.addanalyzer(bt.analyzers.TimeReturn, data=data, _name='benchmark',
@@ -27,32 +34,71 @@ class Run_strategy:
         self.cerebro.addobserver(bt.observers.DrawDown)
 
     def add_data(self, cerebro: bt.Cerebro, ticker: str, start_date: date, interval: str, end_date: Optional[date] = None) -> bt.feeds.PandasData:
+        """
+        Fetch and add market data to Cerebro.
+
+        Args:
+            cerebro: Backtrader Cerebro instance
+            ticker: Ticker symbol
+            start_date: Start date for data
+            interval: Data interval (1d, 1h, etc.)
+            end_date: Optional end date
+
+        Returns:
+            Backtrader PandasData feed
+        """
         start_str = start_date.strftime('%Y-%m-%d') if hasattr(start_date, 'strftime') else str(start_date)
         end_str = end_date.strftime('%Y-%m-%d') if end_date and hasattr(end_date, 'strftime') else None
+
         try:
             data = yf.download(ticker, start=start_str, end=end_str, interval=interval, progress=False, auto_adjust=False) \
                    if end_str else yf.download(ticker, start=start_str, interval=interval, progress=False, auto_adjust=False)
+
             if data.empty:
                 raise ValueError(f"No data available for {ticker}")
+
             if isinstance(data.columns, pd.MultiIndex):
                 data.columns = data.columns.get_level_values(0)
+
             if len(data.columns) > 0 and isinstance(data.columns[0], tuple):
                 data.columns = [col[0] if isinstance(col, tuple) else col for col in data.columns]
+
         except Exception as e:
             raise ValueError(f"Failed to download data for {ticker}: {str(e)}")
+
         data = bt.feeds.PandasData(dataname=data)
         self.data = data
         cerebro.adddata(data)
         return data
 
     def print_data(self) -> tuple:
+        """
+        Run the backtest and return results.
+
+        Returns:
+            Tuple of (results, start_value, end_value)
+        """
         start_value = self.cerebro.broker.getvalue()
         results = self.cerebro.run()
         end_value = self.cerebro.broker.getvalue()
         return results, start_value, end_value
 
     def runstrat(self, ticker: str, start_date: date, interval: str, end_date: Optional[date] = None) -> Dict[str, Any]:
+        """
+        Execute a complete backtest.
+
+        Args:
+            ticker: Ticker symbol
+            start_date: Backtest start date
+            interval: Data interval
+            end_date: Optional backtest end date
+
+        Returns:
+            Dictionary containing all backtest results and metrics
+        """
+        # Setup
         self.cerebro.broker.set_cash(self.args['cash'])
+
         if self.data is None:
             self.add_data(self.cerebro, ticker, start_date, interval, end_date)
 
@@ -61,9 +107,12 @@ class Run_strategy:
 
         self.cerebro.addstrategy(self.strategy, args=self.args)
         self.add_analyzers(self.data)
+
+        # Execute
         results, start_value, end_value = self.print_data()
         strat = results[0]
 
+        # Extract basic metrics
         sharpe_ratio = strat.analyzers.mysharpe.get_analysis().get('sharperatio', None)
         pnl = end_value - start_value
         return_pct = (end_value / start_value - 1) * 100
@@ -73,18 +122,22 @@ class Run_strategy:
 
         trade_analysis = strat.analyzers.tradeanalyzer.get_analysis()
 
+        # Build equity curve
         time_returns = strat.analyzers.timereturn.get_analysis()
         equity_curve = self._build_equity_curve(time_returns, start_value)
 
+        # Get trades from strategy
         trades = strat.trades if hasattr(strat, 'trades') else []
 
+        # Calculate advanced metrics
         advanced_metrics = self._extract_advanced_metrics(
             trade_analysis, trades, start_value, end_value, equity_curve
         )
 
         total_trades = trade_analysis.get('total', {}).get('total', len(trades))
 
-        chart_data = self._extract_chart_data(strat, self.data)
+        # Extract chart data using the extractor
+        chart_data = self.chart_extractor.extract(strat, self.data)
 
         return {
             'start_value': start_value,
@@ -105,20 +158,46 @@ class Run_strategy:
         }
 
     def _build_equity_curve(self, time_returns: Dict, start_value: float) -> List[Dict[str, Any]]:
+        """
+        Build equity curve from time returns.
+
+        Args:
+            time_returns: Dictionary of date to return values
+            start_value: Starting portfolio value
+
+        Returns:
+            List of equity curve points
+        """
         equity_curve = []
         current_value = start_value
+
         for date_key, ret in time_returns.items():
             current_value = current_value * (1 + ret)
             equity_curve.append({
                 'date': date_key.strftime('%Y-%m-%d') if hasattr(date_key, 'strftime') else str(date_key),
                 'value': current_value
             })
+
         if not equity_curve:
             equity_curve = [{'date': 'start', 'value': start_value}]
+
         return equity_curve
 
     def _extract_advanced_metrics(self, trade_analysis: Dict, trades: List, start_value: float,
                                    end_value: float, equity_curve: List) -> Dict[str, Any]:
+        """
+        Extract advanced performance metrics.
+
+        Args:
+            trade_analysis: Backtrader trade analysis results
+            trades: List of trade dictionaries
+            start_value: Starting portfolio value
+            end_value: Ending portfolio value
+            equity_curve: Equity curve data
+
+        Returns:
+            Dictionary of advanced metrics
+        """
         total = trade_analysis.get('total', {})
         won = trade_analysis.get('won', {})
         lost = trade_analysis.get('lost', {})
@@ -171,232 +250,42 @@ class Run_strategy:
         }
 
     def _calculate_max_drawdown_from_curve(self, equity_curve: List[Dict]) -> Optional[float]:
+        """Calculate maximum drawdown from equity curve"""
         if not equity_curve:
             return None
+
         values = [point['value'] for point in equity_curve]
         peak = values[0]
         max_dd = 0
+
         for value in values:
             if value > peak:
                 peak = value
             dd = ((peak - value) / peak) * 100 if peak > 0 else 0
             max_dd = max(max_dd, dd)
+
         return max_dd if max_dd > 0 else None
 
     def _calculate_sortino_ratio(self, equity_curve: List[Dict], risk_free_rate: float = 0.0) -> Optional[float]:
+        """Calculate Sortino ratio from equity curve"""
         if len(equity_curve) < 2:
             return None
+
         values = [point['value'] for point in equity_curve]
         returns = [(values[i] - values[i-1]) / values[i-1] for i in range(1, len(values)) if values[i-1] > 0]
+
         if not returns:
             return None
+
         downside_returns = [r for r in returns if r < 0]
         if not downside_returns:
             return None
+
         import math
         avg_return = sum(returns) / len(returns)
         downside_dev = math.sqrt(sum(r ** 2 for r in downside_returns) / len(downside_returns))
+
         if downside_dev == 0:
             return None
+
         return (avg_return - risk_free_rate) / downside_dev
-
-    def _extract_chart_data(self, strat: bt.Strategy, data_feed: bt.feeds.PandasData) -> List[Dict[str, Any]]:
-        ohlc_data = self._extract_ohlc_data(data_feed)
-        indicators = self._extract_indicators(strat, len(ohlc_data))
-        trade_markers = self._extract_trade_markers(strat)
-        trade_markers_by_date = {}
-        for marker in trade_markers:
-            date = marker['date']
-            if date not in trade_markers_by_date:
-                trade_markers_by_date[date] = []
-            trade_markers_by_date[date].append({
-                'type': marker['type'],
-                'action': marker['action'],
-                'price': marker['price'],
-                'pnl': marker.get('pnl')
-            })
-        unified_data = []
-        for i, ohlc in enumerate(ohlc_data):
-            data_point = {
-                'date': ohlc['date'],
-                'open': ohlc['open'],
-                'high': ohlc['high'],
-                'low': ohlc['low'],
-                'close': ohlc['close'],
-                'volume': ohlc['volume'],
-                'indicators': {},
-                'trade_markers': trade_markers_by_date.get(ohlc['date'], [])
-            }
-            for indicator_name, values in indicators.items():
-                if i < len(values):
-                    data_point['indicators'][indicator_name] = values[i]
-                else:
-                    data_point['indicators'][indicator_name] = None
-            unified_data.append(data_point)
-        return unified_data
-
-    def _extract_ohlc_data(self, data_feed: bt.feeds.PandasData) -> List[Dict[str, Any]]:
-        ohlc_list = []
-
-        if hasattr(data_feed, 'p') and hasattr(data_feed.p, 'dataname'):
-            df = data_feed.p.dataname
-            if df is not None and not df.empty:
-                for idx, row in df.iterrows():
-                    try:
-                        ohlc_list.append({
-                            'date': idx.isoformat() if hasattr(idx, 'isoformat') else str(idx),
-                            'open': float(row.get('Open', row.get('open', 0))),
-                            'high': float(row.get('High', row.get('high', 0))),
-                            'low': float(row.get('Low', row.get('low', 0))),
-                            'close': float(row.get('Close', row.get('close', 0))),
-                            'volume': float(row.get('Volume', row.get('volume', 0)))
-                        })
-                    except Exception:
-                        continue
-
-        return ohlc_list
-
-    def _extract_indicators(self, strat: bt.Strategy, data_length: int) -> Dict[str, List]:
-        indicators_data = {}
-
-        technical_indicators = None
-        if hasattr(strat, 'get_technical_indicators') and callable(strat.get_technical_indicators):
-            technical_indicators = strat.get_technical_indicators()
-        elif hasattr(strat, 'technical_indicators') and isinstance(strat.technical_indicators, dict):
-            technical_indicators = strat.technical_indicators
-
-        if technical_indicators:
-            for indicator_name, indicator_obj in technical_indicators.items():
-                if indicator_obj is None:
-                    continue
-
-                try:
-                    if hasattr(indicator_obj, 'array') and not isinstance(indicator_obj, bt.Indicator):
-                        values = []
-                        arr = indicator_obj.array
-                        for i in range(len(arr)):
-                            try:
-                                val = arr[i]
-                                if val is not None and not (isinstance(val, float) and (val != val)):
-                                    values.append(float(val))
-                                else:
-                                    values.append(None)
-                            except (IndexError, KeyError):
-                                values.append(None)
-                        indicators_data[indicator_name] = values
-                    elif isinstance(indicator_obj, bt.Indicator) and hasattr(indicator_obj, 'lines'):
-                        line_names = indicator_obj.getlinealiases()
-                        if len(line_names) == 1:
-                            line = getattr(indicator_obj.lines, line_names[0], None)
-                            if line is not None and hasattr(line, 'array'):
-                                values = []
-                                arr = line.array
-                                for i in range(len(arr)):
-                                    try:
-                                        val = arr[i]
-                                        if val is not None and not (isinstance(val, float) and (val != val)):
-                                            values.append(float(val))
-                                        else:
-                                            values.append(None)
-                                    except (IndexError, KeyError):
-                                        values.append(None)
-                                indicators_data[indicator_name] = values
-                        else:
-                            for line_name in line_names:
-                                if line_name:
-                                    line = getattr(indicator_obj.lines, line_name, None)
-                                    if line is not None and hasattr(line, 'array'):
-                                        values = []
-                                        arr = line.array
-                                        for i in range(len(arr)):
-                                            try:
-                                                val = arr[i]
-                                                if val is not None and not (isinstance(val, float) and (val != val)):
-                                                    values.append(float(val))
-                                                else:
-                                                    values.append(None)
-                                            except (IndexError, KeyError):
-                                                values.append(None)
-                                        indicators_data[f"{indicator_name}_{line_name}"] = values
-                except Exception:
-                    continue
-        else:
-            for attr_name in dir(strat):
-                if attr_name.startswith('_'):
-                    continue
-
-                attr = getattr(strat, attr_name, None)
-                if attr is None:
-                    continue
-
-                if isinstance(attr, bt.Indicator):
-                    try:
-                        if hasattr(attr, 'lines'):
-                            line_names = attr.getlinealiases()
-                            if len(line_names) == 1:
-                                values = []
-                                if hasattr(attr, 'array'):
-                                    arr = attr.array
-                                    for i in range(len(arr)):
-                                        val = arr[i]
-                                        if val is not None and not (isinstance(val, float) and (val != val)):
-                                            values.append(float(val))
-                                        else:
-                                            values.append(None)
-                                indicators_data[attr_name] = values
-                            else:
-                                for line_name in line_names:
-                                    if line_name:
-                                        line = getattr(attr.lines, line_name, None)
-                                        if line is not None:
-                                            values = []
-                                            if hasattr(line, 'array'):
-                                                arr = line.array
-                                                for i in range(len(arr)):
-                                                    val = arr[i]
-                                                    if val is not None and not (isinstance(val, float) and (val != val)):
-                                                        values.append(float(val))
-                                                    else:
-                                                        values.append(None)
-                                            indicators_data[f"{attr_name}_{line_name}"] = values
-                    except Exception:
-                        continue
-
-        return indicators_data
-
-    def _extract_trade_markers(self, strat: bt.Strategy) -> List[Dict[str, Any]]:
-        markers = []
-        if not hasattr(strat, 'trades'):
-            return markers
-        for trade in strat.trades:
-            try:
-                entry_date = trade['entry_date']
-                if hasattr(entry_date, 'isoformat'):
-                    entry_date_str = entry_date.isoformat()
-                elif hasattr(entry_date, 'strftime'):
-                    entry_date_str = entry_date.strftime('%Y-%m-%dT%H:%M:%S')
-                else:
-                    entry_date_str = str(entry_date)
-                exit_date = trade['exit_date']
-                if hasattr(exit_date, 'isoformat'):
-                    exit_date_str = exit_date.isoformat()
-                elif hasattr(exit_date, 'strftime'):
-                    exit_date_str = exit_date.strftime('%Y-%m-%dT%H:%M:%S')
-                else:
-                    exit_date_str = str(exit_date)
-                markers.append({
-                    'date': entry_date_str,
-                    'price': float(trade['entry_price']),
-                    'type': 'BUY' if trade['type'] == 'LONG' else 'SELL',
-                    'action': 'OPEN'
-                })
-                markers.append({
-                    'date': exit_date_str,
-                    'price': float(trade['exit_price']),
-                    'type': 'SELL' if trade['type'] == 'LONG' else 'BUY',
-                    'action': 'CLOSE',
-                    'pnl': float(trade['pnl'])
-                })
-            except Exception:
-                continue
-        return sorted(markers, key=lambda x: x['date'])
