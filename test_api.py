@@ -2,7 +2,7 @@ import requests
 import json
 from datetime import datetime
 
-BASE_URL = "http://localhost:8000"
+BASE_URL = "http://localhost:8086"
 
 def test_market_data_btc():
     response = requests.post(
