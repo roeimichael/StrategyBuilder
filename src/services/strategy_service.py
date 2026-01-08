@@ -1,7 +1,7 @@
 import os
 import importlib
 import inspect
-from typing import Type, List, Dict, Optional, Any
+from typing import Type, List, Dict, Optional, Any, Union
 import backtrader as bt
 from src.core.strategy_skeleton import Strategy_skeleton
 from src.config import BacktestConfig
@@ -73,7 +73,7 @@ class StrategyService:
             "parameters": params
         }
     @staticmethod
-    def get_default_parameters(strategy_params: Optional[Dict[str, float]] = None) -> Dict[str, float]:
+    def get_default_parameters(strategy_params: Optional[Dict[str, Union[int, float]]] = None) -> Dict[str, Union[int, float]]:
         params = BacktestConfig.get_default_parameters()
         if strategy_params:
             params.update(strategy_params)

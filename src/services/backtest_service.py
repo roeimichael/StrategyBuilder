@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, Union
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from src.config import BacktestConfig
@@ -8,7 +8,7 @@ from src.services.strategy_service import StrategyService
 class BacktestRequest:
     def __init__(self, ticker: str, strategy: str, start_date: Optional[str] = None,
                  end_date: Optional[str] = None, interval: str = BacktestConfig.DEFAULT_INTERVAL,
-                 cash: float = BacktestConfig.DEFAULT_CASH, parameters: Optional[Dict[str, float]] = None):
+                 cash: float = BacktestConfig.DEFAULT_CASH, parameters: Optional[Dict[str, Union[int, float]]] = None):
         self.ticker = ticker
         self.strategy = strategy
         self.start_date = start_date

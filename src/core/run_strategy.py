@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Type, List, Any
+from typing import Dict, Optional, Type, List, Any, Union
 from datetime import date
 import datetime
 import backtrader as bt
@@ -8,7 +8,7 @@ from src.core.extractors.chart_data_extractor import ChartDataExtractor
 from src.utils.performance_analyzer import PerformanceAnalyzer
 
 class Run_strategy:
-    def __init__(self, parameters: Dict[str, float], strategy: Type[bt.Strategy],
+    def __init__(self, parameters: Dict[str, Union[int, float]], strategy: Type[bt.Strategy],
                  data: Optional[bt.feeds.PandasData] = None, data_manager: Optional[DataManager] = None):
         self.cerebro = bt.Cerebro()
         self.args = parameters

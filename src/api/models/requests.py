@@ -1,4 +1,4 @@
-from typing import Optional, Dict
+from typing import Optional, Dict, Union
 from pydantic import BaseModel, Field
 from src.config.backtest_config import BacktestConfig
 
@@ -9,7 +9,7 @@ class BacktestRequest(BaseModel):
     end_date: Optional[str] = Field(None, example="2024-12-31")
     interval: str = Field(BacktestConfig.DEFAULT_INTERVAL, example="1h")
     cash: float = Field(BacktestConfig.DEFAULT_CASH, example=10000.0)
-    parameters: Optional[Dict[str, float]] = Field(None)
+    parameters: Optional[Dict[str, Union[int, float]]] = Field(None)
     include_chart_data: bool = Field(False, example=False)
     columnar_format: bool = Field(True, example=True)
 
