@@ -5,6 +5,7 @@ from src.config import BacktestConfig
 from src.core.run_strategy import Run_strategy
 from src.services.strategy_service import StrategyService
 
+
 class BacktestRequest:
     def __init__(self, ticker: str, strategy: str, start_date: Optional[str] = None,
                  end_date: Optional[str] = None, interval: str = BacktestConfig.DEFAULT_INTERVAL,
@@ -16,6 +17,7 @@ class BacktestRequest:
         self.interval = interval
         self.cash = cash
         self.parameters = parameters or {}
+
 
 class BacktestResponse:
     def __init__(self, success: bool, ticker: str, strategy: str, start_value: float, end_value: float,
@@ -37,6 +39,7 @@ class BacktestResponse:
         self.end_date = end_date
         self.advanced_metrics = advanced_metrics
         self.chart_data = chart_data
+
     def dict(self) -> Dict[str, Any]:
         return {
             'success': self.success, 'ticker': self.ticker, 'strategy': self.strategy,
@@ -46,6 +49,7 @@ class BacktestResponse:
             'interval': self.interval, 'start_date': self.start_date, 'end_date': self.end_date,
             'advanced_metrics': self.advanced_metrics, 'chart_data': self.chart_data
         }
+
 
 class BacktestService:
     @staticmethod

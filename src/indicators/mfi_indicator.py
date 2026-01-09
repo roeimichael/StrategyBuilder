@@ -1,13 +1,12 @@
 from typing import Optional
 import backtrader as bt
 
-class MFI(bt.Indicator):
 
+class MFI(bt.Indicator):
     lines = ('mfi',)
     params = (('period', 14),)
 
     def __init__(self):
-
         typical_price = (self.data.high + self.data.low + self.data.close) / 3.0
         raw_money_flow = typical_price * self.data.volume
         pos_flow = bt.If(typical_price > typical_price(-1), raw_money_flow, 0)

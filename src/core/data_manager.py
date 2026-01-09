@@ -11,7 +11,8 @@ class DataManager:
 
     def __init__(self, db_path: str = None, update_schedule: str = 'daily'):
         if db_path is None:
-            db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'data', 'market_data.db')
+            db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'data',
+                                   'market_data.db')
 
         self.db_path = db_path
         self.update_schedule = update_schedule
@@ -80,7 +81,7 @@ class DataManager:
         return self._fetch_and_cache_data(ticker, start_date, end_date, interval)
 
     def _get_cached_data(self, ticker: str, start_date: datetime.date,
-                        end_date: datetime.date, interval: str) -> Optional[pd.DataFrame]:
+                         end_date: datetime.date, interval: str) -> Optional[pd.DataFrame]:
         with self._get_connection() as conn:
             query = '''
                 SELECT date, open, high, low, close, volume
@@ -106,7 +107,7 @@ class DataManager:
             return df
 
     def _is_cache_complete(self, cached_data: pd.DataFrame,
-                          start_date: datetime.date, end_date: datetime.date) -> bool:
+                           start_date: datetime.date, end_date: datetime.date) -> bool:
         if cached_data.empty:
             return False
 
@@ -155,7 +156,7 @@ class DataManager:
                 (df['High'] >= df['Close']) &
                 (df['Low'] <= df['Open']) &
                 (df['Low'] <= df['Close'])
-            ]
+                ]
 
         if 'Volume' in df.columns:
             df = df[df['Volume'] >= 0]
@@ -197,7 +198,7 @@ class DataManager:
             conn.commit()
 
     def bulk_download(self, tickers: List[str], start_date: datetime.date,
-                     end_date: datetime.date = None, interval: str = '1d') -> dict:
+                      end_date: datetime.date = None, interval: str = '1d') -> dict:
         if end_date is None:
             end_date = datetime.date.today()
 

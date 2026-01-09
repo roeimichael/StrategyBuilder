@@ -7,6 +7,7 @@ from src.core.data_manager import DataManager
 from src.core.extractors.chart_data_extractor import ChartDataExtractor
 from src.utils.performance_analyzer import PerformanceAnalyzer
 
+
 class Run_strategy:
     def __init__(self, parameters: Dict[str, Union[int, float]], strategy: Type[bt.Strategy],
                  data: Optional[bt.feeds.PandasData] = None, data_manager: Optional[DataManager] = None):
@@ -16,15 +17,19 @@ class Run_strategy:
         self.strategy = strategy
         self.chart_extractor = ChartDataExtractor()
         self.data_manager = data_manager or DataManager()
+
     def add_analyzers(self, data: bt.feeds.PandasData) -> None:
         self.cerebro.addanalyzer(bt.analyzers.TimeReturn, _name='alltime_roi', timeframe=bt.TimeFrame.NoTimeFrame)
-        self.cerebro.addanalyzer(bt.analyzers.TimeReturn, data=data, _name='benchmark', timeframe=bt.TimeFrame.NoTimeFrame)
+        self.cerebro.addanalyzer(bt.analyzers.TimeReturn, data=data, _name='benchmark',
+                                 timeframe=bt.TimeFrame.NoTimeFrame)
         self.cerebro.addanalyzer(bt.analyzers.TimeReturn, _name='timereturn', timeframe=bt.TimeFrame.NoTimeFrame)
         self.cerebro.addanalyzer(bt.analyzers.SharpeRatio, _name='mysharpe')
         self.cerebro.addanalyzer(bt.analyzers.TradeAnalyzer, _name='tradeanalyzer')
         self.cerebro.addanalyzer(bt.analyzers.DrawDown, _name='drawdown')
         self.cerebro.addobserver(bt.observers.DrawDown)
-    def _fetch_and_add_data(self, ticker: str, start_date: date, interval: str, end_date: Optional[date] = None) -> bt.feeds.PandasData:
+
+    def _fetch_and_add_data(self, ticker: str, start_date: date, interval: str,
+                            end_date: Optional[date] = None) -> bt.feeds.PandasData:
         if isinstance(start_date, datetime.date) and not isinstance(start_date, datetime.datetime):
             start_date_obj = start_date
         else:
@@ -47,11 +52,13 @@ class Run_strategy:
         self.data = data_feed
         self.cerebro.adddata(data_feed)
         return data_feed
+
     def _execute_backtest(self) -> tuple:
         start_value = self.cerebro.broker.getvalue()
         results = self.cerebro.run()
         end_value = self.cerebro.broker.getvalue()
         return results, start_value, end_value
+
     def runstrat(self, ticker: str, start_date: date, interval: str, end_date: Optional[date] = None) -> Dict[str, Any]:
         self.cerebro.broker.set_cash(self.args['cash'])
         if self.data is None:
@@ -82,6 +89,7 @@ class Run_strategy:
             'interval': interval, 'advanced_metrics': advanced_metrics, 'equity_curve': equity_curve_list,
             'chart_data': chart_data
         }
+
     def _build_equity_curve_list(self, time_returns: Dict, start_value: float) -> List[Dict[str, Any]]:
         equity_curve = []
         current_value = start_value
@@ -94,8 +102,9 @@ class Run_strategy:
         if not equity_curve:
             equity_curve = [{'date': 'start', 'value': start_value}]
         return equity_curve
+
     def _calculate_metrics_with_analyzer(self, trades: List[Dict[str, Any]], start_value: float,
-                                        end_value: float, equity_curve_list: List[Dict[str, Any]]) -> Dict[str, Any]:
+                                         end_value: float, equity_curve_list: List[Dict[str, Any]]) -> Dict[str, Any]:
         if not trades:
             return {
                 'win_rate': 0.0, 'profit_factor': None, 'payoff_ratio': None, 'calmar_ratio': None,
@@ -106,5 +115,5 @@ class Run_strategy:
         equity_values = [start_value] + [point['value'] for point in equity_curve_list]
         equity_series = pd.Series(equity_values)
         analyzer = PerformanceAnalyzer(trades=trades, start_value=start_value,
-                                      end_value=end_value, equity_curve=equity_series)
+                                       end_value=end_value, equity_curve=equity_series)
         return analyzer.calculate_all_metrics()

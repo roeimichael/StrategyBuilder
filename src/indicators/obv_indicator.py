@@ -1,8 +1,8 @@
 from typing import Optional
 import backtrader as bt
 
-class OBV(bt.Indicator):
 
+class OBV(bt.Indicator):
     lines = ('obv',)
 
     def __init__(self):

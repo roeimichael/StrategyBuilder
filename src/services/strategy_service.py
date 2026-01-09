@@ -7,17 +7,20 @@ from src.core.strategy_skeleton import Strategy_skeleton
 from src.config import BacktestConfig
 from src.exceptions import StrategyNotFoundError, StrategyLoadError
 
+
 class StrategyInfo:
     def __init__(self, module: str, class_name: str, description: str):
         self.module = module
         self.class_name = class_name
         self.description = description
+
     def dict(self) -> Dict[str, str]:
         return {
             'module': self.module,
             'class_name': self.class_name,
             'description': self.description
         }
+
 
 class StrategyService:
     @staticmethod
@@ -34,6 +37,7 @@ class StrategyService:
             raise StrategyNotFoundError(f"Strategy module '{strategy_name}' not found: {str(e)}")
         except Exception as e:
             raise StrategyLoadError(f"Error loading strategy: {str(e)}")
+
     @staticmethod
     def list_strategies() -> List[StrategyInfo]:
         strategies_dir = os.path.join(os.path.dirname(__file__), '..', 'strategies')
@@ -53,6 +57,7 @@ class StrategyService:
                 except Exception:
                     pass
         return strategies
+
     @staticmethod
     def get_strategy_info(strategy_name: str) -> Dict[str, Any]:
         strategy_class = StrategyService.load_strategy_class(strategy_name)
@@ -72,8 +77,10 @@ class StrategyService:
             "description": strategy_class.__doc__ or "",
             "parameters": params
         }
+
     @staticmethod
-    def get_default_parameters(strategy_params: Optional[Dict[str, Union[int, float]]] = None) -> Dict[str, Union[int, float]]:
+    def get_default_parameters(strategy_params: Optional[Dict[str, Union[int, float]]] = None) -> Dict[
+        str, Union[int, float]]:
         params = BacktestConfig.get_default_parameters()
         if strategy_params:
             params.update(strategy_params)
