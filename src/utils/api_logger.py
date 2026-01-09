@@ -20,6 +20,7 @@ logging.basicConfig(
 
 logger = logging.getLogger("StrategyBuilder.API")
 
+
 def log_errors(func: Callable) -> Callable:
     @functools.wraps(func)
     async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
@@ -28,7 +29,7 @@ def log_errors(func: Callable) -> Callable:
         except Exception as e:
             error_time = datetime.now().isoformat()
             error_msg = f"""
-{'='*80}
+{'=' * 80}
 ERROR TIMESTAMP: {error_time}
 FUNCTION: {func.__name__}
 MODULE: {func.__module__}
@@ -43,7 +44,7 @@ KEYWORD ARGUMENTS:
 
 FULL TRACEBACK:
 {traceback.format_exc()}
-{'='*80}
+{'=' * 80}
 """
             logger.error(error_msg)
             raise
@@ -55,7 +56,7 @@ FULL TRACEBACK:
         except Exception as e:
             error_time = datetime.now().isoformat()
             error_msg = f"""
-{'='*80}
+{'=' * 80}
 ERROR TIMESTAMP: {error_time}
 FUNCTION: {func.__name__}
 MODULE: {func.__module__}
@@ -70,7 +71,7 @@ KEYWORD ARGUMENTS:
 
 FULL TRACEBACK:
 {traceback.format_exc()}
-{'='*80}
+{'=' * 80}
 """
             logger.error(error_msg)
             raise
@@ -79,5 +80,6 @@ FULL TRACEBACK:
         return async_wrapper
     else:
         return sync_wrapper
+
 
 import asyncio

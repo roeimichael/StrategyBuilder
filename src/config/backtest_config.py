@@ -1,5 +1,6 @@
 from typing import Dict, Any
 
+
 class BacktestConfig:
     DEFAULT_CASH = 10000.0
     DEFAULT_COMMISSION = 0.001

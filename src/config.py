@@ -1,5 +1,6 @@
 from typing import Dict, Any
 
+
 class Config:
     API_TITLE = "StrategyBuilder API"
     API_VERSION = "2.0.0"
