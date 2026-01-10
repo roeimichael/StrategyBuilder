@@ -10,8 +10,9 @@ from src.services.strategy_service import StrategyService
 from src.services.backtest_service import BacktestService, BacktestRequest as ServiceBacktestRequest
 from src.core.data_manager import DataManager
 from src.utils.api_logger import log_errors
-from src.api.models import BacktestRequest, MarketDataRequest, BacktestResponse, StrategyInfo
+from src.api.models import BacktestRequest, MarketDataRequest, BacktestResponse, StrategyInfo, OptimizationRequest, OptimizationResponse, OptimizationResult
 from src.exceptions import StrategyNotFoundError, StrategyLoadError
+from src.core.optimizer import StrategyOptimizer
 
 app = FastAPI(title=Config.API_TITLE, description="Algorithmic Trading Backtesting Platform",
               version=Config.API_VERSION)
@@ -37,8 +38,8 @@ def convert_to_columnar(chart_data: List[Dict[str, Any]]) -> Dict[str, List[Any]
 def root() -> Dict[str, object]:
     return {
         "name": Config.API_TITLE, "version": Config.API_VERSION, "status": "running", "docs": "/docs",
-        "endpoints": {"strategies": "/strategies", "backtest": "/backtest", "market_data": "/market-data",
-                      "health": "/health"}
+        "endpoints": {"strategies": "/strategies", "backtest": "/backtest", "optimize": "/optimize",
+                      "market_data": "/market-data", "health": "/health"}
     }
 
 
@@ -89,6 +90,43 @@ def run_backtest(request: BacktestRequest) -> BacktestResponse:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Backtest failed: {str(e)}")
+
+
+@app.post("/optimize", response_model=OptimizationResponse)
+@log_errors
+def run_optimization(request: OptimizationRequest) -> OptimizationResponse:
+    try:
+        strategy_cls = strategy_service.load_strategy_class(request.strategy)
+        start_date = datetime.strptime(request.start_date, "%Y-%m-%d").date() if request.start_date else (dt.date.today() - dt.timedelta(days=365))
+        end_date = datetime.strptime(request.end_date, "%Y-%m-%d").date() if request.end_date else dt.date.today()
+        optimizer = StrategyOptimizer(strategy_cls, data_manager)
+        results = optimizer.run_optimization(
+            ticker=request.ticker,
+            start_date=start_date,
+            end_date=end_date,
+            interval=request.interval,
+            cash=request.cash,
+            param_ranges=request.optimization_params
+        )
+        total_combinations = 1
+        for param_values in request.optimization_params.values():
+            total_combinations *= len(param_values)
+        return OptimizationResponse(
+            success=True,
+            ticker=request.ticker,
+            strategy=request.strategy,
+            interval=request.interval,
+            start_date=start_date.isoformat(),
+            end_date=end_date.isoformat(),
+            total_combinations=total_combinations,
+            top_results=[OptimizationResult(**r) for r in results]
+        )
+    except (StrategyNotFoundError, StrategyLoadError) as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Optimization failed: {str(e)}")
 
 
 @app.post("/market-data")
