@@ -20,28 +20,27 @@ class StrategyOptimizer:
         if data.empty:
             raise ValueError(f"No data available for {ticker}")
         bt_data = bt.feeds.PandasData(dataname=data)
-        cerebro = bt.Cerebro(optreturn=False)
-        cerebro.adddata(bt_data)
-        cerebro.broker.setcash(cash)
-        cerebro.broker.setcommission(commission=0.001)
-        opt_params = {key: tuple(values) for key, values in param_ranges.items()}
-        cerebro.optstrategy(self.strategy_cls, **opt_params)
-        cerebro.addanalyzer(bt.analyzers.SharpeRatio, _name='sharpe', timeframe=bt.TimeFrame.Days, riskfreerate=0.0)
-        cerebro.addanalyzer(bt.analyzers.Returns, _name='returns')
-        opt_runs = cerebro.run()
+        param_names = list(param_ranges.keys())
+        param_values_list = [param_ranges[name] for name in param_names]
         results = []
-        for run in opt_runs:
-            strategy = run[0]
+        for param_combination in product(*param_values_list):
+            params_dict = dict(zip(param_names, param_combination))
+            cerebro = bt.Cerebro()
+            cerebro.adddata(bt_data)
+            cerebro.broker.setcash(cash)
+            cerebro.broker.setcommission(commission=0.001)
+            cerebro.addstrategy(self.strategy_cls, **params_dict)
+            cerebro.addanalyzer(bt.analyzers.SharpeRatio, _name='sharpe', timeframe=bt.TimeFrame.Days, riskfreerate=0.0)
+            cerebro.addanalyzer(bt.analyzers.Returns, _name='returns')
+            strategies = cerebro.run()
+            strategy = strategies[0]
             start_value = cash
             end_value = strategy.broker.getvalue()
             pnl = end_value - start_value
             return_pct = (pnl / start_value) * 100
             sharpe = strategy.analyzers.sharpe.get_analysis().get('sharperatio', None)
-            params = {}
-            for param_name in param_ranges.keys():
-                params[param_name] = getattr(strategy.params, param_name, None)
             results.append({
-                'parameters': params,
+                'parameters': params_dict,
                 'pnl': pnl,
                 'return_pct': return_pct,
                 'sharpe_ratio': sharpe,
