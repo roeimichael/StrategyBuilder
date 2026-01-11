@@ -38,8 +38,8 @@ def test_optimize_williams():
             "cash": 5000.0,
             "optimization_params": {
                 "period": [10, 14, 20],
-                "lower_bound": [-90, -80, -70],
-                "upper_bound": [-30, -20, -10]
+                "oversold": [-90, -80, -70],
+                "overbought": [-30, -20, -10]
             }
         }
     )
