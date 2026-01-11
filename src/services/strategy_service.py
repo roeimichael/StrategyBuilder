@@ -6,6 +6,7 @@ import backtrader as bt
 from src.core.strategy_skeleton import Strategy_skeleton
 from src.config import BacktestConfig
 from src.exceptions import StrategyNotFoundError, StrategyLoadError
+from src.core.strategy_optimization_config import get_strategy_parameters
 
 
 class StrategyInfo:
@@ -71,11 +72,13 @@ class StrategyService:
                             params[param_name] = param_value
             except Exception:
                 pass
+        optimizable_params = get_strategy_parameters(strategy_name)
         return {
             "module": strategy_name,
             "class_name": strategy_class.__name__,
             "description": strategy_class.__doc__ or "",
-            "parameters": params
+            "parameters": params,
+            "optimizable_params": optimizable_params
         }
 
     @staticmethod

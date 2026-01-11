@@ -1,5 +1,5 @@
 from .requests import BacktestRequest, MarketDataRequest, OptimizationRequest
-from .responses import BacktestResponse, StrategyInfo, StrategyParameters, OptimizationResponse, OptimizationResult
+from .responses import BacktestResponse, StrategyInfo, StrategyParameters, OptimizationResponse, OptimizationResult, ParameterInfo
 
 __all__ = [
     'BacktestRequest',
@@ -9,5 +9,6 @@ __all__ = [
     'OptimizationResponse',
     'OptimizationResult',
     'StrategyInfo',
-    'StrategyParameters'
+    'StrategyParameters',
+    'ParameterInfo'
 ]

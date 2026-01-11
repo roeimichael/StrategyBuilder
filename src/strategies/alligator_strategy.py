@@ -3,13 +3,19 @@ from ..core.strategy_skeleton import Strategy_skeleton
 
 
 class Alligator_strategy(Strategy_skeleton):
+    params = (
+        ("lips_period", 5),
+        ("teeth_period", 8),
+        ("jaws_period", 13),
+        ("ema_period", 200)
+    )
 
     def __init__(self, args):
         super(Alligator_strategy, self).__init__(args)
-        self.lips = bt.indicators.SmoothedMovingAverage(self.data.close, period=5)
-        self.teeth = bt.indicators.SmoothedMovingAverage(self.data.close, period=8)
-        self.jaws = bt.indicators.SmoothedMovingAverage(self.data.close, period=13)
-        self.ema = bt.indicators.ExponentialMovingAverage(self.data.close, period=200)
+        self.lips = bt.indicators.SmoothedMovingAverage(self.data.close, period=self.p.lips_period)
+        self.teeth = bt.indicators.SmoothedMovingAverage(self.data.close, period=self.p.teeth_period)
+        self.jaws = bt.indicators.SmoothedMovingAverage(self.data.close, period=self.p.jaws_period)
+        self.ema = bt.indicators.ExponentialMovingAverage(self.data.close, period=self.p.ema_period)
         self.cross_lips = bt.indicators.CrossOver(self.data.close, self.lips)
         self.long_position = 0
         self.short_position = 0

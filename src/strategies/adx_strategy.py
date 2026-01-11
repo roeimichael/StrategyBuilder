@@ -3,14 +3,20 @@ from ..core.strategy_skeleton import Strategy_skeleton
 
 
 class adx_strat(Strategy_skeleton):
+    params = (
+        ("ma_short_period", 20),
+        ("ma_long_period", 50),
+        ("boll_period", 14),
+        ("adx_threshold", 25)
+    )
 
     def __init__(self, args):
         super(adx_strat, self).__init__(args)
         self.type = 0
         self.adx = bt.indicators.AverageDirectionalMovementIndex()
-        self.ma20 = bt.indicators.MovingAverageSimple(period=20)
-        self.ma50 = bt.indicators.MovingAverageSimple(period=50)
-        self.boll = bt.indicators.BollingerBands(period=14)
+        self.ma20 = bt.indicators.MovingAverageSimple(period=self.p.ma_short_period)
+        self.ma50 = bt.indicators.MovingAverageSimple(period=self.p.ma_long_period)
+        self.boll = bt.indicators.BollingerBands(period=self.p.boll_period)
         self.ma_cross = bt.ind.CrossOver(self.ma20, self.ma50)
         self.boll_cross_bot = bt.ind.CrossOver(self.data.close, self.boll.lines.bot)
         self.boll_cross_mid = bt.ind.CrossOver(self.data.close, self.boll.lines.mid)
@@ -33,7 +39,7 @@ class adx_strat(Strategy_skeleton):
             return
 
         if self.type == 0:
-            if self.adx[-1] >= 25:
+            if self.adx[-1] >= self.p.adx_threshold:
                 if self.ma_cross > 0:
                     self.buy()
                     self.log('BUY CREATE (LONG TRENDY), %.2f ' % self.data[0])

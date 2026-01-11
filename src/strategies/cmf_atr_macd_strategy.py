@@ -4,6 +4,13 @@ from ..core.strategy_skeleton import Strategy_skeleton
 
 
 class MACD_CMF_ATR_Strategy(Strategy_skeleton):
+    params = (
+        ("macd1", 12),
+        ("macd2", 26),
+        ("macdsig", 9),
+        ("atrperiod", 14),
+        ("atrdist", 2.0)
+    )
 
     def __init__(self, args):
         super(MACD_CMF_ATR_Strategy, self).__init__(args)
@@ -13,13 +20,13 @@ class MACD_CMF_ATR_Strategy(Strategy_skeleton):
         self.take_profit_short = 0
         self.is_long, self.is_short = 0, 0
         self.macd = bt.indicators.MACD(self.data,
-                                       period_me1=self.args['macd1'],
-                                       period_me2=self.args['macd2'],
-                                       period_signal=self.args['macdsig'])
+                                       period_me1=self.p.macd1,
+                                       period_me2=self.p.macd2,
+                                       period_signal=self.p.macdsig)
         self.mcross = bt.indicators.CrossOver(self.macd.macd, self.macd.signal)
         self.mcross_short = bt.indicators.CrossOver(self.macd.signal, self.macd.macd)
         self.macd_histogram = self.macd.macd - self.macd.signal
-        self.atr = bt.indicators.ATR(self.data, period=self.args['atrperiod'])
+        self.atr = bt.indicators.ATR(self.data, period=self.p.atrperiod)
         self.cmf = CMF(self.data)
 
     def get_technical_indicators(self):
@@ -43,7 +50,7 @@ class MACD_CMF_ATR_Strategy(Strategy_skeleton):
                     self.buy()
                     self.is_long = 1
                     self.log('BUY CREATE (LONG), %.2f ' % self.data[0])
-                    pdist = self.atr[0] * self.args['atrdist']
+                    pdist = self.atr[0] * self.p.atrdist
                     self.stop_loss_long = self.data.close[0] - pdist
                     self.take_profit_long = self.data.close[0] + (2 * pdist)
 
@@ -52,7 +59,7 @@ class MACD_CMF_ATR_Strategy(Strategy_skeleton):
                     self.sell()
                     self.is_short = 1
                     self.log('SELL CREATE (SHORT), %.2f ' % self.data[0])
-                    pdist = self.atr[0] * self.args['atrdist']
+                    pdist = self.atr[0] * self.p.atrdist
                     self.stop_loss_short = self.data.close[0] + pdist
                     self.take_profit_short = self.data.close[0] - (2 * pdist)
         else:

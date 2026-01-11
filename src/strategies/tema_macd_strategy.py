@@ -3,17 +3,23 @@ from ..core.strategy_skeleton import Strategy_skeleton
 
 
 class TEMA_MACD(Strategy_skeleton):
+    params = (
+        ("macd1", 12),
+        ("macd2", 26),
+        ("macdsig", 9),
+        ("tema_period", 12)
+    )
 
     def __init__(self, args):
         super(TEMA_MACD, self).__init__(args)
         self.macd = bt.indicators.MACD(self.data,
-                                       period_me1=self.args['macd1'],
-                                       period_me2=self.args['macd2'],
-                                       period_signal=self.args['macdsig'])
+                                       period_me1=self.p.macd1,
+                                       period_me2=self.p.macd2,
+                                       period_signal=self.p.macdsig)
         self.mcross = bt.indicators.CrossOver(self.macd.macd, self.macd.signal)
         self.macd_histogram = self.macd.macd - self.macd.signal
-        self.tema_open = bt.indicators.TripleExponentialMovingAverage(self.data.open, period=12)
-        self.tema_close = bt.indicators.TripleExponentialMovingAverage(self.data.close, period=12)
+        self.tema_open = bt.indicators.TripleExponentialMovingAverage(self.data.open, period=self.p.tema_period)
+        self.tema_close = bt.indicators.TripleExponentialMovingAverage(self.data.close, period=self.p.tema_period)
         self.tcross = bt.indicators.CrossOver(self.tema_close, self.tema_open)
         self.flag_macd = 0
         self.flag_tema = 0
