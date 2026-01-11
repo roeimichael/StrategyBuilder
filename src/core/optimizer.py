@@ -29,7 +29,7 @@ class StrategyOptimizer:
             cerebro.adddata(bt_data)
             cerebro.broker.setcash(cash)
             cerebro.broker.setcommission(commission=0.001)
-            cerebro.addstrategy(self.strategy_cls, **params_dict)
+            cerebro.addstrategy(self.strategy_cls, args=params_dict, **params_dict)
             cerebro.addanalyzer(bt.analyzers.SharpeRatio, _name='sharpe', timeframe=bt.TimeFrame.Days, riskfreerate=0.0)
             cerebro.addanalyzer(bt.analyzers.Returns, _name='returns')
             strategies = cerebro.run()
