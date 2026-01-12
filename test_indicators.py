@@ -43,6 +43,9 @@ def test_indicators():
             print("❌ Failed to download data")
             return False
 
+        if isinstance(data_df.columns, pd.MultiIndex):
+            data_df.columns = data_df.columns.get_level_values(0)
+
         data_feed = bt.feeds.PandasData(dataname=data_df)
         cerebro.adddata(data_feed)
 
