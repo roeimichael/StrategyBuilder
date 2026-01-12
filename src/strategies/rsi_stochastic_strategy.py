@@ -34,11 +34,11 @@ class RSI_Stochastic(Strategy_skeleton):
             if len(self) < max(self.p.rsi_period, self.p.stoch_period):
                 return
             if (self.rsi[0] < self.p.rsi_oversold and
-                self.stoch.percK[0] < self.p.stoch_oversold):
+                    self.stoch.percK[0] < self.p.stoch_oversold):
                 self.buy()
                 self.log(f'BUY CREATE (RSI: {self.rsi[0]:.2f}, Stoch: {self.stoch.percK[0]:.2f}), %.2f' % self.data[0])
         else:
             if (self.rsi[0] > self.p.rsi_overbought or
-                self.stoch.percK[0] > self.p.stoch_overbought):
+                    self.stoch.percK[0] > self.p.stoch_overbought):
                 self.close()
                 self.log(f'SELL CREATE (RSI: {self.rsi[0]:.2f}, Stoch: {self.stoch.percK[0]:.2f}), %.2f' % self.data[0])

@@ -122,7 +122,7 @@ class DataManager:
             ticker,
             start=start_date,
             end=end_date,
-            interval=interval,
+            interval="1d",
             progress=False,
             auto_adjust=False
         )

@@ -56,3 +56,4 @@ config/secrets.yaml
 
 # Frontend
 frontend/
+*.db
