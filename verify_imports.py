@@ -6,7 +6,6 @@ import ast
 import sys
 
 def check_file_imports(filename):
-    """Parse a Python file and check its imports."""
     print(f"\nChecking {filename}...")
 
     with open(filename, 'r') as f:
