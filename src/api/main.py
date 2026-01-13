@@ -11,7 +11,6 @@ from src.services.backtest_service import BacktestService, BacktestRequest as Se
 from src.core.data_manager import DataManager
 from src.utils.api_logger import log_errors
 from src.api.models import BacktestRequest, MarketDataRequest, BacktestResponse, StrategyInfo, OptimizationRequest, OptimizationResponse, OptimizationResult
-from src.exceptions import StrategyNotFoundError, StrategyLoadError
 from src.core.optimizer import StrategyOptimizer
 
 app = FastAPI(title=Config.API_TITLE, description="Algorithmic Trading Backtesting Platform",
@@ -65,8 +64,6 @@ def get_strategy_info(strategy_name: str) -> Dict[str, object]:
     try:
         strategy_info = strategy_service.get_strategy_info(strategy_name)
         return {"success": True, "strategy": strategy_info}
-    except (StrategyNotFoundError, StrategyLoadError) as e:
-        raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -86,8 +83,6 @@ def run_backtest(request: BacktestRequest) -> BacktestResponse:
         elif request.columnar_format and response_dict.get('chart_data'):
             response_dict['chart_data'] = convert_to_columnar(response_dict['chart_data'])
         return BacktestResponse(**response_dict)
-    except (StrategyNotFoundError, StrategyLoadError) as e:
-        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Backtest failed: {str(e)}")
 
@@ -121,8 +116,6 @@ def run_optimization(request: OptimizationRequest) -> OptimizationResponse:
             total_combinations=total_combinations,
             top_results=[OptimizationResult(**r) for r in results]
         )
-    except (StrategyNotFoundError, StrategyLoadError) as e:
-        raise HTTPException(status_code=400, detail=str(e))
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:

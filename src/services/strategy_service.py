@@ -5,7 +5,6 @@ from typing import Type, List, Dict, Optional, Any, Union
 import backtrader as bt
 from src.core.strategy_skeleton import Strategy_skeleton
 from src.config import BacktestConfig
-from src.exceptions import StrategyNotFoundError, StrategyLoadError
 from src.core.strategy_optimization_config import get_strategy_parameters
 
 
@@ -33,11 +32,11 @@ class StrategyService:
             for name, obj in inspect.getmembers(module, inspect.isclass):
                 if issubclass(obj, bt.Strategy) and obj not in [bt.Strategy, Strategy_skeleton]:
                     return obj
-            raise StrategyNotFoundError(f"No valid strategy class found in {strategy_name}")
+            print(f"No valid strategy class found in {strategy_name}")
         except ImportError as e:
-            raise StrategyNotFoundError(f"Strategy module '{strategy_name}' not found: {str(e)}")
+            print(f"Strategy module '{strategy_name}' not found: {str(e)}")
         except Exception as e:
-            raise StrategyLoadError(f"Error loading strategy: {str(e)}")
+            print(f"Error loading strategy: {str(e)}")
 
     @staticmethod
     def list_strategies() -> List[StrategyInfo]:
