@@ -16,7 +16,9 @@ class Keltner_Channel(Strategy_skeleton):
         self.upper_band = self.ema + (self.atr * self.p.atr_multiplier)
         self.lower_band = self.ema - (self.atr * self.p.atr_multiplier)
         self.cross_upper = bt.ind.CrossOver(self.data.close, self.upper_band)
+        self.cross_lower = bt.ind.CrossOver(self.data.close, self.lower_band)
         self.cross_ema = bt.ind.CrossOver(self.data.close, self.ema)
+        self.position_type = 0
 
     def get_technical_indicators(self):
         return {
@@ -38,8 +40,20 @@ class Keltner_Channel(Strategy_skeleton):
         if not self.position:
             if self.cross_upper > 0:
                 self.buy()
-                self.log(f'BUY CREATE (Breakout: {self.data.close[0]:.2f} > {self.upper_band[0]:.2f}), %.2f' % self.data[0])
+                self.position_type = 1
+                self.log(f'BUY CREATE (LONG - Upper Breakout: {self.data.close[0]:.2f} > {self.upper_band[0]:.2f}), %.2f' % self.data[0])
+            elif self.cross_lower < 0:
+                self.sell()
+                self.position_type = -1
+                self.log(f'SELL CREATE (SHORT - Lower Breakout: {self.data.close[0]:.2f} < {self.lower_band[0]:.2f}), %.2f' % self.data[0])
         else:
-            if self.cross_ema < 0:
-                self.close()
-                self.log(f'SELL CREATE (Reversion: {self.data.close[0]:.2f} < {self.ema[0]:.2f}), %.2f' % self.data[0])
+            if self.position_type == 1:
+                if self.cross_ema < 0:
+                    self.close()
+                    self.position_type = 0
+                    self.log(f'SELL CREATE (LONG EXIT - Reversion: {self.data.close[0]:.2f} < {self.ema[0]:.2f}), %.2f' % self.data[0])
+            elif self.position_type == -1:
+                if self.cross_ema > 0:
+                    self.close()
+                    self.position_type = 0
+                    self.log(f'BUY CREATE (SHORT EXIT - Reversion: {self.data.close[0]:.2f} > {self.ema[0]:.2f}), %.2f' % self.data[0])

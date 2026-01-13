@@ -21,8 +21,11 @@ class TEMA_MACD(Strategy_skeleton):
         self.tema_open = bt.indicators.TripleExponentialMovingAverage(self.data.open, period=self.p.tema_period)
         self.tema_close = bt.indicators.TripleExponentialMovingAverage(self.data.close, period=self.p.tema_period)
         self.tcross = bt.indicators.CrossOver(self.tema_close, self.tema_open)
-        self.flag_macd = 0
-        self.flag_tema = 0
+        self.flag_macd_long = 0
+        self.flag_tema_long = 0
+        self.flag_macd_short = 0
+        self.flag_tema_short = 0
+        self.position_type = 0
 
     def get_technical_indicators(self):
         return {
@@ -38,23 +41,43 @@ class TEMA_MACD(Strategy_skeleton):
         if self.tema_open[0] is None:
             return
 
-        if self.flag_tema == 1 and self.tcross == -1:
-            self.flag_tema = 0
-        if self.flag_macd == 1 and self.mcross == -1:
-            self.flag_macd = 0
+        if self.flag_tema_long == 1 and self.tcross == -1:
+            self.flag_tema_long = 0
+        if self.flag_macd_long == 1 and self.mcross == -1:
+            self.flag_macd_long = 0
+        if self.flag_tema_short == 1 and self.tcross == 1:
+            self.flag_tema_short = 0
+        if self.flag_macd_short == 1 and self.mcross == 1:
+            self.flag_macd_short = 0
 
         if self.order:
             return
 
         if not self.position:
-            if self.flag_tema == 0 and self.tcross == 1:
-                self.flag_tema = 1
-            if self.flag_macd == 0 and self.mcross == 1 and self.flag_tema == 1:
-                self.flag_macd = 1
-            if self.flag_macd == 1 and self.flag_tema == 1:
+            if self.flag_tema_long == 0 and self.tcross == 1:
+                self.flag_tema_long = 1
+            if self.flag_macd_long == 0 and self.mcross == 1 and self.flag_tema_long == 1:
+                self.flag_macd_long = 1
+            if self.flag_macd_long == 1 and self.flag_tema_long == 1:
                 self.buy()
+                self.position_type = 1
                 self.log('BUY CREATE (LONG), %.2f ' % self.data[0])
+            elif self.flag_tema_short == 0 and self.tcross == -1:
+                self.flag_tema_short = 1
+            if self.flag_macd_short == 0 and self.mcross == -1 and self.flag_tema_short == 1:
+                self.flag_macd_short = 1
+            if self.flag_macd_short == 1 and self.flag_tema_short == 1:
+                self.sell()
+                self.position_type = -1
+                self.log('SELL CREATE (SHORT), %.2f ' % self.data[0])
         elif self.position:
-            if self.flag_tema != 1 or self.flag_macd != 1:
-                self.close()
-                self.log('SELL CREATE (LONG), %.2f' % self.data[0])
+            if self.position_type == 1:
+                if self.flag_tema_long != 1 or self.flag_macd_long != 1:
+                    self.close()
+                    self.position_type = 0
+                    self.log('SELL CREATE (LONG EXIT), %.2f' % self.data[0])
+            elif self.position_type == -1:
+                if self.flag_tema_short != 1 or self.flag_macd_short != 1:
+                    self.close()
+                    self.position_type = 0
+                    self.log('BUY CREATE (SHORT EXIT), %.2f' % self.data[0])

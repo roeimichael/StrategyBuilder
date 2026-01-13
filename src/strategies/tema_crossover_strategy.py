@@ -15,7 +15,7 @@ class Tema20_tema60(Strategy_skeleton):
         self.tema_20 = bt.indicators.TripleExponentialMovingAverage(self.data.close, period=self.p.tema_short_period)
         self.tema_60 = bt.indicators.TripleExponentialMovingAverage(self.data.close, period=self.p.tema_long_period)
         self.tcross = bt.indicators.CrossOver(self.tema_20, self.tema_60)
-        self.tcross_flag = 0
+        self.position_type = 0
 
     def get_technical_indicators(self):
         return {
@@ -33,13 +33,20 @@ class Tema20_tema60(Strategy_skeleton):
             return
 
         if not self.position:
-            if self.tcross_flag == 0:
-                if self.data.volume[0] > self.volume_average and self.tcross == 1:
-                    self.tcross_flag = 1
-                    self.buy()
-                    self.log('BUY CREATE (LONG), %.2f ' % self.data[0])
+            if self.data.volume[0] > self.volume_average and self.tcross == 1:
+                self.buy()
+                self.position_type = 1
+                self.log('BUY CREATE (LONG - TEMA Cross Up), %.2f ' % self.data[0])
+            elif self.data.volume[0] > self.volume_average and self.tcross == -1:
+                self.sell()
+                self.position_type = -1
+                self.log('SELL CREATE (SHORT - TEMA Cross Down), %.2f ' % self.data[0])
         else:
-            if self.tcross == -1 and self.tcross_flag == 1:
-                self.tcross_flag = 0
+            if self.position_type == 1 and self.tcross == -1:
                 self.close()
-                self.log('SELL CREATE (LONG), %.2f' % self.data[0])
+                self.position_type = 0
+                self.log('SELL CREATE (LONG EXIT - TEMA Cross Down), %.2f' % self.data[0])
+            elif self.position_type == -1 and self.tcross == 1:
+                self.close()
+                self.position_type = 0
+                self.log('BUY CREATE (SHORT EXIT - TEMA Cross Up), %.2f' % self.data[0])
