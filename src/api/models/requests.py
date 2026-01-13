@@ -26,3 +26,10 @@ class MarketDataRequest(BaseModel):
     ticker: str = Field(..., example="AAPL")
     period: str = Field("1mo", example="1mo")
     interval: str = Field(BacktestConfig.DEFAULT_INTERVAL, example="1d")
+
+class ReplayRunRequest(BaseModel):
+    start_date: Optional[str] = Field(None, example="2024-01-01")
+    end_date: Optional[str] = Field(None, example="2024-12-31")
+    interval: Optional[str] = Field(None, example="1d")
+    cash: Optional[float] = Field(None, example=10000.0)
+    parameters: Optional[Dict[str, Union[int, float]]] = Field(None)

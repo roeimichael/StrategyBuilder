@@ -2,16 +2,20 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime
 import datetime as dt
 import pandas as pd
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from src.config import Config
 from src.services.strategy_service import StrategyService
 from src.services.backtest_service import BacktestService, BacktestRequest as ServiceBacktestRequest
 from src.core.data_manager import DataManager
+from src.data.run_repository import RunRepository
 from src.utils.api_logger import log_errors
-from src.api.models import BacktestRequest, MarketDataRequest, BacktestResponse, StrategyInfo, OptimizationRequest, OptimizationResponse, OptimizationResult
-from src.core.optimizer import StrategyOptimizer
+from src.api.models import (
+    BacktestRequest, MarketDataRequest, BacktestResponse, StrategyInfo,
+    ReplayRunRequest, SavedRunSummaryResponse, SavedRunDetailResponse
+)
+from src.exceptions import StrategyNotFoundError, StrategyLoadError
 
 app = FastAPI(title=Config.API_TITLE, description="Algorithmic Trading Backtesting Platform",
               version=Config.API_VERSION)
@@ -21,6 +25,7 @@ app.add_middleware(GZipMiddleware, minimum_size=1000)
 strategy_service = StrategyService()
 backtest_service = BacktestService()
 data_manager = DataManager()
+run_repository = RunRepository()
 
 
 def convert_to_columnar(chart_data: List[Dict[str, Any]]) -> Dict[str, List[Any]]:
@@ -37,8 +42,15 @@ def convert_to_columnar(chart_data: List[Dict[str, Any]]) -> Dict[str, List[Any]
 def root() -> Dict[str, object]:
     return {
         "name": Config.API_TITLE, "version": Config.API_VERSION, "status": "running", "docs": "/docs",
-        "endpoints": {"strategies": "/strategies", "backtest": "/backtest", "optimize": "/optimize",
-                      "market_data": "/market-data", "health": "/health"}
+        "endpoints": {
+            "strategies": "/strategies",
+            "backtest": "/backtest",
+            "market_data": "/market-data",
+            "health": "/health",
+            "runs": "/runs",
+            "run_detail": "/runs/{run_id}",
+            "replay_run": "/runs/{run_id}/replay"
+        }
     }
 
 
@@ -64,6 +76,8 @@ def get_strategy_info(strategy_name: str) -> Dict[str, object]:
     try:
         strategy_info = strategy_service.get_strategy_info(strategy_name)
         return {"success": True, "strategy": strategy_info}
+    except (StrategyNotFoundError, StrategyLoadError) as e:
+        raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -83,43 +97,10 @@ def run_backtest(request: BacktestRequest) -> BacktestResponse:
         elif request.columnar_format and response_dict.get('chart_data'):
             response_dict['chart_data'] = convert_to_columnar(response_dict['chart_data'])
         return BacktestResponse(**response_dict)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Backtest failed: {str(e)}")
-
-
-@app.post("/optimize", response_model=OptimizationResponse)
-@log_errors
-def run_optimization(request: OptimizationRequest) -> OptimizationResponse:
-    try:
-        strategy_cls = strategy_service.load_strategy_class(request.strategy)
-        start_date = datetime.strptime(request.start_date, "%Y-%m-%d").date() if request.start_date else (dt.date.today() - dt.timedelta(days=365))
-        end_date = datetime.strptime(request.end_date, "%Y-%m-%d").date() if request.end_date else dt.date.today()
-        optimizer = StrategyOptimizer(strategy_cls, data_manager)
-        results = optimizer.run_optimization(
-            ticker=request.ticker,
-            start_date=start_date,
-            end_date=end_date,
-            interval=request.interval,
-            cash=request.cash,
-            param_ranges=request.optimization_params
-        )
-        total_combinations = 1
-        for param_values in request.optimization_params.values():
-            total_combinations *= len(param_values)
-        return OptimizationResponse(
-            success=True,
-            ticker=request.ticker,
-            strategy=request.strategy,
-            interval=request.interval,
-            start_date=start_date.isoformat(),
-            end_date=end_date.isoformat(),
-            total_combinations=total_combinations,
-            top_results=[OptimizationResult(**r) for r in results]
-        )
-    except ValueError as e:
+    except (StrategyNotFoundError, StrategyLoadError) as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Optimization failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Backtest failed: {str(e)}")
 
 
 @app.post("/market-data")
@@ -157,6 +138,120 @@ def get_market_data(request: MarketDataRequest) -> Dict[str, object]:
 @log_errors
 def get_default_params() -> Dict[str, object]:
     return {"success": True, "parameters": strategy_service.get_default_parameters()}
+
+
+@app.get("/runs")
+@log_errors
+def get_runs(
+    ticker: Optional[str] = Query(None, description="Filter by ticker"),
+    strategy: Optional[str] = Query(None, description="Filter by strategy"),
+    limit: int = Query(100, description="Maximum number of results", ge=1, le=1000),
+    offset: int = Query(0, description="Number of results to skip", ge=0)
+) -> Dict[str, Any]:
+    """
+    List saved backtest runs with optional filters.
+
+    - **ticker**: Filter by ticker symbol (optional)
+    - **strategy**: Filter by strategy name (optional)
+    - **limit**: Maximum number of results (default: 100, max: 1000)
+    - **offset**: Number of results to skip for pagination (default: 0)
+    """
+    try:
+        runs = run_repository.list_runs(ticker=ticker, strategy=strategy, limit=limit, offset=offset)
+        total_count = run_repository.get_run_count(ticker=ticker, strategy=strategy)
+
+        summary_runs = [
+            SavedRunSummaryResponse(
+                id=run['id'],
+                ticker=run['ticker'],
+                strategy=run['strategy'],
+                interval=run['interval'],
+                pnl=run['pnl'],
+                return_pct=run['return_pct'],
+                created_at=run['created_at']
+            )
+            for run in runs
+        ]
+
+        return {
+            "success": True,
+            "total_count": total_count,
+            "count": len(summary_runs),
+            "limit": limit,
+            "offset": offset,
+            "runs": [run.dict() for run in summary_runs]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve runs: {str(e)}")
+
+
+@app.get("/runs/{run_id}", response_model=SavedRunDetailResponse)
+@log_errors
+def get_run_detail(run_id: int) -> SavedRunDetailResponse:
+    """
+    Get detailed information about a specific saved run.
+
+    - **run_id**: The ID of the saved run
+    """
+    try:
+        run = run_repository.get_run_by_id(run_id)
+        if not run:
+            raise HTTPException(status_code=404, detail=f"Run with ID {run_id} not found")
+
+        return SavedRunDetailResponse(
+            id=run['id'],
+            ticker=run['ticker'],
+            strategy=run['strategy'],
+            parameters=run['parameters'],
+            start_date=run['start_date'],
+            end_date=run['end_date'],
+            interval=run['interval'],
+            cash=run['cash'],
+            pnl=run['pnl'],
+            return_pct=run['return_pct'],
+            sharpe_ratio=run['sharpe_ratio'],
+            max_drawdown=run['max_drawdown'],
+            total_trades=run['total_trades'],
+            winning_trades=run['winning_trades'],
+            losing_trades=run['losing_trades'],
+            created_at=run['created_at']
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve run: {str(e)}")
+
+
+@app.post("/runs/{run_id}/replay", response_model=BacktestResponse)
+@log_errors
+def replay_run(run_id: int, request: ReplayRunRequest) -> BacktestResponse:
+    """
+    Replay a saved backtest run with optional parameter overrides.
+
+    - **run_id**: The ID of the saved run to replay
+    - **request**: Optional overrides for start_date, end_date, interval, cash, or parameters
+    """
+    try:
+        overrides = {}
+        if request.start_date is not None:
+            overrides['start_date'] = request.start_date
+        if request.end_date is not None:
+            overrides['end_date'] = request.end_date
+        if request.interval is not None:
+            overrides['interval'] = request.interval
+        if request.cash is not None:
+            overrides['cash'] = request.cash
+        if request.parameters is not None:
+            overrides['parameters'] = request.parameters
+
+        response = backtest_service.run_backtest_from_saved_run(run_id, overrides)
+        return BacktestResponse(**response.dict())
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except (StrategyNotFoundError, StrategyLoadError) as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to replay run: {str(e)}")
 
 
 if __name__ == "__main__":
