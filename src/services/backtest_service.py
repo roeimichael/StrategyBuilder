@@ -4,6 +4,7 @@ from dateutil.relativedelta import relativedelta
 from src.config import BacktestConfig
 from src.core.run_strategy import Run_strategy
 from src.services.strategy_service import StrategyService
+from src.data.run_repository import RunRepository
 
 
 class BacktestRequest:
@@ -52,8 +53,10 @@ class BacktestResponse:
 
 
 class BacktestService:
-    @staticmethod
-    def run_backtest(request: BacktestRequest) -> BacktestResponse:
+    def __init__(self):
+        self.run_repository = RunRepository()
+
+    def run_backtest(self, request: BacktestRequest, save_run: bool = True) -> BacktestResponse:
         strategy_class = StrategyService.load_strategy_class(request.strategy)
         params = StrategyService.get_default_parameters(request.parameters)
         params['cash'] = request.cash
@@ -66,7 +69,8 @@ class BacktestService:
             end_date = datetime.strptime(request.end_date, "%Y-%m-%d").date()
         runner = Run_strategy(params, strategy_class)
         results = runner.runstrat(request.ticker, start_date, request.interval, end_date)
-        return BacktestResponse(
+
+        response = BacktestResponse(
             success=True, ticker=results['ticker'], strategy=request.strategy,
             start_value=results['start_value'], end_value=results['end_value'], pnl=results['pnl'],
             return_pct=round(results['return_pct'], 2),
@@ -76,3 +80,57 @@ class BacktestService:
             start_date=str(results['start_date']), end_date=str(results['end_date']),
             advanced_metrics=results.get('advanced_metrics', {}), chart_data=results.get('chart_data')
         )
+
+        if save_run:
+            self._save_run(request, response)
+
+        return response
+
+    def _save_run(self, request: BacktestRequest, response: BacktestResponse):
+        """Save the backtest run to the repository."""
+        run_record = {
+            'ticker': request.ticker,
+            'strategy': request.strategy,
+            'parameters': request.parameters,
+            'start_date': response.start_date,
+            'end_date': response.end_date,
+            'interval': request.interval,
+            'cash': request.cash,
+            'pnl': response.pnl,
+            'return_pct': response.return_pct,
+            'sharpe_ratio': response.sharpe_ratio,
+            'max_drawdown': response.max_drawdown,
+            'total_trades': response.total_trades,
+            'winning_trades': response.advanced_metrics.get('winning_trades') if response.advanced_metrics else None,
+            'losing_trades': response.advanced_metrics.get('losing_trades') if response.advanced_metrics else None
+        }
+        self.run_repository.save_run(run_record)
+
+    def run_backtest_from_saved_run(self, run_id: int, overrides: Optional[Dict[str, Any]] = None) -> BacktestResponse:
+        """
+        Replay a backtest from a saved run with optional parameter overrides.
+
+        Args:
+            run_id: The ID of the saved run to replay
+            overrides: Optional dictionary of parameters to override (e.g., start_date, end_date, cash)
+
+        Returns:
+            BacktestResponse from the replayed backtest
+        """
+        saved_run = self.run_repository.get_run_by_id(run_id)
+        if not saved_run:
+            raise ValueError(f"Run with ID {run_id} not found")
+
+        overrides = overrides or {}
+
+        request = BacktestRequest(
+            ticker=saved_run['ticker'],
+            strategy=saved_run['strategy'],
+            start_date=overrides.get('start_date', saved_run['start_date']),
+            end_date=overrides.get('end_date', saved_run['end_date']),
+            interval=overrides.get('interval', saved_run['interval']),
+            cash=overrides.get('cash', saved_run['cash']),
+            parameters=overrides.get('parameters', saved_run['parameters'])
+        )
+
+        return self.run_backtest(request, save_run=True)

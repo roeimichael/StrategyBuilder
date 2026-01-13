@@ -44,3 +44,30 @@ class StrategyInfo(BaseModel):
 class StrategyParameters(BaseModel):
     success: bool
     strategy: Dict[str, object]
+
+class SavedRunSummaryResponse(BaseModel):
+    id: int
+    ticker: str
+    strategy: str
+    interval: str
+    pnl: Optional[float]
+    return_pct: Optional[float]
+    created_at: str
+
+class SavedRunDetailResponse(BaseModel):
+    id: int
+    ticker: str
+    strategy: str
+    parameters: Dict[str, Union[int, float]]
+    start_date: str
+    end_date: str
+    interval: str
+    cash: float
+    pnl: Optional[float]
+    return_pct: Optional[float]
+    sharpe_ratio: Optional[float]
+    max_drawdown: Optional[float]
+    total_trades: Optional[int]
+    winning_trades: Optional[int]
+    losing_trades: Optional[int]
+    created_at: str
