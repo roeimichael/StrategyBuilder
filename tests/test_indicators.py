@@ -3,11 +3,17 @@ Test script for custom indicator accuracy and validation
 Tests OBV, MFI, and CMF implementations
 """
 import sys
+import os
 from datetime import datetime, timedelta
+from pathlib import Path
 import backtrader as bt
 import yfinance as yf
 import pandas as pd
 import numpy as np
+
+# Add project root to path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
 
 # Import custom indicators
 from src.indicators.obv_indicator import OBV
@@ -33,10 +39,10 @@ class IndicatorTester:
             data_df.columns = data_df.columns.get_level_values(0)
 
         if data_df.empty:
-            print("✗ No data")
+            print("[FAIL] No data")
             return None
 
-        print(f"✓ {len(data_df)} bars")
+        print(f"[OK] {len(data_df)} bars")
         return data_df
 
     def test_obv_indicator(self):
@@ -75,13 +81,13 @@ class IndicatorTester:
             strategy = results[0]
 
             print(f"\n  OBV Calculation Tests:")
-            print(f"  ✓ Indicator created successfully")
-            print(f"  ✓ Total data points: {len(strategy.obv_values)}")
+            print(f"  [OK] Indicator created successfully")
+            print(f"  [OK] Total data points: {len(strategy.obv_values)}")
 
             if len(strategy.obv_values) > 0:
                 # Check that OBV values are being calculated
                 obv_values = [v['obv'] for v in strategy.obv_values]
-                print(f"  ✓ OBV Range: [{min(obv_values):.0f}, {max(obv_values):.0f}]")
+                print(f"  [OK] OBV Range: [{min(obv_values):.0f}, {max(obv_values):.0f}]")
 
                 # Verify OBV logic manually for a few points
                 print(f"\n  Verifying OBV logic (sample points):")
@@ -93,18 +99,18 @@ class IndicatorTester:
                 if len(obv_values) > 1:
                     obv_changed = any(obv_values[i] != obv_values[i-1] for i in range(1, len(obv_values)))
                     if obv_changed:
-                        print(f"  ✓ OBV values are changing (not static)")
+                        print(f"  [OK] OBV values are changing (not static)")
                     else:
-                        print(f"  ⚠ OBV values appear static")
+                        print(f"  [WARN] OBV values appear static")
 
                 self.passed += 1
             else:
-                print(f"  ✗ No OBV values calculated")
+                print(f"  [FAIL] No OBV values calculated")
                 self.failed += 1
                 self.errors.append("OBV: No values calculated")
 
         except Exception as e:
-            print(f"\n  ✗ Exception: {str(e)}")
+            print(f"\n  [FAIL] Exception: {str(e)}")
             self.failed += 1
             self.errors.append(f"OBV: {str(e)}")
 
@@ -144,27 +150,27 @@ class IndicatorTester:
             strategy = results[0]
 
             print(f"\n  MFI Calculation Tests:")
-            print(f"  ✓ Indicator created successfully")
-            print(f"  ✓ Total data points: {len(strategy.mfi_values)}")
+            print(f"  [OK] Indicator created successfully")
+            print(f"  [OK] Total data points: {len(strategy.mfi_values)}")
 
             if len(strategy.mfi_values) > 0:
                 mfi_values = [v['mfi'] for v in strategy.mfi_values]
-                print(f"  ✓ MFI Range: [{min(mfi_values):.2f}, {max(mfi_values):.2f}]")
+                print(f"  [OK] MFI Range: [{min(mfi_values):.2f}, {max(mfi_values):.2f}]")
 
                 # MFI should be between 0 and 100
                 out_of_range = [v for v in mfi_values if v < 0 or v > 100]
                 if not out_of_range:
-                    print(f"  ✓ All MFI values in valid range [0, 100]")
+                    print(f"  [OK] All MFI values in valid range [0, 100]")
                 else:
-                    print(f"  ✗ {len(out_of_range)} values out of range [0, 100]")
+                    print(f"  [FAIL] {len(out_of_range)} values out of range [0, 100]")
                     self.errors.append(f"MFI: {len(out_of_range)} values out of range")
 
                 # Check for division by zero issues (should not have NaN)
                 nan_count = sum(1 for v in mfi_values if np.isnan(v) or np.isinf(v))
                 if nan_count == 0:
-                    print(f"  ✓ No NaN/Inf values detected")
+                    print(f"  [OK] No NaN/Inf values detected")
                 else:
-                    print(f"  ⚠ {nan_count} NaN/Inf values detected")
+                    print(f"  [WARN] {nan_count} NaN/Inf values detected")
 
                 # Display sample values
                 print(f"\n  Sample MFI values:")
@@ -174,12 +180,12 @@ class IndicatorTester:
 
                 self.passed += 1
             else:
-                print(f"  ✗ No MFI values calculated")
+                print(f"  [FAIL] No MFI values calculated")
                 self.failed += 1
                 self.errors.append("MFI: No values calculated")
 
         except Exception as e:
-            print(f"\n  ✗ Exception: {str(e)}")
+            print(f"\n  [FAIL] Exception: {str(e)}")
             self.failed += 1
             self.errors.append(f"MFI: {str(e)}")
 
@@ -219,27 +225,27 @@ class IndicatorTester:
             strategy = results[0]
 
             print(f"\n  CMF Calculation Tests:")
-            print(f"  ✓ Indicator created successfully")
-            print(f"  ✓ Total data points: {len(strategy.cmf_values)}")
+            print(f"  [OK] Indicator created successfully")
+            print(f"  [OK] Total data points: {len(strategy.cmf_values)}")
 
             if len(strategy.cmf_values) > 0:
                 cmf_values = [v['cmf'] for v in strategy.cmf_values]
-                print(f"  ✓ CMF Range: [{min(cmf_values):.4f}, {max(cmf_values):.4f}]")
+                print(f"  [OK] CMF Range: [{min(cmf_values):.4f}, {max(cmf_values):.4f}]")
 
                 # CMF should be between -1 and 1
                 out_of_range = [v for v in cmf_values if v < -1 or v > 1]
                 if not out_of_range:
-                    print(f"  ✓ All CMF values in valid range [-1, 1]")
+                    print(f"  [OK] All CMF values in valid range [-1, 1]")
                 else:
-                    print(f"  ✗ {len(out_of_range)} values out of range [-1, 1]")
+                    print(f"  [FAIL] {len(out_of_range)} values out of range [-1, 1]")
                     self.errors.append(f"CMF: {len(out_of_range)} values out of range")
 
                 # Check for NaN/Inf
                 nan_count = sum(1 for v in cmf_values if np.isnan(v) or np.isinf(v))
                 if nan_count == 0:
-                    print(f"  ✓ No NaN/Inf values detected")
+                    print(f"  [OK] No NaN/Inf values detected")
                 else:
-                    print(f"  ⚠ {nan_count} NaN/Inf values detected")
+                    print(f"  [WARN] {nan_count} NaN/Inf values detected")
 
                 # Display sample values
                 print(f"\n  Sample CMF values:")
@@ -250,16 +256,16 @@ class IndicatorTester:
                 # Check that CMF oscillates
                 positive_count = sum(1 for v in cmf_values if v > 0)
                 negative_count = sum(1 for v in cmf_values if v < 0)
-                print(f"\n  ✓ Positive values: {positive_count}, Negative values: {negative_count}")
+                print(f"\n  [OK] Positive values: {positive_count}, Negative values: {negative_count}")
 
                 self.passed += 1
             else:
-                print(f"  ✗ No CMF values calculated")
+                print(f"  [FAIL] No CMF values calculated")
                 self.failed += 1
                 self.errors.append("CMF: No values calculated")
 
         except Exception as e:
-            print(f"\n  ✗ Exception: {str(e)}")
+            print(f"\n  [FAIL] Exception: {str(e)}")
             self.failed += 1
             self.errors.append(f"CMF: {str(e)}")
 
@@ -298,8 +304,8 @@ class IndicatorTester:
             results = cerebro.run()
             strategy = results[0]
 
-            print(f"\n  ✓ All three indicators calculated simultaneously")
-            print(f"  ✓ Total data points: {len(strategy.values)}")
+            print(f"\n  [OK] All three indicators calculated simultaneously")
+            print(f"  [OK] Total data points: {len(strategy.values)}")
 
             # Display last 3 values
             print(f"\n  Last 3 data points:")
@@ -311,7 +317,7 @@ class IndicatorTester:
             self.passed += 1
 
         except Exception as e:
-            print(f"\n  ✗ Exception: {str(e)}")
+            print(f"\n  [FAIL] Exception: {str(e)}")
             self.failed += 1
             self.errors.append(f"Multi-indicator: {str(e)}")
 
@@ -330,10 +336,10 @@ class IndicatorTester:
                 print(f"  - {error}")
 
         if self.failed == 0:
-            print("\n✓ All indicator tests passed!")
+            print("\n[OK] All indicator tests passed!")
             return True
         else:
-            print(f"\n✗ {self.failed} test(s) failed")
+            print(f"\n[FAIL] {self.failed} test(s) failed")
             return False
 
 def main():

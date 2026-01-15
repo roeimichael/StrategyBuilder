@@ -40,7 +40,7 @@ class TestRunner:
         print(f"{Color.BOLD}{Color.BLUE}{'='*70}{Color.END}\n")
 
         if needs_api:
-            print(f"{Color.YELLOW}⚠ This test requires API server running on localhost:8086{Color.END}")
+            print(f"{Color.YELLOW}[WARN] This test requires API server running on localhost:8086{Color.END}")
             print(f"{Color.YELLOW}  Start server with: python -m src.api.main{Color.END}\n")
 
         start = time.time()
@@ -74,15 +74,15 @@ class TestRunner:
             })
 
             if passed:
-                print(f"\n{Color.GREEN}✓ {test_name} PASSED{Color.END} (took {duration:.2f}s)")
+                print(f"\n{Color.GREEN}[OK] {test_name} PASSED{Color.END} (took {duration:.2f}s)")
             else:
-                print(f"\n{Color.RED}✗ {test_name} FAILED{Color.END} (exit code: {result.returncode})")
+                print(f"\n{Color.RED}[FAIL] {test_name} FAILED{Color.END} (exit code: {result.returncode})")
 
             return passed
 
         except subprocess.TimeoutExpired:
             duration = time.time() - start
-            print(f"\n{Color.RED}✗ {test_name} TIMEOUT{Color.END} (exceeded {duration:.2f}s)")
+            print(f"\n{Color.RED}[FAIL] {test_name} TIMEOUT{Color.END} (exceeded {duration:.2f}s)")
             self.results.append({
                 'name': test_name,
                 'file': test_file,
@@ -94,7 +94,7 @@ class TestRunner:
 
         except Exception as e:
             duration = time.time() - start
-            print(f"\n{Color.RED}✗ {test_name} ERROR: {str(e)}{Color.END}")
+            print(f"\n{Color.RED}[FAIL] {test_name} ERROR: {str(e)}{Color.END}")
             self.results.append({
                 'name': test_name,
                 'file': test_file,
@@ -117,7 +117,7 @@ class TestRunner:
         # Print individual results
         print(f"{Color.BOLD}Test Results:{Color.END}\n")
         for i, result in enumerate(self.results, 1):
-            status = f"{Color.GREEN}✓ PASSED{Color.END}" if result['passed'] else f"{Color.RED}✗ FAILED{Color.END}"
+            status = f"{Color.GREEN}[OK] PASSED{Color.END}" if result['passed'] else f"{Color.RED}[FAIL] FAILED{Color.END}"
             print(f"  {i}. {result['name']:<40} {status} ({result['duration']:.2f}s)")
 
         # Print statistics
@@ -131,11 +131,11 @@ class TestRunner:
         # Print overall result
         print("\n" + "="*70)
         if failed_count == 0:
-            print(f"{Color.BOLD}{Color.GREEN}✓ ALL TESTS PASSED!{Color.END}")
+            print(f"{Color.BOLD}{Color.GREEN}[OK] ALL TESTS PASSED!{Color.END}")
             success_rate = 100.0
         else:
             success_rate = (passed_count / len(self.results)) * 100
-            print(f"{Color.BOLD}{Color.YELLOW}⚠ SOME TESTS FAILED{Color.END}")
+            print(f"{Color.BOLD}{Color.YELLOW}[WARN] SOME TESTS FAILED{Color.END}")
 
         print(f"{Color.BOLD}Success Rate: {success_rate:.1f}%{Color.END}")
         print("="*70 + "\n")
@@ -200,7 +200,7 @@ def main():
     # Check if API-dependent tests should be skipped
     api_running = check_api_server()
     if not api_running:
-        print(f"{Color.YELLOW}⚠ API server is not running{Color.END}")
+        print(f"{Color.YELLOW}[WARN] API server is not running{Color.END}")
         print(f"{Color.YELLOW}  API-dependent tests will be skipped{Color.END}")
         print(f"{Color.YELLOW}  Start server with: python -m src.api.main{Color.END}\n")
 
@@ -218,7 +218,7 @@ def main():
             continue
 
         if not test['file'].exists():
-            print(f"\n{Color.RED}✗ Test file not found: {test['file']}{Color.END}")
+            print(f"\n{Color.RED}[FAIL] Test file not found: {test['file']}{Color.END}")
             runner.results.append({
                 'name': test['name'],
                 'file': test['file'],

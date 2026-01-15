@@ -42,7 +42,7 @@ class PresetTester:
 
             if response.status_code == 200:
                 result = response.json()
-                print(f"✓ Status Code: {response.status_code}")
+                print(f"[OK] Status Code: {response.status_code}")
                 print(f"  Preset ID: {result['id']}")
                 print(f"  Name: {result['name']}")
                 print(f"  Ticker: {result['ticker']}")
@@ -55,14 +55,14 @@ class PresetTester:
                 self.passed += 1
                 return True
             else:
-                print(f"✗ Failed with status code: {response.status_code}")
+                print(f"[FAIL] Failed with status code: {response.status_code}")
                 print(f"  Error: {response.text}")
                 self.failed += 1
                 self.errors.append(f"Test 1 failed: {response.text}")
                 return False
 
         except Exception as e:
-            print(f"✗ Exception occurred: {str(e)}")
+            print(f"[FAIL] Exception occurred: {str(e)}")
             self.failed += 1
             self.errors.append(f"Test 1 exception: {str(e)}")
             return False
@@ -86,16 +86,16 @@ class PresetTester:
             )
 
             if response.status_code == 409:
-                print(f"✓ Correctly rejected duplicate preset with 409 Conflict")
+                print(f"[OK] Correctly rejected duplicate preset with 409 Conflict")
                 self.passed += 1
                 return True
             else:
-                print(f"✗ Expected 409, got {response.status_code}")
+                print(f"[FAIL] Expected 409, got {response.status_code}")
                 self.failed += 1
                 return False
 
         except Exception as e:
-            print(f"✗ Exception occurred: {str(e)}")
+            print(f"[FAIL] Exception occurred: {str(e)}")
             self.failed += 1
             return False
 
@@ -110,7 +110,7 @@ class PresetTester:
 
             if response.status_code == 200:
                 result = response.json()
-                print(f"✓ Status Code: {response.status_code}")
+                print(f"[OK] Status Code: {response.status_code}")
                 print(f"  Success: {result['success']}")
                 print(f"  Total Count: {result['total_count']}")
                 print(f"  Returned: {result['count']} presets")
@@ -126,12 +126,12 @@ class PresetTester:
                 self.passed += 1
                 return True
             else:
-                print(f"✗ Failed with status code: {response.status_code}")
+                print(f"[FAIL] Failed with status code: {response.status_code}")
                 self.failed += 1
                 return False
 
         except Exception as e:
-            print(f"✗ Exception occurred: {str(e)}")
+            print(f"[FAIL] Exception occurred: {str(e)}")
             self.failed += 1
             return False
 
@@ -149,18 +149,18 @@ class PresetTester:
 
             if response.status_code == 200:
                 result = response.json()
-                print(f"✓ Filtered by ticker=AAPL, strategy=rsi_stochastic_strategy")
+                print(f"[OK] Filtered by ticker=AAPL, strategy=rsi_stochastic_strategy")
                 print(f"  Found {result['count']} matching presets")
 
                 self.passed += 1
                 return True
             else:
-                print(f"✗ Failed with status code: {response.status_code}")
+                print(f"[FAIL] Failed with status code: {response.status_code}")
                 self.failed += 1
                 return False
 
         except Exception as e:
-            print(f"✗ Exception occurred: {str(e)}")
+            print(f"[FAIL] Exception occurred: {str(e)}")
             self.failed += 1
             return False
 
@@ -171,7 +171,7 @@ class PresetTester:
         print("="*60)
 
         if not self.created_preset_id:
-            print("⚠ Skipping: No preset ID available")
+            print("[WARN] Skipping: No preset ID available")
             return False
 
         try:
@@ -186,7 +186,7 @@ class PresetTester:
 
             if response.status_code == 200:
                 result = response.json()
-                print(f"✓ Status Code: {response.status_code}")
+                print(f"[OK] Status Code: {response.status_code}")
                 print(f"  Ticker: {result['ticker']}")
                 print(f"  Strategy: {result['strategy']}")
                 print(f"  PnL: ${result['pnl']:.2f}")
@@ -196,13 +196,13 @@ class PresetTester:
                 self.passed += 1
                 return True
             else:
-                print(f"✗ Failed with status code: {response.status_code}")
+                print(f"[FAIL] Failed with status code: {response.status_code}")
                 print(f"  Error: {response.text}")
                 self.failed += 1
                 return False
 
         except Exception as e:
-            print(f"✗ Exception occurred: {str(e)}")
+            print(f"[FAIL] Exception occurred: {str(e)}")
             self.failed += 1
             return False
 
@@ -213,7 +213,7 @@ class PresetTester:
         print("="*60)
 
         if not self.created_preset_id:
-            print("⚠ Skipping: No preset ID available")
+            print("[WARN] Skipping: No preset ID available")
             return False
 
         try:
@@ -223,19 +223,19 @@ class PresetTester:
 
             if response.status_code == 200:
                 result = response.json()
-                print(f"✓ Status Code: {response.status_code}")
+                print(f"[OK] Status Code: {response.status_code}")
                 print(f"  Success: {result['success']}")
                 print(f"  Message: {result['message']}")
 
                 self.passed += 1
                 return True
             else:
-                print(f"✗ Failed with status code: {response.status_code}")
+                print(f"[FAIL] Failed with status code: {response.status_code}")
                 self.failed += 1
                 return False
 
         except Exception as e:
-            print(f"✗ Exception occurred: {str(e)}")
+            print(f"[FAIL] Exception occurred: {str(e)}")
             self.failed += 1
             return False
 
@@ -258,16 +258,16 @@ class PresetTester:
             )
 
             if response.status_code == 404:
-                print(f"✓ Correctly rejected invalid strategy with 404")
+                print(f"[OK] Correctly rejected invalid strategy with 404")
                 self.passed += 1
                 return True
             else:
-                print(f"✗ Expected 404, got {response.status_code}")
+                print(f"[FAIL] Expected 404, got {response.status_code}")
                 self.failed += 1
                 return False
 
         except Exception as e:
-            print(f"✗ Exception occurred: {str(e)}")
+            print(f"[FAIL] Exception occurred: {str(e)}")
             self.failed += 1
             return False
 
@@ -286,10 +286,10 @@ class PresetTester:
                 print(f"  - {error}")
 
         if self.failed == 0:
-            print("\n✓ All tests passed!")
+            print("\n[OK] All tests passed!")
             return True
         else:
-            print(f"\n✗ {self.failed} test(s) failed")
+            print(f"\n[FAIL] {self.failed} test(s) failed")
             return False
 
 def main():
@@ -304,12 +304,12 @@ def main():
     try:
         response = requests.get(f"{BASE_URL}/health", timeout=2)
         if response.status_code == 200:
-            print("✓ API server is running\n")
+            print("[OK] API server is running\n")
         else:
-            print("✗ API server returned unexpected response")
+            print("[FAIL] API server returned unexpected response")
             return False
     except requests.exceptions.RequestException:
-        print("✗ Could not connect to API server")
+        print("[FAIL] Could not connect to API server")
         print("Please start the server first!")
         return False
 

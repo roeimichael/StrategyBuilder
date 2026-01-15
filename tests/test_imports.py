@@ -3,8 +3,13 @@ Test script for validating all imports and __init__ files
 Ensures all modules can be imported without errors
 """
 import sys
+import os
 import importlib
 from pathlib import Path
+
+# Add project root to path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
 
 class ImportTester:
     def __init__(self):
@@ -17,11 +22,11 @@ class ImportTester:
         try:
             print(f"  Testing {module_name}...", end=" ")
             importlib.import_module(module_name)
-            print("✓")
+            print("[OK]")
             self.passed += 1
             return True
         except Exception as e:
-            print(f"✗")
+            print(f"[FAIL]")
             print(f"    Error: {str(e)}")
             self.failed += 1
             self.errors.append(f"{module_name}: {str(e)}")
@@ -159,13 +164,13 @@ class ImportTester:
             print("  Testing src.__init__ exports...", end=" ")
             import src
             if hasattr(src, '__all__'):
-                print(f"✓ ({len(src.__all__)} exports)")
+                print(f"[OK] ({len(src.__all__)} exports)")
                 self.passed += 1
             else:
-                print("⚠ No __all__ defined")
+                print("[WARN] No __all__ defined")
                 self.passed += 1
         except Exception as e:
-            print(f"✗ {str(e)}")
+            print(f"[FAIL] {str(e)}")
             self.failed += 1
             self.errors.append(f"src.__init__: {str(e)}")
 
@@ -181,16 +186,16 @@ class ImportTester:
                 ]
                 missing = [e for e in expected_exports if e not in models.__all__]
                 if not missing:
-                    print(f"✓ All expected exports present ({len(models.__all__)} total)")
+                    print(f"[OK] All expected exports present ({len(models.__all__)} total)")
                     self.passed += 1
                 else:
-                    print(f"⚠ Missing exports: {missing}")
+                    print(f"[WARN] Missing exports: {missing}")
                     self.passed += 1
             else:
-                print("⚠ No __all__ defined")
+                print("[WARN] No __all__ defined")
                 self.passed += 1
         except Exception as e:
-            print(f"✗ {str(e)}")
+            print(f"[FAIL] {str(e)}")
             self.failed += 1
             self.errors.append(f"src.api.models.__init__: {str(e)}")
 
@@ -199,13 +204,13 @@ class ImportTester:
             print("  Testing src.exceptions.__init__ exports...", end=" ")
             from src import exceptions
             if hasattr(exceptions, '__all__'):
-                print(f"✓ ({len(exceptions.__all__)} exports)")
+                print(f"[OK] ({len(exceptions.__all__)} exports)")
                 self.passed += 1
             else:
-                print("⚠ No __all__ defined")
+                print("[WARN] No __all__ defined")
                 self.passed += 1
         except Exception as e:
-            print(f"✗ {str(e)}")
+            print(f"[FAIL] {str(e)}")
             self.failed += 1
             self.errors.append(f"src.exceptions.__init__: {str(e)}")
 
@@ -222,10 +227,10 @@ class ImportTester:
             from src.core import optimizer
             from src.services import strategy_service, backtest_service
             from src.api import main
-            print("  ✓ No circular import issues detected")
+            print("  [OK] No circular import issues detected")
             self.passed += 1
         except ImportError as e:
-            print(f"  ✗ Circular import detected: {str(e)}")
+            print(f"  [FAIL] Circular import detected: {str(e)}")
             self.failed += 1
             self.errors.append(f"Circular import: {str(e)}")
 
@@ -244,10 +249,10 @@ class ImportTester:
                 print(f"  - {error}")
 
         if self.failed == 0:
-            print("\n✓ All imports validated successfully!")
+            print("\n[OK] All imports validated successfully!")
             return True
         else:
-            print(f"\n✗ {self.failed} import test(s) failed")
+            print(f"\n[FAIL] {self.failed} import test(s) failed")
             return False
 
 def main():

@@ -40,8 +40,8 @@ class BacktestTester:
 
             if response.status_code == 200:
                 result = response.json()
-                print(f"✓ Status Code: {response.status_code}")
-                print(f"✓ Success: {result['success']}")
+                print(f"[OK] Status Code: {response.status_code}")
+                print(f"[OK] Success: {result['success']}")
                 print(f"  Ticker: {result['ticker']}")
                 print(f"  Strategy: {result['strategy']}")
                 print(f"  PnL: ${result['pnl']:.2f}")
@@ -58,14 +58,14 @@ class BacktestTester:
                 self.passed += 1
                 return True
             else:
-                print(f"✗ Failed with status code: {response.status_code}")
+                print(f"[FAIL] Failed with status code: {response.status_code}")
                 print(f"  Error: {response.text}")
                 self.failed += 1
                 self.errors.append(f"Test 1 failed: {response.text}")
                 return False
 
         except Exception as e:
-            print(f"✗ Exception occurred: {str(e)}")
+            print(f"[FAIL] Exception occurred: {str(e)}")
             self.failed += 1
             self.errors.append(f"Test 1 exception: {str(e)}")
             return False
@@ -98,13 +98,13 @@ class BacktestTester:
 
             if response.status_code == 200:
                 result = response.json()
-                print(f"✓ Status Code: {response.status_code}")
-                print(f"✓ Chart data included: {result['chart_data'] is not None}")
+                print(f"[OK] Status Code: {response.status_code}")
+                print(f"[OK] Chart data included: {result['chart_data'] is not None}")
 
                 if result['chart_data']:
                     # Check if columnar format
                     if isinstance(result['chart_data'], dict):
-                        print(f"✓ Columnar format verified")
+                        print(f"[OK] Columnar format verified")
                         print(f"  Data points: {len(result['chart_data'].get('timestamp', []))}")
                     else:
                         print(f"  Chart data format: list of {len(result['chart_data'])} points")
@@ -115,13 +115,13 @@ class BacktestTester:
                 self.passed += 1
                 return True
             else:
-                print(f"✗ Failed with status code: {response.status_code}")
+                print(f"[FAIL] Failed with status code: {response.status_code}")
                 self.failed += 1
                 self.errors.append(f"Test 2 failed: {response.text}")
                 return False
 
         except Exception as e:
-            print(f"✗ Exception occurred: {str(e)}")
+            print(f"[FAIL] Exception occurred: {str(e)}")
             self.failed += 1
             self.errors.append(f"Test 2 exception: {str(e)}")
             return False
@@ -159,15 +159,15 @@ class BacktestTester:
 
                 if response.status_code == 200:
                     result = response.json()
-                    print(f"  ✓ {strategy_name}: PnL=${result['pnl']:.2f}, Trades={result['total_trades']}")
+                    print(f"  [OK] {strategy_name}: PnL=${result['pnl']:.2f}, Trades={result['total_trades']}")
                     self.passed += 1
                 else:
-                    print(f"  ✗ {strategy_name} failed: {response.status_code}")
+                    print(f"  [FAIL] {strategy_name} failed: {response.status_code}")
                     self.failed += 1
                     self.errors.append(f"{strategy_name} failed: {response.text}")
 
             except Exception as e:
-                print(f"  ✗ {strategy_name} exception: {str(e)}")
+                print(f"  [FAIL] {strategy_name} exception: {str(e)}")
                 self.failed += 1
                 self.errors.append(f"{strategy_name} exception: {str(e)}")
 
@@ -216,14 +216,14 @@ class BacktestTester:
                 response = requests.post(f"{BASE_URL}/backtest", json=test_case['data'])
 
                 if response.status_code in test_case['expected_status']:
-                    print(f"  ✓ Correctly returned error status: {response.status_code}")
+                    print(f"  [OK] Correctly returned error status: {response.status_code}")
                     self.passed += 1
                 else:
-                    print(f"  ✗ Unexpected status code: {response.status_code}")
+                    print(f"  [FAIL] Unexpected status code: {response.status_code}")
                     self.failed += 1
 
             except Exception as e:
-                print(f"  ✗ Exception: {str(e)}")
+                print(f"  [FAIL] Exception: {str(e)}")
                 self.failed += 1
 
     def test_performance_metrics(self):
@@ -256,29 +256,29 @@ class BacktestTester:
                 required_fields = ['pnl', 'return_pct', 'sharpe_ratio', 'max_drawdown',
                                   'total_trades', 'start_value', 'end_value']
 
-                print(f"✓ Checking required metrics...")
+                print(f"[OK] Checking required metrics...")
                 missing_fields = []
                 for field in required_fields:
                     if field in result:
-                        print(f"  ✓ {field}: {result[field]}")
+                        print(f"  [OK] {field}: {result[field]}")
                     else:
-                        print(f"  ✗ Missing: {field}")
+                        print(f"  [FAIL] Missing: {field}")
                         missing_fields.append(field)
 
                 if not missing_fields:
-                    print(f"\n✓ All required metrics present")
+                    print(f"\n[OK] All required metrics present")
                     self.passed += 1
                 else:
-                    print(f"\n✗ Missing metrics: {missing_fields}")
+                    print(f"\n[FAIL] Missing metrics: {missing_fields}")
                     self.failed += 1
                     self.errors.append(f"Missing metrics: {missing_fields}")
 
             else:
-                print(f"✗ Request failed: {response.status_code}")
+                print(f"[FAIL] Request failed: {response.status_code}")
                 self.failed += 1
 
         except Exception as e:
-            print(f"✗ Exception: {str(e)}")
+            print(f"[FAIL] Exception: {str(e)}")
             self.failed += 1
 
     def print_summary(self):
@@ -296,10 +296,10 @@ class BacktestTester:
                 print(f"  - {error}")
 
         if self.failed == 0:
-            print("\n✓ All tests passed!")
+            print("\n[OK] All tests passed!")
             return True
         else:
-            print(f"\n✗ {self.failed} test(s) failed")
+            print(f"\n[FAIL] {self.failed} test(s) failed")
             return False
 
 def main():
@@ -314,12 +314,12 @@ def main():
     try:
         response = requests.get(f"{BASE_URL}/health", timeout=2)
         if response.status_code == 200:
-            print("✓ API server is running\n")
+            print("[OK] API server is running\n")
         else:
-            print("✗ API server returned unexpected response")
+            print("[FAIL] API server returned unexpected response")
             return False
     except requests.exceptions.RequestException:
-        print("✗ Could not connect to API server")
+        print("[FAIL] Could not connect to API server")
         print("Please start the server first!")
         return False
 

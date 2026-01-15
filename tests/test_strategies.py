@@ -3,11 +3,16 @@ Test script for strategy validation
 Tests all strategies can be loaded and executed
 """
 import sys
+import os
 from datetime import datetime, timedelta
 from pathlib import Path
 import backtrader as bt
 import yfinance as yf
 import pandas as pd
+
+# Add project root to path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
 
 from src.services.strategy_service import StrategyService
 from src.core.data_manager import DataManager
@@ -51,15 +56,15 @@ class StrategyTester:
                 strategy_class = self.strategy_service.load_strategy_class(strategy_name)
 
                 if strategy_class:
-                    print("✓")
+                    print("[OK]")
                     self.passed += 1
                 else:
-                    print("✗ (returned None)")
+                    print("[FAIL] (returned None)")
                     self.failed += 1
                     self.errors.append(f"{strategy_name}: load returned None")
 
             except Exception as e:
-                print(f"✗ {str(e)}")
+                print(f"[FAIL] {str(e)}")
                 self.failed += 1
                 self.errors.append(f"{strategy_name}: {str(e)}")
 
@@ -82,7 +87,7 @@ class StrategyTester:
 
         data_df = self.get_test_data()
         if data_df.empty:
-            print("  ✗ Could not get test data")
+            print("  [FAIL] Could not get test data")
             self.failed += 1
             return
 
@@ -92,7 +97,7 @@ class StrategyTester:
                 strategy_class = self.strategy_service.load_strategy_class(strategy_name)
 
                 if not strategy_class:
-                    print(f"    ✗ Could not load strategy")
+                    print(f"    [FAIL] Could not load strategy")
                     self.failed += 1
                     continue
 
@@ -101,11 +106,11 @@ class StrategyTester:
                 cerebro.adddata(data_feed)
                 cerebro.addstrategy(strategy_class, args=params, **params)
 
-                print(f"    ✓ Strategy initialized with params: {params}")
+                print(f"    [OK] Strategy initialized with params: {params}")
                 self.passed += 1
 
             except Exception as e:
-                print(f"    ✗ Exception: {str(e)}")
+                print(f"    [FAIL] Exception: {str(e)}")
                 self.failed += 1
                 self.errors.append(f"{strategy_name} init: {str(e)}")
 
@@ -124,7 +129,7 @@ class StrategyTester:
 
         data_df = self.get_test_data()
         if data_df.empty:
-            print("  ✗ Could not get test data")
+            print("  [FAIL] Could not get test data")
             self.failed += 1
             return
 
@@ -134,7 +139,7 @@ class StrategyTester:
                 strategy_class = self.strategy_service.load_strategy_class(strategy_name)
 
                 if not strategy_class:
-                    print(f"    ✗ Could not load strategy")
+                    print(f"    [FAIL] Could not load strategy")
                     self.failed += 1
                     continue
 
@@ -150,12 +155,12 @@ class StrategyTester:
                 end_value = cerebro.broker.getvalue()
                 pnl = end_value - start_value
 
-                print(f"    ✓ Backtest completed")
+                print(f"    [OK] Backtest completed")
                 print(f"      Start: ${start_value:.2f}, End: ${end_value:.2f}, PnL: ${pnl:.2f}")
                 self.passed += 1
 
             except Exception as e:
-                print(f"    ✗ Exception: {str(e)}")
+                print(f"    [FAIL] Exception: {str(e)}")
                 self.failed += 1
                 self.errors.append(f"{strategy_name} execution: {str(e)}")
 
@@ -176,7 +181,7 @@ class StrategyTester:
                 strategy_class = self.strategy_service.load_strategy_class(strategy_name)
 
                 if not strategy_class:
-                    print(f"    ✗ Could not load")
+                    print(f"    [FAIL] Could not load")
                     self.failed += 1
                     continue
 
@@ -193,17 +198,17 @@ class StrategyTester:
                                 params_list.append(f"{param_name}={param_value}")
 
                     if param_count > 0:
-                        print(f"    ✓ Has {param_count} parameters: {', '.join(params_list)}")
+                        print(f"    [OK] Has {param_count} parameters: {', '.join(params_list)}")
                         self.passed += 1
                     else:
-                        print(f"    ⚠ No parameters defined")
+                        print(f"    [WARN] No parameters defined")
                         self.passed += 1
                 else:
-                    print(f"    ⚠ No params attribute")
+                    print(f"    [WARN] No params attribute")
                     self.passed += 1
 
             except Exception as e:
-                print(f"    ✗ Exception: {str(e)}")
+                print(f"    [FAIL] Exception: {str(e)}")
                 self.failed += 1
                 self.errors.append(f"{strategy_name} params: {str(e)}")
 
@@ -226,7 +231,7 @@ class StrategyTester:
                 print(f"\n  Getting info for {strategy_name}...")
                 info = self.strategy_service.get_strategy_info(strategy_name)
 
-                print(f"    ✓ Class: {info['class_name']}")
+                print(f"    [OK] Class: {info['class_name']}")
                 print(f"      Module: {info['module']}")
 
                 if info.get('optimizable_params'):
@@ -234,12 +239,12 @@ class StrategyTester:
                     for param in info['optimizable_params']:
                         print(f"        - {param['name']}: {param['type']} [{param['min']}-{param['max']}]")
                 else:
-                    print(f"      ⚠ No optimizable params defined")
+                    print(f"      [WARN] No optimizable params defined")
 
                 self.passed += 1
 
             except Exception as e:
-                print(f"    ✗ Exception: {str(e)}")
+                print(f"    [FAIL] Exception: {str(e)}")
                 self.failed += 1
                 self.errors.append(f"{strategy_name} info: {str(e)}")
 
@@ -269,7 +274,7 @@ class StrategyTester:
 
                 if has_short_logic:
                     strategies_with_shorts.append(strategy_name)
-                    print(f"  ✓ {strategy_name}: SHORT SUPPORT")
+                    print(f"  [OK] {strategy_name}: SHORT SUPPORT")
                 else:
                     strategies_without_shorts.append(strategy_name)
                     print(f"  - {strategy_name}: long only")
@@ -277,7 +282,7 @@ class StrategyTester:
                 self.passed += 1
 
             except Exception as e:
-                print(f"  ✗ {strategy_name}: {str(e)}")
+                print(f"  [FAIL] {strategy_name}: {str(e)}")
                 self.failed += 1
 
         print(f"\n  Summary:")
@@ -301,10 +306,10 @@ class StrategyTester:
                 print(f"  - {error}")
 
         if self.failed == 0:
-            print("\n✓ All strategy tests passed!")
+            print("\n[OK] All strategy tests passed!")
             return True
         else:
-            print(f"\n✗ {self.failed} test(s) failed")
+            print(f"\n[FAIL] {self.failed} test(s) failed")
             return False
 
 def main():
