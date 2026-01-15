@@ -178,6 +178,18 @@ def main():
             'description': 'Validates all strategy implementations'
         },
         {
+            'name': 'Williams %R Correctness',
+            'file': Path('tests/strategies/test_williams_r_strategy.py'),
+            'needs_api': False,
+            'description': 'Tests Williams R strategy against controlled scenarios'
+        },
+        {
+            'name': 'Bollinger Bands Correctness',
+            'file': Path('tests/strategies/test_bollinger_bands_strategy.py'),
+            'needs_api': False,
+            'description': 'Tests Bollinger Bands strategy against controlled scenarios'
+        },
+        {
             'name': 'Backtest Endpoint',
             'file': Path('tests/test_backtest.py'),
             'needs_api': True,
