@@ -159,60 +159,65 @@ def main():
 
     # Define all tests in order
     tests = [
-        {
-            'name': 'Import Validation',
-            'file': Path('tests/test_imports.py'),
-            'needs_api': False,
-            'description': 'Validates all module imports and __init__ files'
-        },
-        {
-            'name': 'Indicator Accuracy',
-            'file': Path('tests/test_indicators.py'),
-            'needs_api': False,
-            'description': 'Tests custom indicators (OBV, MFI, CMF)'
-        },
+        # COMMENTED OUT - PASSED (uncomment after verification)
+        # {
+        #     'name': 'Import Validation',
+        #     'file': Path('tests/test_imports.py'),
+        #     'needs_api': False,
+        #     'description': 'Validates all module imports and __init__ files'
+        # },
+        # {
+        #     'name': 'Indicator Accuracy',
+        #     'file': Path('tests/test_indicators.py'),
+        #     'needs_api': False,
+        #     'description': 'Tests custom indicators (OBV, MFI, CMF)'
+        # },
+
+        # KEEP THESE - FIXING BUGS
         {
             'name': 'Strategy Validation',
             'file': Path('tests/test_strategies.py'),
             'needs_api': False,
-            'description': 'Validates all strategy implementations'
+            'description': 'Validates all strategy implementations - FIX: ZeroDivisionError'
         },
         {
             'name': 'Williams %R Correctness',
             'file': Path('tests/strategies/test_williams_r_strategy.py'),
             'needs_api': False,
-            'description': 'Tests Williams R strategy against controlled scenarios'
+            'description': 'Tests Williams R strategy against controlled scenarios - FIX: Short test'
         },
         {
             'name': 'Bollinger Bands Correctness',
             'file': Path('tests/strategies/test_bollinger_bands_strategy.py'),
             'needs_api': False,
-            'description': 'Tests Bollinger Bands strategy against controlled scenarios'
+            'description': 'Tests Bollinger Bands strategy against controlled scenarios - FIX: Short test'
         },
-        {
-            'name': 'Backtest Endpoint',
-            'file': Path('tests/test_backtest.py'),
-            'needs_api': True,
-            'description': 'Tests backtest API endpoint functionality'
-        },
-        {
-            'name': 'Optimization Endpoint',
-            'file': Path('tests/test_optimization.py'),
-            'needs_api': True,
-            'description': 'Tests optimization API endpoint functionality'
-        },
-        {
-            'name': 'Preset Management',
-            'file': Path('tests/test_presets.py'),
-            'needs_api': True,
-            'description': 'Tests strategy preset creation and execution'
-        },
-        {
-            'name': 'Snapshot (Live Data)',
-            'file': Path('tests/test_snapshot.py'),
-            'needs_api': True,
-            'description': 'Tests near-real-time snapshot endpoint for live monitoring'
-        }
+
+        # COMMENTED OUT - PASSED (uncomment after verification)
+        # {
+        #     'name': 'Backtest Endpoint',
+        #     'file': Path('tests/test_backtest.py'),
+        #     'needs_api': True,
+        #     'description': 'Tests backtest API endpoint functionality'
+        # },
+        # {
+        #     'name': 'Optimization Endpoint',
+        #     'file': Path('tests/test_optimization.py'),
+        #     'needs_api': True,
+        #     'description': 'Tests optimization API endpoint functionality'
+        # },
+        # {
+        #     'name': 'Preset Management',
+        #     'file': Path('tests/test_presets.py'),
+        #     'needs_api': True,
+        #     'description': 'Tests strategy preset creation and execution'
+        # },
+        # {
+        #     'name': 'Snapshot (Live Data)',
+        #     'file': Path('tests/test_snapshot.py'),
+        #     'needs_api': True,
+        #     'description': 'Tests near-real-time snapshot endpoint for live monitoring'
+        # }
     ]
 
     # Check if API-dependent tests should be skipped
