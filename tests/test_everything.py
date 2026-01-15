@@ -194,6 +194,12 @@ def main():
             'file': Path('tests/test_presets.py'),
             'needs_api': True,
             'description': 'Tests strategy preset creation and execution'
+        },
+        {
+            'name': 'Snapshot (Live Data)',
+            'file': Path('tests/test_snapshot.py'),
+            'needs_api': True,
+            'description': 'Tests near-real-time snapshot endpoint for live monitoring'
         }
     ]
 

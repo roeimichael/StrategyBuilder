@@ -41,3 +41,18 @@ class CreatePresetRequest(BaseModel):
     parameters: Dict[str, Union[int, float]] = Field(..., example={"rsi_period": 14, "rsi_oversold": 30})
     interval: str = Field(BacktestConfig.DEFAULT_INTERVAL, example="1d")
     notes: Optional[str] = Field(None, example="Works well in sideways markets", max_length=1000)
+
+class SnapshotRequest(BaseModel):
+    ticker: str = Field(..., example="AAPL")
+    strategy: str = Field(..., example="bollinger_bands_strategy")
+    parameters: Optional[Dict[str, Union[int, float]]] = Field(None, example={"period": 20, "devfactor": 2.0})
+    interval: str = Field(BacktestConfig.DEFAULT_INTERVAL, example="1d")
+    lookback_bars: int = Field(200, example=200, ge=50, le=1000)
+    cash: float = Field(BacktestConfig.DEFAULT_CASH, example=10000.0)
+
+class CreateWatchlistRequest(BaseModel):
+    name: str = Field(..., example="AAPL RSI Daily Check", min_length=1, max_length=200)
+    preset_id: Optional[int] = Field(None, example=1)
+    run_id: Optional[int] = Field(None, example=1)
+    frequency: str = Field(..., example="daily")
+    enabled: bool = Field(True, example=True)

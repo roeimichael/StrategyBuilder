@@ -91,3 +91,35 @@ class PresetResponse(BaseModel):
     interval: str
     notes: Optional[str]
     created_at: str
+
+class SnapshotPositionState(BaseModel):
+    in_position: bool
+    position_type: Optional[str] = None  # 'long' or 'short'
+    entry_price: Optional[float] = None
+    current_price: Optional[float] = None
+    size: Optional[float] = None
+    unrealized_pnl: Optional[float] = None
+
+class SnapshotResponse(BaseModel):
+    success: bool
+    ticker: str
+    strategy: str
+    interval: str
+    lookback_bars: int
+    last_bar: Dict[str, Any]  # {date, open, high, low, close, volume}
+    indicators: Dict[str, Any]  # Current indicator values
+    position_state: SnapshotPositionState
+    recent_trades: List[Dict[str, Any]]  # Last N trades
+    portfolio_value: float
+    cash: float
+    timestamp: str
+
+class WatchlistEntryResponse(BaseModel):
+    id: int
+    name: str
+    preset_id: Optional[int]
+    run_id: Optional[int]
+    frequency: str
+    enabled: bool
+    created_at: str
+    last_run_at: Optional[str]

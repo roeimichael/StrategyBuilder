@@ -134,3 +134,114 @@ class BacktestService:
         )
 
         return self.run_backtest(request, save_run=True)
+
+    def get_snapshot(self, ticker: str, strategy_name: str, interval: str = "1d",
+                     lookback_bars: int = 200, parameters: Optional[Dict[str, Union[int, float]]] = None,
+                     cash: float = BacktestConfig.DEFAULT_CASH) -> Dict[str, Any]:
+        """
+        Get a near-real-time snapshot of strategy state without running a full backtest.
+
+        Args:
+            ticker: Stock ticker symbol
+            strategy_name: Name of the strategy to run
+            interval: Data interval (1m, 5m, 15m, 30m, 1h, 1d, etc.)
+            lookback_bars: Number of recent bars to fetch (default 200)
+            parameters: Strategy parameters
+            cash: Starting cash for position sizing
+
+        Returns:
+            Dictionary containing:
+            - last_bar: Most recent OHLC data
+            - indicators: Current indicator values
+            - position_state: Current position (if any)
+            - recent_trades: Last 10 trades
+            - portfolio_value: Current portfolio value
+            - cash: Available cash
+        """
+        from datetime import datetime, timedelta
+        from src.core.data_manager import DataManager
+
+        strategy_class = StrategyService.load_strategy_class(strategy_name)
+        if not strategy_class:
+            raise ValueError(f"Strategy '{strategy_name}' not found")
+
+        # Calculate date range for lookback_bars
+        # Add extra days to account for weekends/holidays
+        days_needed = lookback_bars * 2 if interval == "1d" else 30  # For intraday, 30 days should be enough
+        end_date = datetime.now().date()
+        start_date = end_date - timedelta(days=days_needed)
+
+        # Prepare parameters
+        params = StrategyService.get_default_parameters(parameters)
+        params['cash'] = cash
+
+        # Run short backtest
+        runner = Run_strategy(params, strategy_class)
+        results = runner.runstrat(ticker, start_date, interval, end_date)
+
+        # Extract snapshot data
+        chart_data = results.get('chart_data', [])
+        trades = results.get('trades', [])
+
+        # Get last bar
+        last_bar = {}
+        if chart_data and len(chart_data) > 0:
+            last_entry = chart_data[-1]
+            last_bar = {
+                'date': last_entry.get('date'),
+                'open': last_entry.get('open'),
+                'high': last_entry.get('high'),
+                'low': last_entry.get('low'),
+                'close': last_entry.get('close'),
+                'volume': last_entry.get('volume', 0)
+            }
+
+        # Get current indicator values
+        indicators = {}
+        if chart_data and len(chart_data) > 0:
+            last_entry = chart_data[-1]
+            for key, value in last_entry.items():
+                if key not in ['date', 'open', 'high', 'low', 'close', 'volume', 'signals']:
+                    indicators[key] = value
+
+        # Determine position state
+        position_state = {
+            'in_position': False,
+            'position_type': None,
+            'entry_price': None,
+            'current_price': last_bar.get('close'),
+            'size': None,
+            'unrealized_pnl': None
+        }
+
+        # Check if currently in a position (last trade has no exit)
+        if trades and len(trades) > 0:
+            last_trade = trades[-1]
+            if last_trade.get('exit_date') is None or last_trade.get('exit_price') is None:
+                position_state['in_position'] = True
+                position_state['position_type'] = 'long' if last_trade.get('size', 0) > 0 else 'short'
+                position_state['entry_price'] = last_trade.get('entry_price')
+                position_state['size'] = abs(last_trade.get('size', 0))
+
+                if position_state['current_price'] and position_state['entry_price']:
+                    if position_state['position_type'] == 'long':
+                        position_state['unrealized_pnl'] = (position_state['current_price'] - position_state['entry_price']) * position_state['size']
+                    else:
+                        position_state['unrealized_pnl'] = (position_state['entry_price'] - position_state['current_price']) * position_state['size']
+
+        # Get last 10 trades
+        recent_trades = trades[-10:] if len(trades) > 10 else trades
+
+        return {
+            'ticker': ticker,
+            'strategy': strategy_name,
+            'interval': interval,
+            'lookback_bars': lookback_bars,
+            'last_bar': last_bar,
+            'indicators': indicators,
+            'position_state': position_state,
+            'recent_trades': recent_trades,
+            'portfolio_value': results['end_value'],
+            'cash': results['end_value'] - sum(t.get('pnl', 0) for t in trades),
+            'timestamp': datetime.now().isoformat()
+        }

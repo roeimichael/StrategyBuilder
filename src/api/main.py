@@ -12,12 +12,14 @@ from src.core.data_manager import DataManager
 from src.core.optimizer import StrategyOptimizer
 from src.data.run_repository import RunRepository
 from src.data.preset_repository import PresetRepository
+from src.data.watchlist_repository import WatchlistRepository
 from src.utils.api_logger import log_errors
 from src.api.models import (
     BacktestRequest, MarketDataRequest, BacktestResponse, StrategyInfo,
     ReplayRunRequest, SavedRunSummaryResponse, SavedRunDetailResponse,
     OptimizationRequest, OptimizationResponse, OptimizationResult,
-    CreatePresetRequest, PresetResponse
+    CreatePresetRequest, PresetResponse, SnapshotRequest, SnapshotResponse,
+    SnapshotPositionState, CreateWatchlistRequest, WatchlistEntryResponse
 )
 from src.exceptions import StrategyNotFoundError, StrategyLoadError
 
@@ -31,6 +33,7 @@ backtest_service = BacktestService()
 data_manager = DataManager()
 run_repository = RunRepository()
 preset_repository = PresetRepository()
+watchlist_repository = WatchlistRepository()
 
 
 def convert_to_columnar(chart_data: List[Dict[str, Any]]) -> Dict[str, List[Any]]:
@@ -503,6 +506,231 @@ def backtest_from_preset(preset_id: int,
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to run backtest from preset: {str(e)}")
+
+
+@app.post("/snapshot", response_model=SnapshotResponse)
+@log_errors
+def get_strategy_snapshot(request: SnapshotRequest) -> SnapshotResponse:
+    """
+    Get a near-real-time snapshot of strategy state without running a full historical backtest.
+
+    This endpoint is optimized for live monitoring and periodic updates. It:
+    - Fetches only recent market data (configurable via lookback_bars)
+    - Runs strategy over a short lookback period
+    - Returns current indicators, position state, and recent trades
+    - Does not save the run to database
+
+    Use cases:
+    - Live dashboard updates (poll every X minutes for intraday, daily for EOD)
+    - Quick strategy status checks
+    - Real-time position monitoring
+
+    - **ticker**: Stock symbol (e.g., "AAPL", "BTC-USD")
+    - **strategy**: Strategy module name
+    - **parameters**: Strategy parameters (optional)
+    - **interval**: Data interval (1m, 5m, 15m, 30m, 1h, 1d, etc.)
+    - **lookback_bars**: Number of recent bars to analyze (50-1000, default 200)
+    - **cash**: Starting cash for position sizing
+    """
+    try:
+        # Validate strategy exists
+        strategy_class = strategy_service.load_strategy_class(request.strategy)
+        if not strategy_class:
+            raise HTTPException(status_code=404, detail=f"Strategy '{request.strategy}' not found")
+
+        # Get snapshot
+        snapshot_data = backtest_service.get_snapshot(
+            ticker=request.ticker,
+            strategy_name=request.strategy,
+            interval=request.interval,
+            lookback_bars=request.lookback_bars,
+            parameters=request.parameters,
+            cash=request.cash
+        )
+
+        # Build response
+        return SnapshotResponse(
+            success=True,
+            ticker=snapshot_data['ticker'],
+            strategy=snapshot_data['strategy'],
+            interval=snapshot_data['interval'],
+            lookback_bars=snapshot_data['lookback_bars'],
+            last_bar=snapshot_data['last_bar'],
+            indicators=snapshot_data['indicators'],
+            position_state=SnapshotPositionState(**snapshot_data['position_state']),
+            recent_trades=snapshot_data['recent_trades'],
+            portfolio_value=snapshot_data['portfolio_value'],
+            cash=snapshot_data['cash'],
+            timestamp=snapshot_data['timestamp']
+        )
+
+    except HTTPException:
+        raise
+    except ValueError as e:
+        error_msg = str(e)
+        if "No data available" in error_msg or "Failed to fetch data" in error_msg:
+            raise HTTPException(status_code=400, detail=f"Invalid ticker or no data available: {error_msg}")
+        if "not found" in error_msg:
+            raise HTTPException(status_code=404, detail=error_msg)
+        raise HTTPException(status_code=400, detail=f"Invalid input: {error_msg}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Snapshot failed: {str(e)}")
+
+
+@app.post("/watchlist", response_model=WatchlistEntryResponse)
+@log_errors
+def create_watchlist_entry(request: CreateWatchlistRequest) -> WatchlistEntryResponse:
+    """
+    Create a new watchlist entry for automated strategy monitoring.
+
+    A watchlist entry links to either a preset or a saved run and defines
+    how often it should be checked (e.g., daily, intraday_15m).
+
+    Future use: A scheduled worker can iterate through enabled entries
+    and automatically run snapshots or backtests.
+
+    - **name**: Descriptive name for the watchlist entry
+    - **preset_id**: Reference to a saved preset (optional)
+    - **run_id**: Reference to a saved run (optional)
+    - **frequency**: Monitoring frequency ('daily', 'intraday_1m', 'intraday_5m', etc.)
+    - **enabled**: Whether this entry is active
+    """
+    try:
+        # Validate that at least one ID is provided
+        if not request.preset_id and not request.run_id:
+            raise HTTPException(
+                status_code=400,
+                detail="Either preset_id or run_id must be provided"
+            )
+
+        # Validate preset exists if preset_id provided
+        if request.preset_id:
+            preset = preset_repository.get_preset(request.preset_id)
+            if not preset:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Preset with ID {request.preset_id} not found"
+                )
+
+        # Validate run exists if run_id provided
+        if request.run_id:
+            run = run_repository.get_run_by_id(request.run_id)
+            if not run:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Run with ID {request.run_id} not found"
+                )
+
+        # Create entry
+        entry_data = {
+            'name': request.name,
+            'preset_id': request.preset_id,
+            'run_id': request.run_id,
+            'frequency': request.frequency,
+            'enabled': request.enabled
+        }
+
+        entry_id = watchlist_repository.create_entry(entry_data)
+        created_entry = watchlist_repository.get_entry(entry_id)
+
+        return WatchlistEntryResponse(**created_entry)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create watchlist entry: {str(e)}")
+
+
+@app.get("/watchlist", response_model=List[WatchlistEntryResponse])
+@log_errors
+def list_watchlist_entries(enabled_only: bool = Query(False, description="Only return enabled entries")) -> List[WatchlistEntryResponse]:
+    """
+    List all watchlist entries.
+
+    - **enabled_only**: If true, only return enabled entries
+    """
+    try:
+        entries = watchlist_repository.list_entries(enabled_only=enabled_only)
+        return [WatchlistEntryResponse(**entry) for entry in entries]
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to list watchlist entries: {str(e)}")
+
+
+@app.get("/watchlist/{entry_id}", response_model=WatchlistEntryResponse)
+@log_errors
+def get_watchlist_entry(entry_id: int) -> WatchlistEntryResponse:
+    """
+    Get a specific watchlist entry by ID.
+
+    - **entry_id**: The watchlist entry ID
+    """
+    try:
+        entry = watchlist_repository.get_entry(entry_id)
+        if not entry:
+            raise HTTPException(status_code=404, detail=f"Watchlist entry with ID {entry_id} not found")
+
+        return WatchlistEntryResponse(**entry)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get watchlist entry: {str(e)}")
+
+
+@app.delete("/watchlist/{entry_id}")
+@log_errors
+def delete_watchlist_entry(entry_id: int) -> Dict[str, Any]:
+    """
+    Delete a watchlist entry by ID.
+
+    - **entry_id**: The ID of the watchlist entry to delete
+    """
+    try:
+        deleted = watchlist_repository.delete_entry(entry_id)
+
+        if not deleted:
+            raise HTTPException(status_code=404, detail=f"Watchlist entry with ID {entry_id} not found")
+
+        return {
+            "success": True,
+            "message": f"Watchlist entry {entry_id} deleted successfully"
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete watchlist entry: {str(e)}")
+
+
+@app.patch("/watchlist/{entry_id}")
+@log_errors
+def update_watchlist_entry(entry_id: int, enabled: Optional[bool] = Query(None)) -> Dict[str, Any]:
+    """
+    Update a watchlist entry (currently supports enabling/disabling only).
+
+    - **entry_id**: The watchlist entry ID
+    - **enabled**: Set to true to enable, false to disable
+    """
+    try:
+        if enabled is None:
+            raise HTTPException(status_code=400, detail="At least one field must be provided to update")
+
+        updates = {'enabled': enabled}
+        updated = watchlist_repository.update_entry(entry_id, updates)
+
+        if not updated:
+            raise HTTPException(status_code=404, detail=f"Watchlist entry with ID {entry_id} not found")
+
+        return {
+            "success": True,
+            "message": f"Watchlist entry {entry_id} updated successfully"
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update watchlist entry: {str(e)}")
 
 
 if __name__ == "__main__":
