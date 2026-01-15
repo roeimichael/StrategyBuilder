@@ -81,3 +81,13 @@ class SavedRunDetailResponse(BaseModel):
     winning_trades: Optional[int]
     losing_trades: Optional[int]
     created_at: str
+
+class PresetResponse(BaseModel):
+    id: int
+    name: str
+    ticker: str
+    strategy: str
+    parameters: Dict[str, Union[int, float]]
+    interval: str
+    notes: Optional[str]
+    created_at: str

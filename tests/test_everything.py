@@ -188,6 +188,12 @@ def main():
             'file': Path('tests/test_optimization.py'),
             'needs_api': True,
             'description': 'Tests optimization API endpoint functionality'
+        },
+        {
+            'name': 'Preset Management',
+            'file': Path('tests/test_presets.py'),
+            'needs_api': True,
+            'description': 'Tests strategy preset creation and execution'
         }
     ]
 

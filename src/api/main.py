@@ -11,11 +11,13 @@ from src.services.backtest_service import BacktestService, BacktestRequest as Se
 from src.core.data_manager import DataManager
 from src.core.optimizer import StrategyOptimizer
 from src.data.run_repository import RunRepository
+from src.data.preset_repository import PresetRepository
 from src.utils.api_logger import log_errors
 from src.api.models import (
     BacktestRequest, MarketDataRequest, BacktestResponse, StrategyInfo,
     ReplayRunRequest, SavedRunSummaryResponse, SavedRunDetailResponse,
-    OptimizationRequest, OptimizationResponse, OptimizationResult
+    OptimizationRequest, OptimizationResponse, OptimizationResult,
+    CreatePresetRequest, PresetResponse
 )
 from src.exceptions import StrategyNotFoundError, StrategyLoadError
 
@@ -28,6 +30,7 @@ strategy_service = StrategyService()
 backtest_service = BacktestService()
 data_manager = DataManager()
 run_repository = RunRepository()
+preset_repository = PresetRepository()
 
 
 def convert_to_columnar(chart_data: List[Dict[str, Any]]) -> Dict[str, List[Any]]:
@@ -52,7 +55,10 @@ def root() -> Dict[str, object]:
             "health": "/health",
             "runs": "/runs",
             "run_detail": "/runs/{run_id}",
-            "replay_run": "/runs/{run_id}/replay"
+            "replay_run": "/runs/{run_id}/replay",
+            "presets": "/presets",
+            "preset_detail": "/presets/{preset_id}",
+            "preset_backtest": "/presets/{preset_id}/backtest"
         }
     }
 
@@ -311,6 +317,176 @@ def replay_run(run_id: int, request: ReplayRunRequest) -> BacktestResponse:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to replay run: {str(e)}")
+
+
+@app.post("/presets", response_model=PresetResponse)
+@log_errors
+def create_preset(request: CreatePresetRequest) -> PresetResponse:
+    """
+    Create a new strategy preset for reuse.
+
+    - **name**: Unique name for this preset
+    - **ticker**: Ticker symbol
+    - **strategy**: Strategy name
+    - **parameters**: Strategy parameters as key-value pairs
+    - **interval**: Time interval
+    - **notes**: Optional notes about this preset
+    """
+    try:
+        # Validate that strategy exists
+        strategy_class = strategy_service.load_strategy_class(request.strategy)
+        if not strategy_class:
+            raise HTTPException(status_code=404, detail=f"Strategy '{request.strategy}' not found")
+
+        # Check if preset with same name/strategy/ticker already exists
+        if preset_repository.preset_exists(request.name, request.strategy, request.ticker):
+            raise HTTPException(
+                status_code=409,
+                detail=f"Preset with name '{request.name}' for strategy '{request.strategy}' and ticker '{request.ticker}' already exists"
+            )
+
+        # Create preset
+        preset_data = {
+            'name': request.name,
+            'ticker': request.ticker,
+            'strategy': request.strategy,
+            'parameters': request.parameters,
+            'interval': request.interval,
+            'notes': request.notes
+        }
+
+        preset_id = preset_repository.create_preset(preset_data)
+
+        # Retrieve and return the created preset
+        created_preset = preset_repository.get_preset(preset_id)
+
+        return PresetResponse(
+            id=created_preset['id'],
+            name=created_preset['name'],
+            ticker=created_preset['ticker'],
+            strategy=created_preset['strategy'],
+            parameters=created_preset['parameters'],
+            interval=created_preset['interval'],
+            notes=created_preset['notes'],
+            created_at=created_preset['created_at']
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create preset: {str(e)}")
+
+
+@app.get("/presets")
+@log_errors
+def get_presets(
+    ticker: Optional[str] = Query(None, description="Filter by ticker"),
+    strategy: Optional[str] = Query(None, description="Filter by strategy"),
+    limit: int = Query(100, description="Maximum number of results", ge=1, le=1000),
+    offset: int = Query(0, description="Number of results to skip", ge=0)
+) -> Dict[str, Any]:
+    """
+    List saved strategy presets with optional filters.
+
+    - **ticker**: Filter by ticker symbol (optional)
+    - **strategy**: Filter by strategy name (optional)
+    - **limit**: Maximum number of results (default: 100, max: 1000)
+    - **offset**: Number of results to skip for pagination (default: 0)
+    """
+    try:
+        presets = preset_repository.list_presets(ticker=ticker, strategy=strategy, limit=limit, offset=offset)
+        total_count = preset_repository.get_preset_count(ticker=ticker, strategy=strategy)
+
+        preset_responses = [
+            PresetResponse(
+                id=preset['id'],
+                name=preset['name'],
+                ticker=preset['ticker'],
+                strategy=preset['strategy'],
+                parameters=preset['parameters'],
+                interval=preset['interval'],
+                notes=preset['notes'],
+                created_at=preset['created_at']
+            )
+            for preset in presets
+        ]
+
+        return {
+            "success": True,
+            "total_count": total_count,
+            "count": len(preset_responses),
+            "limit": limit,
+            "offset": offset,
+            "presets": [preset.dict() for preset in preset_responses]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve presets: {str(e)}")
+
+
+@app.delete("/presets/{preset_id}")
+@log_errors
+def delete_preset(preset_id: int) -> Dict[str, Any]:
+    """
+    Delete a strategy preset by ID.
+
+    - **preset_id**: The ID of the preset to delete
+    """
+    try:
+        deleted = preset_repository.delete_preset(preset_id)
+
+        if not deleted:
+            raise HTTPException(status_code=404, detail=f"Preset with ID {preset_id} not found")
+
+        return {
+            "success": True,
+            "message": f"Preset {preset_id} deleted successfully"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete preset: {str(e)}")
+
+
+@app.post("/presets/{preset_id}/backtest", response_model=BacktestResponse)
+@log_errors
+def backtest_from_preset(preset_id: int,
+                         start_date: Optional[str] = Query(None, example="2024-01-01"),
+                         end_date: Optional[str] = Query(None, example="2024-12-31"),
+                         cash: Optional[float] = Query(None, example=10000.0)) -> BacktestResponse:
+    """
+    Run a backtest using a saved preset configuration.
+
+    - **preset_id**: The ID of the preset to use
+    - **start_date**: Optional override for start date
+    - **end_date**: Optional override for end date
+    - **cash**: Optional override for initial cash
+    """
+    try:
+        # Load preset
+        preset = preset_repository.get_preset(preset_id)
+        if not preset:
+            raise HTTPException(status_code=404, detail=f"Preset with ID {preset_id} not found")
+
+        # Build backtest request from preset
+        backtest_request = ServiceBacktestRequest(
+            ticker=preset['ticker'],
+            strategy=preset['strategy'],
+            start_date=start_date,
+            end_date=end_date,
+            interval=preset['interval'],
+            cash=cash if cash is not None else 10000.0,
+            parameters=preset['parameters']
+        )
+
+        # Run backtest
+        response = backtest_service.run_backtest(backtest_request, save_run=True)
+        return BacktestResponse(**response.dict())
+
+    except HTTPException:
+        raise
+    except (StrategyNotFoundError, StrategyLoadError) as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to run backtest from preset: {str(e)}")
 
 
 if __name__ == "__main__":

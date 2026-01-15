@@ -33,3 +33,11 @@ class ReplayRunRequest(BaseModel):
     interval: Optional[str] = Field(None, example="1d")
     cash: Optional[float] = Field(None, example=10000.0)
     parameters: Optional[Dict[str, Union[int, float]]] = Field(None)
+
+class CreatePresetRequest(BaseModel):
+    name: str = Field(..., example="RSI 1D mean reversion for AAPL", min_length=1, max_length=200)
+    ticker: str = Field(..., example="AAPL")
+    strategy: str = Field(..., example="rsi_stochastic_strategy")
+    parameters: Dict[str, Union[int, float]] = Field(..., example={"rsi_period": 14, "rsi_oversold": 30})
+    interval: str = Field(BacktestConfig.DEFAULT_INTERVAL, example="1d")
+    notes: Optional[str] = Field(None, example="Works well in sideways markets", max_length=1000)
