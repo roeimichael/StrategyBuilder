@@ -95,6 +95,11 @@ def get_strategy_info(strategy_name: str) -> Dict[str, object]:
 @log_errors
 def run_backtest(request: BacktestRequest) -> BacktestResponse:
     try:
+        # Validate strategy exists before running backtest
+        strategy_class = strategy_service.load_strategy_class(request.strategy)
+        if not strategy_class:
+            raise HTTPException(status_code=404, detail=f"Strategy '{request.strategy}' not found")
+
         service_request = ServiceBacktestRequest(
             ticker=request.ticker, strategy=request.strategy, start_date=request.start_date,
             end_date=request.end_date, interval=request.interval, cash=request.cash, parameters=request.parameters
@@ -106,8 +111,14 @@ def run_backtest(request: BacktestRequest) -> BacktestResponse:
         elif request.columnar_format and response_dict.get('chart_data'):
             response_dict['chart_data'] = convert_to_columnar(response_dict['chart_data'])
         return BacktestResponse(**response_dict)
+    except HTTPException:
+        raise
     except (StrategyNotFoundError, StrategyLoadError) as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e))
+    except IndexError as e:
+        if "array assignment index out of range" in str(e):
+            raise HTTPException(status_code=400, detail=f"Insufficient data for strategy indicators. Try using a longer date range.")
+        raise HTTPException(status_code=500, detail=f"Backtest failed: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Backtest failed: {str(e)}")
 

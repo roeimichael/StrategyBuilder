@@ -238,7 +238,7 @@ class BacktestTester:
                 json={
                     "ticker": "AAPL",
                     "strategy": "alligator_strategy",
-                    "start_date": "2024-01-01",
+                    "start_date": "2023-01-01",
                     "end_date": "2024-06-30",
                     "interval": "1d",
                     "cash": 10000.0,

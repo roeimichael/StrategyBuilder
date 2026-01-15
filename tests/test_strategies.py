@@ -26,9 +26,9 @@ class StrategyTester:
         self.data_manager = DataManager()
 
     def get_test_data(self):
-        """Get standard test data"""
+        """Get standard test data with enough history for strategies with long indicators (like EMA_200)"""
         end_date = datetime.now()
-        start_date = end_date - timedelta(days=90)
+        start_date = end_date - timedelta(days=400)  # ~400 days = ~280 trading days, enough for 200-period indicators
 
         data_df = yf.download("AAPL", start=start_date, end=end_date, progress=False)
 
