@@ -1,7 +1,9 @@
-from .requests import BacktestRequest, MarketDataRequest, OptimizationRequest, ReplayRunRequest, CreatePresetRequest
+from .requests import BacktestRequest, MarketDataRequest, OptimizationRequest, ReplayRunRequest, CreatePresetRequest, \
+    CreateWatchlistRequest, SnapshotRequest
 from .responses import (
     BacktestResponse, StrategyInfo, StrategyParameters, OptimizationResponse, OptimizationResult, ParameterInfo,
-    SavedRunSummaryResponse, SavedRunDetailResponse, PresetResponse
+    SavedRunSummaryResponse, SavedRunDetailResponse, PresetResponse, SnapshotResponse,
+    SnapshotPositionState, WatchlistEntryResponse
 )
 
 __all__ = [
@@ -18,5 +20,6 @@ __all__ = [
     'ParameterInfo',
     'SavedRunSummaryResponse',
     'SavedRunDetailResponse',
-    'PresetResponse'
+    'PresetResponse', 'SnapshotRequest', 'SnapshotResponse',
+    'SnapshotPositionState', 'CreateWatchlistRequest', 'WatchlistEntryResponse'
 ]
