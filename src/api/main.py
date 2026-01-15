@@ -115,6 +115,11 @@ def run_backtest(request: BacktestRequest) -> BacktestResponse:
         raise
     except (StrategyNotFoundError, StrategyLoadError) as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        error_msg = str(e)
+        if "No data available" in error_msg or "Failed to fetch data" in error_msg:
+            raise HTTPException(status_code=400, detail=f"Invalid ticker or no data available: {error_msg}")
+        raise HTTPException(status_code=400, detail=f"Invalid input: {error_msg}")
     except IndexError as e:
         if "array assignment index out of range" in str(e):
             raise HTTPException(status_code=400, detail=f"Insufficient data for strategy indicators. Try using a longer date range.")

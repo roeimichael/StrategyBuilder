@@ -186,7 +186,7 @@ class BacktestTester:
                     "start_date": "2024-01-01",
                     "end_date": "2024-06-30"
                 },
-                "expected_status": [400, 500]
+                "expected_status": [400]
             },
             {
                 "name": "Invalid strategy",
@@ -196,7 +196,7 @@ class BacktestTester:
                     "start_date": "2024-01-01",
                     "end_date": "2024-06-30"
                 },
-                "expected_status": [400, 404]
+                "expected_status": [404]
             },
             {
                 "name": "Invalid date range",
@@ -206,7 +206,7 @@ class BacktestTester:
                     "start_date": "2024-06-30",
                     "end_date": "2024-01-01"
                 },
-                "expected_status": [400, 500]
+                "expected_status": [400]
             }
         ]
 
