@@ -9,7 +9,6 @@ TRADE_ACTION_CLOSE = 'CLOSE'
 ORDER_TYPE_BUY = 'BUY'
 ORDER_TYPE_SELL = 'SELL'
 
-# Database table names
 TABLE_STRATEGY_RUNS = 'strategy_runs'
 TABLE_STRATEGY_PRESETS = 'strategy_presets'
 TABLE_OHLCV_DATA = 'ohlcv_data'
