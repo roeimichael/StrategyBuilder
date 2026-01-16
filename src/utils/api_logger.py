@@ -22,7 +22,6 @@ logging.basicConfig(
 
 logger = logging.getLogger("StrategyBuilder.API")
 
-# Suppress yfinance error logs (they're too noisy for invalid tickers)
 logging.getLogger("yfinance").setLevel(logging.CRITICAL)
 
 
@@ -32,10 +31,8 @@ def log_errors(func: Callable) -> Callable:
         try:
             return await func(*args, **kwargs)
         except HTTPException as e:
-            # Client errors (400-499) are expected validation errors - log at INFO level
             if 400 <= e.status_code < 500:
                 logger.info(f"{func.__name__}: {e.status_code} - {e.detail}")
-            # Server errors (500+) are unexpected - log at ERROR level with full trace
             else:
                 error_time = datetime.now().isoformat()
                 error_msg = f"""
@@ -59,7 +56,6 @@ FULL TRACEBACK:
                 logger.error(error_msg)
             raise
         except Exception as e:
-            # Unexpected exceptions - log at ERROR level with full trace
             error_time = datetime.now().isoformat()
             error_msg = f"""
 {'=' * 80}
@@ -87,10 +83,8 @@ FULL TRACEBACK:
         try:
             return func(*args, **kwargs)
         except HTTPException as e:
-            # Client errors (400-499) are expected validation errors - log at INFO level
             if 400 <= e.status_code < 500:
                 logger.info(f"{func.__name__}: {e.status_code} - {e.detail}")
-            # Server errors (500+) are unexpected - log at ERROR level with full trace
             else:
                 error_time = datetime.now().isoformat()
                 error_msg = f"""
@@ -114,7 +108,6 @@ FULL TRACEBACK:
                 logger.error(error_msg)
             raise
         except Exception as e:
-            # Unexpected exceptions - log at ERROR level with full trace
             error_time = datetime.now().isoformat()
             error_msg = f"""
 {'=' * 80}
