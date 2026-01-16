@@ -1,7 +1,6 @@
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 import datetime as dt
-import pandas as pd
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -35,7 +34,6 @@ run_repository = RunRepository()
 preset_repository = PresetRepository()
 watchlist_repository = WatchlistRepository()
 
-
 def convert_to_columnar(chart_data: List[Dict[str, Any]]) -> Dict[str, List[Any]]:
     if not chart_data:
         return {}
@@ -43,7 +41,6 @@ def convert_to_columnar(chart_data: List[Dict[str, Any]]) -> Dict[str, List[Any]
     for key in chart_data[0].keys():
         columnar[key] = [point.get(key) for point in chart_data]
     return columnar
-
 
 @app.get("/")
 @log_errors
@@ -65,12 +62,10 @@ def root() -> Dict[str, object]:
         }
     }
 
-
 @app.get("/health")
 @log_errors
 def health() -> Dict[str, str]:
     return {"status": "healthy", "timestamp": datetime.now().isoformat()}
-
 
 @app.get("/strategies")
 @log_errors
@@ -80,7 +75,6 @@ def get_strategies() -> Dict[str, object]:
         return {"success": True, "count": len(strategies), "strategies": [s.dict() for s in strategies]}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 
 @app.get("/strategies/{strategy_name}")
 @log_errors
@@ -93,16 +87,13 @@ def get_strategy_info(strategy_name: str) -> Dict[str, object]:
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @app.post("/backtest", response_model=BacktestResponse)
 @log_errors
 def run_backtest(request: BacktestRequest) -> BacktestResponse:
     try:
-        # Validate strategy exists before running backtest
         strategy_class = strategy_service.load_strategy_class(request.strategy)
         if not strategy_class:
             raise HTTPException(status_code=404, detail=f"Strategy '{request.strategy}' not found")
-
         service_request = ServiceBacktestRequest(
             ticker=request.ticker, strategy=request.strategy, start_date=request.start_date,
             end_date=request.end_date, interval=request.interval, cash=request.cash, parameters=request.parameters
@@ -130,7 +121,6 @@ def run_backtest(request: BacktestRequest) -> BacktestResponse:
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Backtest failed: {str(e)}")
 
-
 @app.post("/optimize", response_model=OptimizationResponse)
 @log_errors
 def optimize_strategy(request: OptimizationRequest) -> OptimizationResponse:
@@ -138,12 +128,9 @@ def optimize_strategy(request: OptimizationRequest) -> OptimizationResponse:
         strategy_class = strategy_service.load_strategy_class(request.strategy)
         if not strategy_class:
             raise HTTPException(status_code=404, detail=f"Strategy '{request.strategy}' not found")
-
         optimizer = StrategyOptimizer(strategy_class, data_manager)
-
         start_date = datetime.strptime(request.start_date, "%Y-%m-%d").date() if request.start_date else dt.date.today() - dt.timedelta(days=365)
         end_date = datetime.strptime(request.end_date, "%Y-%m-%d").date() if request.end_date else dt.date.today()
-
         results = optimizer.run_optimization(
             ticker=request.ticker,
             start_date=start_date,
@@ -152,11 +139,9 @@ def optimize_strategy(request: OptimizationRequest) -> OptimizationResponse:
             cash=request.cash,
             param_ranges=request.optimization_params
         )
-
         total_combinations = 1
         for param_values in request.optimization_params.values():
             total_combinations *= len(param_values)
-
         optimization_results = [
             OptimizationResult(
                 parameters=result['parameters'],
@@ -168,7 +153,6 @@ def optimize_strategy(request: OptimizationRequest) -> OptimizationResponse:
             )
             for result in results
         ]
-
         return OptimizationResponse(
             success=True,
             ticker=request.ticker,
@@ -185,7 +169,6 @@ def optimize_strategy(request: OptimizationRequest) -> OptimizationResponse:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Optimization failed: {str(e)}")
-
 
 @app.post("/market-data")
 @log_errors
@@ -217,33 +200,22 @@ def get_market_data(request: MarketDataRequest) -> Dict[str, object]:
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch market data: {str(e)}")
 
-
 @app.get("/parameters/default")
 @log_errors
 def get_default_params() -> Dict[str, object]:
     return {"success": True, "parameters": strategy_service.get_default_parameters()}
 
-
 @app.get("/runs")
 @log_errors
 def get_runs(
-    ticker: Optional[str] = Query(None, description="Filter by ticker"),
-    strategy: Optional[str] = Query(None, description="Filter by strategy"),
-    limit: int = Query(100, description="Maximum number of results", ge=1, le=1000),
-    offset: int = Query(0, description="Number of results to skip", ge=0)
+    ticker: Optional[str] = Query(None),
+    strategy: Optional[str] = Query(None),
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0)
 ) -> Dict[str, Any]:
-    """
-    List saved backtest runs with optional filters.
-
-    - **ticker**: Filter by ticker symbol (optional)
-    - **strategy**: Filter by strategy name (optional)
-    - **limit**: Maximum number of results (default: 100, max: 1000)
-    - **offset**: Number of results to skip for pagination (default: 0)
-    """
     try:
         runs = run_repository.list_runs(ticker=ticker, strategy=strategy, limit=limit, offset=offset)
         total_count = run_repository.get_run_count(ticker=ticker, strategy=strategy)
-
         summary_runs = [
             SavedRunSummaryResponse(
                 id=run['id'],
@@ -256,7 +228,6 @@ def get_runs(
             )
             for run in runs
         ]
-
         return {
             "success": True,
             "total_count": total_count,
@@ -268,20 +239,13 @@ def get_runs(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve runs: {str(e)}")
 
-
 @app.get("/runs/{run_id}", response_model=SavedRunDetailResponse)
 @log_errors
 def get_run_detail(run_id: int) -> SavedRunDetailResponse:
-    """
-    Get detailed information about a specific saved run.
-
-    - **run_id**: The ID of the saved run
-    """
     try:
         run = run_repository.get_run_by_id(run_id)
         if not run:
             raise HTTPException(status_code=404, detail=f"Run with ID {run_id} not found")
-
         return SavedRunDetailResponse(
             id=run['id'],
             ticker=run['ticker'],
@@ -305,16 +269,9 @@ def get_run_detail(run_id: int) -> SavedRunDetailResponse:
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve run: {str(e)}")
 
-
 @app.post("/runs/{run_id}/replay", response_model=BacktestResponse)
 @log_errors
 def replay_run(run_id: int, request: ReplayRunRequest) -> BacktestResponse:
-    """
-    Replay a saved backtest run with optional parameter overrides.
-
-    - **run_id**: The ID of the saved run to replay
-    - **request**: Optional overrides for start_date, end_date, interval, cash, or parameters
-    """
     try:
         overrides = {}
         if request.start_date is not None:
@@ -327,7 +284,6 @@ def replay_run(run_id: int, request: ReplayRunRequest) -> BacktestResponse:
             overrides['cash'] = request.cash
         if request.parameters is not None:
             overrides['parameters'] = request.parameters
-
         response = backtest_service.run_backtest_from_saved_run(run_id, overrides)
         return BacktestResponse(**response.dict())
     except ValueError as e:
@@ -337,34 +293,18 @@ def replay_run(run_id: int, request: ReplayRunRequest) -> BacktestResponse:
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to replay run: {str(e)}")
 
-
 @app.post("/presets", response_model=PresetResponse)
 @log_errors
 def create_preset(request: CreatePresetRequest) -> PresetResponse:
-    """
-    Create a new strategy preset for reuse.
-
-    - **name**: Unique name for this preset
-    - **ticker**: Ticker symbol
-    - **strategy**: Strategy name
-    - **parameters**: Strategy parameters as key-value pairs
-    - **interval**: Time interval
-    - **notes**: Optional notes about this preset
-    """
     try:
-        # Validate that strategy exists
         strategy_class = strategy_service.load_strategy_class(request.strategy)
         if not strategy_class:
             raise HTTPException(status_code=404, detail=f"Strategy '{request.strategy}' not found")
-
-        # Check if preset with same name/strategy/ticker already exists
         if preset_repository.preset_exists(request.name, request.strategy, request.ticker):
             raise HTTPException(
                 status_code=409,
                 detail=f"Preset with name '{request.name}' for strategy '{request.strategy}' and ticker '{request.ticker}' already exists"
             )
-
-        # Create preset
         preset_data = {
             'name': request.name,
             'ticker': request.ticker,
@@ -373,12 +313,8 @@ def create_preset(request: CreatePresetRequest) -> PresetResponse:
             'interval': request.interval,
             'notes': request.notes
         }
-
         preset_id = preset_repository.create_preset(preset_data)
-
-        # Retrieve and return the created preset
         created_preset = preset_repository.get_preset(preset_id)
-
         return PresetResponse(
             id=created_preset['id'],
             name=created_preset['name'],
@@ -394,27 +330,17 @@ def create_preset(request: CreatePresetRequest) -> PresetResponse:
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to create preset: {str(e)}")
 
-
 @app.get("/presets")
 @log_errors
 def get_presets(
-    ticker: Optional[str] = Query(None, description="Filter by ticker"),
-    strategy: Optional[str] = Query(None, description="Filter by strategy"),
-    limit: int = Query(100, description="Maximum number of results", ge=1, le=1000),
-    offset: int = Query(0, description="Number of results to skip", ge=0)
+    ticker: Optional[str] = Query(None),
+    strategy: Optional[str] = Query(None),
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0)
 ) -> Dict[str, Any]:
-    """
-    List saved strategy presets with optional filters.
-
-    - **ticker**: Filter by ticker symbol (optional)
-    - **strategy**: Filter by strategy name (optional)
-    - **limit**: Maximum number of results (default: 100, max: 1000)
-    - **offset**: Number of results to skip for pagination (default: 0)
-    """
     try:
         presets = preset_repository.list_presets(ticker=ticker, strategy=strategy, limit=limit, offset=offset)
         total_count = preset_repository.get_preset_count(ticker=ticker, strategy=strategy)
-
         preset_responses = [
             PresetResponse(
                 id=preset['id'],
@@ -428,7 +354,6 @@ def get_presets(
             )
             for preset in presets
         ]
-
         return {
             "success": True,
             "total_count": total_count,
@@ -440,21 +365,13 @@ def get_presets(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve presets: {str(e)}")
 
-
 @app.delete("/presets/{preset_id}")
 @log_errors
 def delete_preset(preset_id: int) -> Dict[str, Any]:
-    """
-    Delete a strategy preset by ID.
-
-    - **preset_id**: The ID of the preset to delete
-    """
     try:
         deleted = preset_repository.delete_preset(preset_id)
-
         if not deleted:
             raise HTTPException(status_code=404, detail=f"Preset with ID {preset_id} not found")
-
         return {
             "success": True,
             "message": f"Preset {preset_id} deleted successfully"
@@ -464,28 +381,16 @@ def delete_preset(preset_id: int) -> Dict[str, Any]:
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete preset: {str(e)}")
 
-
 @app.post("/presets/{preset_id}/backtest", response_model=BacktestResponse)
 @log_errors
 def backtest_from_preset(preset_id: int,
                          start_date: Optional[str] = Query(None, example="2024-01-01"),
                          end_date: Optional[str] = Query(None, example="2024-12-31"),
                          cash: Optional[float] = Query(None, example=10000.0)) -> BacktestResponse:
-    """
-    Run a backtest using a saved preset configuration.
-
-    - **preset_id**: The ID of the preset to use
-    - **start_date**: Optional override for start date
-    - **end_date**: Optional override for end date
-    - **cash**: Optional override for initial cash
-    """
     try:
-        # Load preset
         preset = preset_repository.get_preset(preset_id)
         if not preset:
             raise HTTPException(status_code=404, detail=f"Preset with ID {preset_id} not found")
-
-        # Build backtest request from preset
         backtest_request = ServiceBacktestRequest(
             ticker=preset['ticker'],
             strategy=preset['strategy'],
@@ -495,11 +400,8 @@ def backtest_from_preset(preset_id: int,
             cash=cash if cash is not None else 10000.0,
             parameters=preset['parameters']
         )
-
-        # Run backtest
         response = backtest_service.run_backtest(backtest_request, save_run=True)
         return BacktestResponse(**response.dict())
-
     except HTTPException:
         raise
     except (StrategyNotFoundError, StrategyLoadError) as e:
@@ -507,38 +409,13 @@ def backtest_from_preset(preset_id: int,
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to run backtest from preset: {str(e)}")
 
-
 @app.post("/snapshot", response_model=SnapshotResponse)
 @log_errors
 def get_strategy_snapshot(request: SnapshotRequest) -> SnapshotResponse:
-    """
-    Get a near-real-time snapshot of strategy state without running a full historical backtest.
-
-    This endpoint is optimized for live monitoring and periodic updates. It:
-    - Fetches only recent market data (configurable via lookback_bars)
-    - Runs strategy over a short lookback period
-    - Returns current indicators, position state, and recent trades
-    - Does not save the run to database
-
-    Use cases:
-    - Live dashboard updates (poll every X minutes for intraday, daily for EOD)
-    - Quick strategy status checks
-    - Real-time position monitoring
-
-    - **ticker**: Stock symbol (e.g., "AAPL", "BTC-USD")
-    - **strategy**: Strategy module name
-    - **parameters**: Strategy parameters (optional)
-    - **interval**: Data interval (1m, 5m, 15m, 30m, 1h, 1d, etc.)
-    - **lookback_bars**: Number of recent bars to analyze (50-1000, default 200)
-    - **cash**: Starting cash for position sizing
-    """
     try:
-        # Validate strategy exists
         strategy_class = strategy_service.load_strategy_class(request.strategy)
         if not strategy_class:
             raise HTTPException(status_code=404, detail=f"Strategy '{request.strategy}' not found")
-
-        # Get snapshot
         snapshot_data = backtest_service.get_snapshot(
             ticker=request.ticker,
             strategy_name=request.strategy,
@@ -547,8 +424,6 @@ def get_strategy_snapshot(request: SnapshotRequest) -> SnapshotResponse:
             parameters=request.parameters,
             cash=request.cash
         )
-
-        # Build response
         return SnapshotResponse(
             success=True,
             ticker=snapshot_data['ticker'],
@@ -563,7 +438,6 @@ def get_strategy_snapshot(request: SnapshotRequest) -> SnapshotResponse:
             cash=snapshot_data['cash'],
             timestamp=snapshot_data['timestamp']
         )
-
     except HTTPException:
         raise
     except ValueError as e:
@@ -576,34 +450,15 @@ def get_strategy_snapshot(request: SnapshotRequest) -> SnapshotResponse:
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Snapshot failed: {str(e)}")
 
-
 @app.post("/watchlist", response_model=WatchlistEntryResponse)
 @log_errors
 def create_watchlist_entry(request: CreateWatchlistRequest) -> WatchlistEntryResponse:
-    """
-    Create a new watchlist entry for automated strategy monitoring.
-
-    A watchlist entry links to either a preset or a saved run and defines
-    how often it should be checked (e.g., daily, intraday_15m).
-
-    Future use: A scheduled worker can iterate through enabled entries
-    and automatically run snapshots or backtests.
-
-    - **name**: Descriptive name for the watchlist entry
-    - **preset_id**: Reference to a saved preset (optional)
-    - **run_id**: Reference to a saved run (optional)
-    - **frequency**: Monitoring frequency ('daily', 'intraday_1m', 'intraday_5m', etc.)
-    - **enabled**: Whether this entry is active
-    """
     try:
-        # Validate that at least one ID is provided
         if not request.preset_id and not request.run_id:
             raise HTTPException(
                 status_code=400,
                 detail="Either preset_id or run_id must be provided"
             )
-
-        # Validate preset exists if preset_id provided
         if request.preset_id:
             preset = preset_repository.get_preset(request.preset_id)
             if not preset:
@@ -611,8 +466,6 @@ def create_watchlist_entry(request: CreateWatchlistRequest) -> WatchlistEntryRes
                     status_code=404,
                     detail=f"Preset with ID {request.preset_id} not found"
                 )
-
-        # Validate run exists if run_id provided
         if request.run_id:
             run = run_repository.get_run_by_id(request.run_id)
             if not run:
@@ -620,8 +473,6 @@ def create_watchlist_entry(request: CreateWatchlistRequest) -> WatchlistEntryRes
                     status_code=404,
                     detail=f"Run with ID {request.run_id} not found"
                 )
-
-        # Create entry
         entry_data = {
             'name': request.name,
             'preset_id': request.preset_id,
@@ -629,111 +480,71 @@ def create_watchlist_entry(request: CreateWatchlistRequest) -> WatchlistEntryRes
             'frequency': request.frequency,
             'enabled': request.enabled
         }
-
         entry_id = watchlist_repository.create_entry(entry_data)
         created_entry = watchlist_repository.get_entry(entry_id)
-
         return WatchlistEntryResponse(**created_entry)
-
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to create watchlist entry: {str(e)}")
 
-
 @app.get("/watchlist", response_model=List[WatchlistEntryResponse])
 @log_errors
-def list_watchlist_entries(enabled_only: bool = Query(False, description="Only return enabled entries")) -> List[WatchlistEntryResponse]:
-    """
-    List all watchlist entries.
-
-    - **enabled_only**: If true, only return enabled entries
-    """
+def list_watchlist_entries(enabled_only: bool = Query(False)) -> List[WatchlistEntryResponse]:
     try:
         entries = watchlist_repository.list_entries(enabled_only=enabled_only)
         return [WatchlistEntryResponse(**entry) for entry in entries]
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to list watchlist entries: {str(e)}")
-
 
 @app.get("/watchlist/{entry_id}", response_model=WatchlistEntryResponse)
 @log_errors
 def get_watchlist_entry(entry_id: int) -> WatchlistEntryResponse:
-    """
-    Get a specific watchlist entry by ID.
-
-    - **entry_id**: The watchlist entry ID
-    """
     try:
         entry = watchlist_repository.get_entry(entry_id)
         if not entry:
             raise HTTPException(status_code=404, detail=f"Watchlist entry with ID {entry_id} not found")
-
         return WatchlistEntryResponse(**entry)
-
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get watchlist entry: {str(e)}")
 
-
 @app.delete("/watchlist/{entry_id}")
 @log_errors
 def delete_watchlist_entry(entry_id: int) -> Dict[str, Any]:
-    """
-    Delete a watchlist entry by ID.
-
-    - **entry_id**: The ID of the watchlist entry to delete
-    """
     try:
         deleted = watchlist_repository.delete_entry(entry_id)
-
         if not deleted:
             raise HTTPException(status_code=404, detail=f"Watchlist entry with ID {entry_id} not found")
-
         return {
             "success": True,
             "message": f"Watchlist entry {entry_id} deleted successfully"
         }
-
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete watchlist entry: {str(e)}")
 
-
 @app.patch("/watchlist/{entry_id}")
 @log_errors
 def update_watchlist_entry(entry_id: int, enabled: Optional[bool] = Query(None)) -> Dict[str, Any]:
-    """
-    Update a watchlist entry (currently supports enabling/disabling only).
-
-    - **entry_id**: The watchlist entry ID
-    - **enabled**: Set to true to enable, false to disable
-    """
     try:
         if enabled is None:
             raise HTTPException(status_code=400, detail="At least one field must be provided to update")
-
         updates = {'enabled': enabled}
         updated = watchlist_repository.update_entry(entry_id, updates)
-
         if not updated:
             raise HTTPException(status_code=404, detail=f"Watchlist entry with ID {entry_id} not found")
-
         return {
             "success": True,
             "message": f"Watchlist entry {entry_id} updated successfully"
         }
-
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to update watchlist entry: {str(e)}")
 
-
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run(app, host=Config.API_HOST, port=Config.API_PORT, reload=True)

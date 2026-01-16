@@ -94,7 +94,7 @@ class PresetResponse(BaseModel):
 
 class SnapshotPositionState(BaseModel):
     in_position: bool
-    position_type: Optional[str] = None  # 'long' or 'short'
+    position_type: Optional[str] = None
     entry_price: Optional[float] = None
     current_price: Optional[float] = None
     size: Optional[float] = None
@@ -106,10 +106,10 @@ class SnapshotResponse(BaseModel):
     strategy: str
     interval: str
     lookback_bars: int
-    last_bar: Dict[str, Any]  # {date, open, high, low, close, volume}
-    indicators: Dict[str, Any]  # Current indicator values
+    last_bar: Dict[str, Any]
+    indicators: Dict[str, Any]
     position_state: SnapshotPositionState
-    recent_trades: List[Dict[str, Any]]  # Last N trades
+    recent_trades: List[Dict[str, Any]]
     portfolio_value: float
     cash: float
     timestamp: str
