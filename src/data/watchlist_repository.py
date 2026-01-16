@@ -6,8 +6,6 @@ from contextlib import contextmanager
 
 
 class WatchlistRepository:
-    """Repository for managing watchlist entries for automated strategy monitoring."""
-
     def __init__(self, db_path: str = None):
         if db_path is None:
             db_path = os.path.join(
@@ -20,7 +18,6 @@ class WatchlistRepository:
         self._ensure_db_exists()
 
     def _ensure_db_exists(self):
-        """Create database and watchlist_entries table if it doesn't exist."""
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
 
         with self._get_connection() as conn:
@@ -62,7 +59,6 @@ class WatchlistRepository:
 
     @contextmanager
     def _get_connection(self):
-        """Context manager for database connections."""
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         try:
@@ -71,23 +67,6 @@ class WatchlistRepository:
             conn.close()
 
     def create_entry(self, entry_data: Dict[str, Any]) -> int:
-        """
-        Create a new watchlist entry.
-
-        Args:
-            entry_data: Dictionary containing:
-                - name (str): Descriptive name for the entry
-                - preset_id (int, optional): Reference to a preset
-                - run_id (int, optional): Reference to a saved run
-                - frequency (str): Frequency (e.g., 'daily', 'intraday_15m')
-                - enabled (bool): Whether the entry is active
-
-        Returns:
-            int: The ID of the created entry
-
-        Raises:
-            ValueError: If neither preset_id nor run_id is provided
-        """
         if not entry_data.get('preset_id') and not entry_data.get('run_id'):
             raise ValueError("Either preset_id or run_id must be provided")
 
@@ -114,15 +93,6 @@ class WatchlistRepository:
             return cursor.lastrowid
 
     def get_entry(self, entry_id: int) -> Optional[Dict[str, Any]]:
-        """
-        Get a watchlist entry by ID.
-
-        Args:
-            entry_id: The watchlist entry ID
-
-        Returns:
-            Dictionary with entry details or None if not found
-        """
         with self._get_connection() as conn:
             cursor = conn.cursor()
 
@@ -147,15 +117,6 @@ class WatchlistRepository:
             return None
 
     def list_entries(self, enabled_only: bool = False) -> List[Dict[str, Any]]:
-        """
-        List all watchlist entries.
-
-        Args:
-            enabled_only: If True, only return enabled entries
-
-        Returns:
-            List of entry dictionaries
-        """
         with self._get_connection() as conn:
             cursor = conn.cursor()
 
@@ -186,23 +147,12 @@ class WatchlistRepository:
             } for row in rows]
 
     def update_entry(self, entry_id: int, updates: Dict[str, Any]) -> bool:
-        """
-        Update a watchlist entry.
-
-        Args:
-            entry_id: The entry ID
-            updates: Dictionary of fields to update
-
-        Returns:
-            bool: True if updated, False if entry not found
-        """
         allowed_fields = ['name', 'enabled', 'frequency', 'last_run_at']
         update_fields = {k: v for k, v in updates.items() if k in allowed_fields}
 
         if not update_fields:
             return False
 
-        # Convert enabled to integer if present
         if 'enabled' in update_fields:
             update_fields['enabled'] = 1 if update_fields['enabled'] else 0
 
@@ -222,15 +172,6 @@ class WatchlistRepository:
             return cursor.rowcount > 0
 
     def delete_entry(self, entry_id: int) -> bool:
-        """
-        Delete a watchlist entry.
-
-        Args:
-            entry_id: The entry ID to delete
-
-        Returns:
-            bool: True if deleted, False if not found
-        """
         with self._get_connection() as conn:
             cursor = conn.cursor()
 
@@ -240,28 +181,9 @@ class WatchlistRepository:
             return cursor.rowcount > 0
 
     def update_last_run(self, entry_id: int) -> bool:
-        """
-        Update the last_run_at timestamp for an entry.
-
-        Args:
-            entry_id: The entry ID
-
-        Returns:
-            bool: True if updated
-        """
         return self.update_entry(entry_id, {'last_run_at': datetime.datetime.now().isoformat()})
 
     def get_entries_by_frequency(self, frequency: str, enabled_only: bool = True) -> List[Dict[str, Any]]:
-        """
-        Get all watchlist entries for a specific frequency.
-
-        Args:
-            frequency: The frequency to filter by (e.g., 'daily', 'intraday_15m')
-            enabled_only: If True, only return enabled entries
-
-        Returns:
-            List of entry dictionaries
-        """
         with self._get_connection() as conn:
             cursor = conn.cursor()
 
