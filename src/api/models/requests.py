@@ -56,3 +56,11 @@ class CreateWatchlistRequest(BaseModel):
     run_id: Optional[int] = Field(None, example=1)
     frequency: str = Field(..., example="daily")
     enabled: bool = Field(True, example=True)
+
+class MarketScanRequest(BaseModel):
+    strategy: str = Field(..., example="bollinger_bands_strategy")
+    start_date: Optional[str] = Field(None, example="2024-01-01")
+    end_date: Optional[str] = Field(None, example="2024-12-31")
+    interval: str = Field(BacktestConfig.DEFAULT_INTERVAL, example="1d")
+    cash: float = Field(BacktestConfig.DEFAULT_CASH, example=10000.0)
+    parameters: Optional[Dict[str, Union[int, float]]] = Field(None)

@@ -124,6 +124,106 @@ class BacktestService:
 
         return self.run_backtest(request, save_run=True)
 
+    def market_scan(self, strategy_name: str, start_date: Optional[str] = None,
+                    end_date: Optional[str] = None, interval: str = BacktestConfig.DEFAULT_INTERVAL,
+                    cash: float = BacktestConfig.DEFAULT_CASH,
+                    parameters: Optional[Dict[str, Union[int, float]]] = None) -> Dict[str, Any]:
+        from src.utils.sp500_tickers import get_sp500_tickers
+        from src.utils.api_logger import logger
+
+        tickers = get_sp500_tickers()
+        total_pnl = 0.0
+        total_trades = 0
+        winning_trades = 0
+        losing_trades = 0
+        stocks_with_trades = 0
+        all_returns = []
+        first_start_date = None
+        last_end_date = None
+        initial_cash_per_stock = cash
+
+        logger.info(f"Starting market scan with strategy '{strategy_name}' across {len(tickers)} stocks")
+
+        for ticker in tickers:
+            try:
+                request = BacktestRequest(
+                    ticker=ticker,
+                    strategy=strategy_name,
+                    start_date=start_date,
+                    end_date=end_date,
+                    interval=interval,
+                    cash=initial_cash_per_stock,
+                    parameters=parameters
+                )
+
+                response = self.run_backtest(request, save_run=False)
+
+                total_pnl += response.pnl
+                total_trades += response.total_trades
+
+                if response.total_trades > 0:
+                    stocks_with_trades += 1
+
+                if response.advanced_metrics:
+                    winning_trades += response.advanced_metrics.get('winning_trades', 0)
+                    losing_trades += response.advanced_metrics.get('losing_trades', 0)
+
+                all_returns.append(response.return_pct)
+
+                if first_start_date is None:
+                    first_start_date = response.start_date
+                if last_end_date is None or response.end_date > last_end_date:
+                    last_end_date = response.end_date
+
+            except Exception as e:
+                logger.warning(f"Failed to run backtest for {ticker}: {str(e)}")
+                continue
+
+        total_start_value = initial_cash_per_stock * len(tickers)
+        total_end_value = total_start_value + total_pnl
+        avg_return_pct = (total_pnl / total_start_value * 100) if total_start_value > 0 else 0.0
+
+        sharpe_ratio = None
+        if len(all_returns) > 0:
+            import numpy as np
+            returns_array = np.array(all_returns)
+            if returns_array.std() > 0:
+                sharpe_ratio = (returns_array.mean() / returns_array.std()) * np.sqrt(252)
+
+        max_drawdown = None
+        if len(all_returns) > 0:
+            cumulative = np.cumprod(1 + np.array(all_returns) / 100)
+            running_max = np.maximum.accumulate(cumulative)
+            drawdowns = (cumulative - running_max) / running_max
+            max_drawdown = drawdowns.min() * 100 if len(drawdowns) > 0 else None
+
+        logger.info(f"Market scan completed: {stocks_with_trades}/{len(tickers)} stocks had trades, Total PnL: ${total_pnl:.2f}")
+
+        return {
+            'success': True,
+            'strategy': strategy_name,
+            'start_value': total_start_value,
+            'end_value': total_end_value,
+            'pnl': total_pnl,
+            'return_pct': round(avg_return_pct, 2),
+            'sharpe_ratio': round(sharpe_ratio, 2) if sharpe_ratio else None,
+            'max_drawdown': round(max_drawdown, 2) if max_drawdown else None,
+            'total_trades': total_trades,
+            'winning_trades': winning_trades,
+            'losing_trades': losing_trades,
+            'interval': interval,
+            'start_date': first_start_date,
+            'end_date': last_end_date,
+            'stocks_scanned': len(tickers),
+            'stocks_with_trades': stocks_with_trades,
+            'advanced_metrics': {
+                'avg_return_per_stock': round(sum(all_returns) / len(all_returns), 2) if all_returns else 0.0,
+                'winning_trades': winning_trades,
+                'losing_trades': losing_trades,
+                'win_rate': round((winning_trades / total_trades * 100), 2) if total_trades > 0 else 0.0
+            }
+        }
+
     def get_snapshot(self, ticker: str, strategy_name: str, interval: str = "1d",
                      lookback_bars: int = 200, parameters: Optional[Dict[str, Union[int, float]]] = None,
                      cash: float = BacktestConfig.DEFAULT_CASH) -> Dict[str, Any]:
@@ -134,25 +234,19 @@ class BacktestService:
         if not strategy_class:
             raise ValueError(f"Strategy '{strategy_name}' not found")
 
-        # Calculate date range for lookback_bars
-        # Add extra days to account for weekends/holidays
-        days_needed = lookback_bars * 2 if interval == "1d" else 30  # For intraday, 30 days should be enough
+        days_needed = lookback_bars * 2 if interval == "1d" else 30
         end_date = datetime.now().date()
         start_date = end_date - timedelta(days=days_needed)
 
-        # Prepare parameters
         params = StrategyService.get_default_parameters(parameters)
         params['cash'] = cash
 
-        # Run short backtest
         runner = Run_strategy(params, strategy_class)
         results = runner.runstrat(ticker, start_date, interval, end_date)
 
-        # Extract snapshot data
         chart_data = results.get('chart_data', [])
         trades = results.get('trades', [])
 
-        # Get last bar
         last_bar = {}
         if chart_data and len(chart_data) > 0:
             last_entry = chart_data[-1]
@@ -165,7 +259,6 @@ class BacktestService:
                 'volume': last_entry.get('volume', 0)
             }
 
-        # Get current indicator values
         indicators = {}
         if chart_data and len(chart_data) > 0:
             last_entry = chart_data[-1]
@@ -173,7 +266,6 @@ class BacktestService:
                 if key not in ['date', 'open', 'high', 'low', 'close', 'volume', 'signals']:
                     indicators[key] = value
 
-        # Determine position state
         position_state = {
             'in_position': False,
             'position_type': None,
@@ -183,7 +275,6 @@ class BacktestService:
             'unrealized_pnl': None
         }
 
-        # Check if currently in a position (last trade has no exit)
         if trades and len(trades) > 0:
             last_trade = trades[-1]
             if last_trade.get('exit_date') is None or last_trade.get('exit_price') is None:
@@ -198,7 +289,6 @@ class BacktestService:
                     else:
                         position_state['unrealized_pnl'] = (position_state['entry_price'] - position_state['current_price']) * position_state['size']
 
-        # Get last 10 trades
         recent_trades = trades[-10:] if len(trades) > 10 else trades
 
         return {

@@ -123,3 +123,22 @@ class WatchlistEntryResponse(BaseModel):
     enabled: bool
     created_at: str
     last_run_at: Optional[str]
+
+class MarketScanResponse(BaseModel):
+    success: bool
+    strategy: str
+    start_value: float
+    end_value: float
+    pnl: float
+    return_pct: float
+    sharpe_ratio: Optional[float]
+    max_drawdown: Optional[float]
+    total_trades: int
+    winning_trades: int
+    losing_trades: int
+    interval: str
+    start_date: str
+    end_date: str
+    stocks_scanned: int
+    stocks_with_trades: int
+    advanced_metrics: Optional[Dict[str, Any]] = None
