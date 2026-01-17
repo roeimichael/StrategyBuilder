@@ -206,7 +206,8 @@ def market_scan(request: MarketScanRequest) -> MarketScanResponse:
             end_date=result['end_date'],
             stocks_scanned=result['stocks_scanned'],
             stocks_with_trades=result['stocks_with_trades'],
-            advanced_metrics=result['advanced_metrics']
+            stock_results=result['stock_results'],
+            macro_statistics=result['macro_statistics']
         )
     except (StrategyNotFoundError, StrategyLoadError) as e:
         raise HTTPException(status_code=404, detail=str(e))

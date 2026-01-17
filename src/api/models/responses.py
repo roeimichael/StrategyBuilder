@@ -124,6 +124,18 @@ class WatchlistEntryResponse(BaseModel):
     created_at: str
     last_run_at: Optional[str]
 
+class StockScanResult(BaseModel):
+    ticker: str
+    pnl: float
+    return_pct: float
+    total_trades: int
+    winning_trades: int
+    losing_trades: int
+    sharpe_ratio: Optional[float]
+    max_drawdown: Optional[float]
+    start_value: float
+    end_value: float
+
 class MarketScanResponse(BaseModel):
     success: bool
     strategy: str
@@ -141,4 +153,5 @@ class MarketScanResponse(BaseModel):
     end_date: str
     stocks_scanned: int
     stocks_with_trades: int
-    advanced_metrics: Optional[Dict[str, Any]] = None
+    stock_results: List[Dict[str, Any]]
+    macro_statistics: Dict[str, Any]

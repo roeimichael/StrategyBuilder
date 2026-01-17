@@ -33,7 +33,7 @@ class TestRunner:
         print(f"Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print("="*70 + "\n")
 
-    def run_test(self, test_name, test_file, needs_api=False):
+    def run_test(self, test_name, test_file, needs_api=False, timeout=300):
         """Run a single test file"""
         print(f"\n{Color.BOLD}{Color.BLUE}{'='*70}{Color.END}")
         print(f"{Color.BOLD}{Color.BLUE}Running: {test_name}{Color.END}")
@@ -50,7 +50,7 @@ class TestRunner:
                 [sys.executable, str(test_file)],
                 capture_output=True,
                 text=True,
-                timeout=300  # 5 minute timeout
+                timeout=timeout
             )
 
             duration = time.time() - start
@@ -217,6 +217,13 @@ def main():
         #     'file': Path('tests/test_snapshot.py'),
         #     'needs_api': True,
         #     'description': 'Tests near-real-time snapshot endpoint for live monitoring'
+        # },
+        # {
+        #     'name': 'Market Scan',
+        #     'file': Path('tests/test_market_scan.py'),
+        #     'needs_api': True,
+        #     'timeout': 900,
+        #     'description': 'Tests market-wide scan across all S&P 500 stocks (15 min timeout)'
         # }
     ]
 
@@ -251,7 +258,8 @@ def main():
             })
             continue
 
-        runner.run_test(test['name'], test['file'], test['needs_api'])
+        timeout = test.get('timeout', 300)
+        runner.run_test(test['name'], test['file'], test['needs_api'], timeout)
 
         # Brief pause between tests
         time.sleep(1)
