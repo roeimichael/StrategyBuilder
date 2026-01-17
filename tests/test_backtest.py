@@ -1,7 +1,3 @@
-"""
-Test script for backtest endpoint validation
-Tests various strategies with different parameters and validates results
-"""
 import requests
 import json
 from datetime import datetime, timedelta
@@ -15,7 +11,6 @@ class BacktestTester:
         self.errors = []
 
     def test_basic_backtest(self):
-        """Test basic backtest with Bollinger Bands"""
         print("\n" + "="*60)
         print("TEST 1: Basic Backtest - Bollinger Bands")
         print("="*60)
@@ -49,7 +44,6 @@ class BacktestTester:
                 print(f"  Sharpe Ratio: {result.get('sharpe_ratio', 'N/A')}")
                 print(f"  Total Trades: {result['total_trades']}")
 
-                # Validate response structure
                 assert result['success'] == True
                 assert 'pnl' in result
                 assert 'return_pct' in result
@@ -71,7 +65,6 @@ class BacktestTester:
             return False
 
     def test_backtest_with_chart_data(self):
-        """Test backtest with chart data included"""
         print("\n" + "="*60)
         print("TEST 2: Backtest with Chart Data")
         print("="*60)
@@ -102,7 +95,6 @@ class BacktestTester:
                 print(f"[OK] Chart data included: {result['chart_data'] is not None}")
 
                 if result['chart_data']:
-                    # Check if columnar format
                     if isinstance(result['chart_data'], dict):
                         print(f"[OK] Columnar format verified")
                         print(f"  Data points: {len(result['chart_data'].get('timestamp', []))}")
@@ -127,7 +119,6 @@ class BacktestTester:
             return False
 
     def test_multiple_strategies(self):
-        """Test multiple strategies to ensure they all work"""
         print("\n" + "="*60)
         print("TEST 3: Multiple Strategy Validation")
         print("="*60)
@@ -172,7 +163,6 @@ class BacktestTester:
                 self.errors.append(f"{strategy_name} exception: {str(e)}")
 
     def test_invalid_inputs(self):
-        """Test error handling with invalid inputs"""
         print("\n" + "="*60)
         print("TEST 4: Invalid Input Handling")
         print("="*60)
@@ -227,7 +217,6 @@ class BacktestTester:
                 self.failed += 1
 
     def test_performance_metrics(self):
-        """Test that all performance metrics are calculated"""
         print("\n" + "="*60)
         print("TEST 5: Performance Metrics Validation")
         print("="*60)
@@ -282,7 +271,6 @@ class BacktestTester:
             self.failed += 1
 
     def print_summary(self):
-        """Print test summary"""
         print("\n" + "="*60)
         print("TEST SUMMARY")
         print("="*60)
@@ -310,7 +298,6 @@ def main():
     print("Start server with: python -m src.api.main")
     print("="*60)
 
-    # Check if server is running
     try:
         response = requests.get(f"{BASE_URL}/health", timeout=2)
         if response.status_code == 200:
@@ -323,7 +310,6 @@ def main():
         print("Please start the server first!")
         return False
 
-    # Run tests
     tester = BacktestTester()
 
     tester.test_basic_backtest()
