@@ -18,7 +18,8 @@ from src.api.models import (
     ReplayRunRequest, SavedRunSummaryResponse, SavedRunDetailResponse,
     OptimizationRequest, OptimizationResponse, OptimizationResult,
     CreatePresetRequest, PresetResponse, SnapshotRequest, SnapshotResponse,
-    SnapshotPositionState, CreateWatchlistRequest, WatchlistEntryResponse
+    SnapshotPositionState, CreateWatchlistRequest, WatchlistEntryResponse,
+    MarketScanRequest, MarketScanResponse
 )
 from src.exceptions import StrategyNotFoundError, StrategyLoadError
 
@@ -51,6 +52,7 @@ def root() -> Dict[str, object]:
             "strategies": "/strategies",
             "backtest": "/backtest",
             "optimize": "/optimize",
+            "market_scan": "/market-scan",
             "market_data": "/market-data",
             "health": "/health",
             "runs": "/runs",
@@ -169,6 +171,50 @@ def optimize_strategy(request: OptimizationRequest) -> OptimizationResponse:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Optimization failed: {str(e)}")
+
+@app.post("/market-scan", response_model=MarketScanResponse)
+@log_errors
+def market_scan(request: MarketScanRequest) -> MarketScanResponse:
+    try:
+        strategy_class = strategy_service.load_strategy_class(request.strategy)
+        if not strategy_class:
+            raise HTTPException(status_code=404, detail=f"Strategy '{request.strategy}' not found")
+
+        result = backtest_service.market_scan(
+            strategy_name=request.strategy,
+            start_date=request.start_date,
+            end_date=request.end_date,
+            interval=request.interval,
+            cash=request.cash,
+            parameters=request.parameters
+        )
+
+        return MarketScanResponse(
+            success=result['success'],
+            strategy=result['strategy'],
+            start_value=result['start_value'],
+            end_value=result['end_value'],
+            pnl=result['pnl'],
+            return_pct=result['return_pct'],
+            sharpe_ratio=result['sharpe_ratio'],
+            max_drawdown=result['max_drawdown'],
+            total_trades=result['total_trades'],
+            winning_trades=result['winning_trades'],
+            losing_trades=result['losing_trades'],
+            interval=result['interval'],
+            start_date=result['start_date'],
+            end_date=result['end_date'],
+            stocks_scanned=result['stocks_scanned'],
+            stocks_with_trades=result['stocks_with_trades'],
+            stock_results=result['stock_results'],
+            macro_statistics=result['macro_statistics']
+        )
+    except (StrategyNotFoundError, StrategyLoadError) as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Market scan failed: {str(e)}")
 
 @app.post("/market-data")
 @log_errors
