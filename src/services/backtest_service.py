@@ -87,7 +87,6 @@ class BacktestService:
         return response
 
     def _save_run(self, request: BacktestRequest, response: BacktestResponse):
-        """Save the backtest run to the repository."""
         run_record = {
             'ticker': request.ticker,
             'strategy': request.strategy,
@@ -107,16 +106,6 @@ class BacktestService:
         self.run_repository.save_run(run_record)
 
     def run_backtest_from_saved_run(self, run_id: int, overrides: Optional[Dict[str, Any]] = None) -> BacktestResponse:
-        """
-        Replay a backtest from a saved run with optional parameter overrides.
-
-        Args:
-            run_id: The ID of the saved run to replay
-            overrides: Optional dictionary of parameters to override (e.g., start_date, end_date, cash)
-
-        Returns:
-            BacktestResponse from the replayed backtest
-        """
         saved_run = self.run_repository.get_run_by_id(run_id)
         if not saved_run:
             raise ValueError(f"Run with ID {run_id} not found")
@@ -138,26 +127,6 @@ class BacktestService:
     def get_snapshot(self, ticker: str, strategy_name: str, interval: str = "1d",
                      lookback_bars: int = 200, parameters: Optional[Dict[str, Union[int, float]]] = None,
                      cash: float = BacktestConfig.DEFAULT_CASH) -> Dict[str, Any]:
-        """
-        Get a near-real-time snapshot of strategy state without running a full backtest.
-
-        Args:
-            ticker: Stock ticker symbol
-            strategy_name: Name of the strategy to run
-            interval: Data interval (1m, 5m, 15m, 30m, 1h, 1d, etc.)
-            lookback_bars: Number of recent bars to fetch (default 200)
-            parameters: Strategy parameters
-            cash: Starting cash for position sizing
-
-        Returns:
-            Dictionary containing:
-            - last_bar: Most recent OHLC data
-            - indicators: Current indicator values
-            - position_state: Current position (if any)
-            - recent_trades: Last 10 trades
-            - portfolio_value: Current portfolio value
-            - cash: Available cash
-        """
         from datetime import datetime, timedelta
         from src.core.data_manager import DataManager
 

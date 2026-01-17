@@ -1,49 +1,69 @@
 # StrategyBuilder
 
-A clean, modular FastAPI backend for algorithmic trading strategy backtesting using Backtrader.
+Clean, modular FastAPI backend for algorithmic trading strategy backtesting using Backtrader framework.
 
 ## Overview
 
-StrategyBuilder provides a RESTful API for backtesting trading strategies on historical market data. Built with FastAPI and Backtrader, it offers a simple yet powerful platform for testing and analyzing trading algorithms with comprehensive chart data, technical indicators, and trade visualization support.
+StrategyBuilder provides RESTful API for backtesting trading strategies on historical market data with comprehensive performance analytics, optimization capabilities, and real-time monitoring features.
 
 ## Features
 
-- **RESTful API** - FastAPI-powered backend with automatic documentation
-- **Multiple Strategies** - 12+ pre-built trading strategies included
-- **Market Data** - Real-time data fetching via Yahoo Finance
-- **Performance Metrics** - Comprehensive analytics including Sharpe ratio, max drawdown, and more
-- **Chart Data** - OHLC data, technical indicators, and trade markers for visualization
-- **Trade Tracking** - Automatic position tracking with entry/exit markers
-- **Modular Design** - Easy to add custom strategies and indicators
-- **Auto Documentation** - Interactive API docs via Swagger UI
+- **REST API**: FastAPI backend with automatic OpenAPI documentation
+- **12+ Trading Strategies**: Pre-built strategies with both long and short position support
+- **Strategy Optimization**: Grid search parameter optimization across multiple combinations
+- **Performance Analytics**: Comprehensive metrics including Sharpe ratio, Calmar ratio, Sortino ratio, drawdown analysis
+- **Preset Management**: Save, retrieve, and execute strategy configurations
+- **Run History**: Persistent backtest storage with replay capabilities
+- **Live Snapshots**: Near-real-time strategy state without full backtest execution
+- **Watchlist Monitoring**: Automated strategy execution scheduling for surveillance
+- **Chart Data Export**: Unified timeline format with OHLC, indicators, and trade markers
+- **Custom Indicators**: OBV, MFI, CMF technical indicators
+- **Modular Architecture**: Clean separation of API, services, core engine, and data layers
 
 ## Project Structure
 
 ```
 StrategyBuilder/
 ├── src/
-│   ├── api/
-│   │   └── main.py              # FastAPI application
-│   ├── core/
-│   │   ├── run_strategy.py      # Backtest execution engine
+│   ├── api/                      # FastAPI application layer
+│   │   ├── main.py              # REST endpoints and middleware
+│   │   └── models/              # Request/response schemas
+│   ├── core/                    # Backtesting engine
+│   │   ├── run_strategy.py      # Strategy execution orchestration
+│   │   ├── optimizer.py         # Parameter optimization engine
+│   │   ├── data_manager.py      # Market data fetching and processing
 │   │   ├── strategy_skeleton.py # Base strategy class
-│   │   └── data_manager.py      # Data handling utilities
-│   ├── strategies/              # Trading strategy implementations
-│   │   ├── bollinger_bands_strategy.py
-│   │   ├── tema_macd_strategy.py
-│   │   ├── rsi_stochastic_strategy.py
-│   │   └── ... (9 more strategies)
-│   ├── indicators/              # Custom technical indicators
-│   │   ├── cmf_indicator.py
-│   │   ├── mfi_indicator.py
-│   │   └── obv_indicator.py
-│   └── utils/
-│       ├── performance_analyzer.py  # Advanced metrics calculation
-│       └── api_logger.py            # API logging utilities
-├── test_api.py                  # Comprehensive API testing script
-├── API_SUMMARY.md               # Complete API documentation
+│   │   └── extractors/          # Chart data extraction utilities
+│   ├── services/                # Business logic layer
+│   │   ├── strategy_service.py  # Strategy loading and metadata
+│   │   └── backtest_service.py  # Backtest orchestration and snapshot generation
+│   ├── data/                    # Data persistence layer
+│   │   ├── run_repository.py    # Strategy execution history
+│   │   ├── preset_repository.py # Configuration templates
+│   │   └── watchlist_repository.py # Automated monitoring entries
+│   ├── strategies/              # Trading strategy implementations (12 strategies)
+│   ├── indicators/              # Custom technical indicators (OBV, MFI, CMF)
+│   ├── config/                  # Configuration management
+│   ├── utils/                   # Logging and performance analysis utilities
+│   └── exceptions/              # Exception hierarchy
+├── tests/                       # Comprehensive test suite
+│   ├── test_backtest.py         # API endpoint integration tests
+│   ├── test_optimization.py     # Parameter optimization tests
+│   ├── test_presets.py          # Preset CRUD tests
+│   ├── test_snapshot.py         # Live snapshot tests
+│   ├── test_strategies.py       # Strategy loading and execution tests
+│   ├── test_indicators.py       # Indicator accuracy validation
+│   ├── test_imports.py          # Module import verification
+│   ├── test_everything.py       # Master test runner
+│   └── strategies/              # Strategy correctness tests with controlled data
+├── docs/                        # Structural documentation
+│   ├── API_doc.md              # API layer architecture
+│   ├── Core_doc.md             # Backtesting engine architecture
+│   ├── config_doc.md           # Configuration system
+│   ├── data_doc.md             # Data persistence layer
+│   ├── utils_doc.md            # Utilities and logging
+│   └── tests_doc.md            # Test suite structure
 ├── requirements.txt
-├── run_api.py                   # API server launcher
 └── README.md
 ```
 
@@ -60,183 +80,254 @@ pip install -r requirements.txt
 ### Running the API
 
 ```bash
-python run_api.py
+python -m src.api.main
 ```
 
-The API will be available at:
-- **API**: http://localhost:8000
-- **Interactive Docs**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
+API available at:
+- **API**: http://localhost:8086
+- **Interactive Docs**: http://localhost:8086/docs
+- **ReDoc**: http://localhost:8086/redoc
 
 ## API Endpoints
 
-### Core Endpoints
+### Core Backtesting
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/` | GET | API information |
 | `/health` | GET | Health check |
 | `/strategies` | GET | List all available strategies |
-| `/strategies/{name}` | GET | Get strategy details |
-| `/backtest` | POST | Run a backtest |
-| `/market-data` | POST | Fetch market data |
-| `/parameters/default` | GET | Get default parameters |
+| `/strategies/{name}` | GET | Get strategy details with optimizable parameters |
+| `/backtest` | POST | Execute strategy backtest |
+| `/optimize` | POST | Grid search parameter optimization |
 
-For complete API documentation, see [API_SUMMARY.md](API_SUMMARY.md)
+### Run Management
 
-## Testing
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/runs` | GET | List saved backtest runs with pagination |
+| `/runs/{id}` | GET | Retrieve specific run details |
+| `/runs/{id}/replay` | POST | Re-execute saved run with optional overrides |
+| `/runs/{id}` | DELETE | Delete saved run |
 
-Run comprehensive API tests:
+### Preset Management
 
-```bash
-python test_api.py
-```
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/presets` | GET | List strategy presets with filtering |
+| `/presets` | POST | Create new preset configuration |
+| `/presets/{id}` | GET | Retrieve preset details |
+| `/presets/{id}` | DELETE | Delete preset |
+| `/presets/{id}/backtest` | POST | Execute backtest from preset |
 
-This will test 5 different configurations and save results to `test_results.json`.
+### Live Data
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/snapshot` | POST | Get near-real-time strategy state |
+
+### Watchlist Monitoring
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/watchlist` | GET | List monitoring entries |
+| `/watchlist` | POST | Create monitoring entry |
+| `/watchlist/{id}` | GET | Retrieve entry details |
+| `/watchlist/{id}` | PATCH | Update entry settings |
+| `/watchlist/{id}` | DELETE | Delete entry |
 
 ## Available Strategies
 
-The platform includes 12 pre-built strategies:
+12 pre-built strategies with parameter optimization support:
 
-1. **Bollinger Bands** - Mean reversion strategy
-2. **TEMA MACD** - Triple EMA with MACD signals
-3. **TEMA Crossover** - Dual TEMA crossover
-4. **ADX** - Trend strength-based strategy
-5. **Alligator** - Bill Williams' Alligator indicator
-6. **CMF ATR MACD** - Chaikin Money Flow with ATR and MACD
-7. **RSI Stochastic** - RSI and Stochastic oscillator combination
-8. **CCI ATR** - Commodity Channel Index with ATR
-9. **MFI** - Money Flow Index strategy
-10. **Keltner Channel** - Volatility-based channel strategy
-11. **Momentum Multi** - Multi-indicator momentum strategy
-12. **Williams %R** - Williams %R oscillator strategy
+1. **Bollinger Bands** - Mean reversion with upper/lower band crossovers (supports shorts)
+2. **Williams %R** - Oscillator-based oversold/overbought strategy (supports shorts)
+3. **TEMA MACD** - Triple EMA with MACD confirmation signals
+4. **TEMA Crossover** - Dual TEMA period crossover system
+5. **ADX** - Trend strength and directional movement strategy
+6. **Alligator** - Bill Williams' multi-EMA alignment system
+7. **CMF ATR MACD** - Chaikin Money Flow with volatility and momentum filters
+8. **RSI Stochastic** - Dual oscillator mean reversion strategy
+9. **CCI ATR** - Commodity Channel Index with ATR-based exits
+10. **MFI** - Money Flow Index volume-weighted oscillator
+11. **Keltner Channel** - Volatility-based channel breakout strategy
+12. **Momentum Multi** - Multi-indicator momentum confirmation system
 
-## Backtest Response Format
+All strategies support configurable parameters. Subset supports short positions (noted in strategy metadata).
+
+## Example Usage
+
+### Basic Backtest
+
+```python
+import requests
+
+response = requests.post('http://localhost:8086/backtest', json={
+    'ticker': 'AAPL',
+    'strategy': 'bollinger_bands_strategy',
+    'start_date': '2024-01-01',
+    'end_date': '2024-06-30',
+    'interval': '1d',
+    'cash': 10000.0,
+    'parameters': {
+        'period': 20,
+        'devfactor': 2.0
+    },
+    'include_chart_data': True
+})
+
+result = response.json()
+print(f"PnL: ${result['pnl']:.2f}")
+print(f"Return: {result['return_pct']:.2f}%")
+print(f"Sharpe: {result['sharpe_ratio']}")
+print(f"Total Trades: {result['total_trades']}")
+```
+
+### Parameter Optimization
+
+```python
+response = requests.post('http://localhost:8086/optimize', json={
+    'ticker': 'BTC-USD',
+    'strategy': 'bollinger_bands_strategy',
+    'start_date': '2024-01-01',
+    'end_date': '2024-06-30',
+    'interval': '1d',
+    'cash': 10000.0,
+    'optimization_params': {
+        'period': [15, 20, 25],
+        'devfactor': [1.5, 2.0, 2.5]
+    }
+})
+
+result = response.json()
+print(f"Total Combinations Tested: {result['total_combinations']}")
+for i, res in enumerate(result['top_results'][:3], 1):
+    print(f"{i}. Params: {res['parameters']}, Return: {res['return_pct']:.2f}%")
+```
+
+### Save and Replay Run
+
+```python
+# Create preset
+preset_response = requests.post('http://localhost:8086/presets', json={
+    'name': 'BTC Bollinger 1D',
+    'ticker': 'BTC-USD',
+    'strategy': 'bollinger_bands_strategy',
+    'parameters': {'period': 20, 'devfactor': 2.0},
+    'interval': '1d',
+    'notes': 'Optimized for volatile markets'
+})
+
+preset_id = preset_response.json()['id']
+
+# Execute from preset
+backtest_response = requests.post(
+    f'http://localhost:8086/presets/{preset_id}/backtest',
+    params={'start_date': '2024-01-01', 'end_date': '2024-06-30', 'cash': 10000}
+)
+
+print(f"Executed preset with PnL: ${backtest_response.json()['pnl']:.2f}")
+```
+
+### Live Snapshot
+
+```python
+response = requests.post('http://localhost:8086/snapshot', json={
+    'ticker': 'AAPL',
+    'strategy': 'rsi_stochastic_strategy',
+    'interval': '1d',
+    'lookback_bars': 200,
+    'parameters': {
+        'rsi_period': 14,
+        'rsi_oversold': 30,
+        'rsi_overbought': 70
+    }
+})
+
+snapshot = response.json()
+print(f"Last Close: ${snapshot['last_bar']['close']:.2f}")
+print(f"RSI: {snapshot['indicators'].get('RSI', 'N/A')}")
+print(f"In Position: {snapshot['position_state']['in_position']}")
+```
+
+## Response Format
+
+### Backtest Response
 
 ```json
 {
   "success": true,
-  "ticker": "BTC-USD",
-  "strategy": "williams_r_strategy",
+  "ticker": "AAPL",
+  "strategy": "bollinger_bands_strategy",
   "start_value": 10000.0,
-  "end_value": 11500.0,
-  "pnl": 1500.0,
-  "return_pct": 15.0,
-  "sharpe_ratio": 1.25,
-  "max_drawdown": 8.5,
-  "total_trades": 15,
+  "end_value": 11250.0,
+  "pnl": 1250.0,
+  "return_pct": 12.5,
+  "sharpe_ratio": 1.45,
+  "max_drawdown": 6.2,
+  "total_trades": 12,
+  "winning_trades": 8,
+  "losing_trades": 4,
   "interval": "1d",
   "start_date": "2024-01-01",
-  "end_date": "2024-12-31",
+  "end_date": "2024-06-30",
   "advanced_metrics": {
-    "win_rate": 60.0,
-    "profit_factor": 1.8,
-    "payoff_ratio": 1.5,
-    "calmar_ratio": 1.76,
-    "sortino_ratio": 1.45,
-    "max_consecutive_wins": 5,
-    "max_consecutive_losses": 3,
-    "avg_win": 150.0,
-    "avg_loss": 100.0,
-    "largest_win": 300.0,
-    "largest_loss": 250.0,
-    "expectancy": 50.0
+    "win_rate": 66.67,
+    "profit_factor": 2.1,
+    "payoff_ratio": 1.6,
+    "calmar_ratio": 2.02,
+    "sortino_ratio": 1.75,
+    "max_consecutive_wins": 4,
+    "max_consecutive_losses": 2,
+    "avg_win": 200.0,
+    "avg_loss": 125.0,
+    "largest_win": 350.0,
+    "largest_loss": 200.0,
+    "expectancy": 104.17
   },
-  "chart_data": [
-    {
-      "date": "2024-01-01T00:00:00",
-      "open": 42000.0,
-      "high": 43000.0,
-      "low": 41500.0,
-      "close": 42500.0,
-      "volume": 1000000.0,
-      "indicators": {
-        "Williams_R": -50.0
-      },
-      "trade_markers": []
-    },
-    {
-      "date": "2024-01-02T00:00:00",
-      "open": 42500.0,
-      "high": 43200.0,
-      "low": 42300.0,
-      "close": 43000.0,
-      "volume": 1200000.0,
-      "indicators": {
-        "Williams_R": -45.0
-      },
-      "trade_markers": [
-        {
-          "type": "BUY",
-          "action": "OPEN",
-          "price": 42500.0,
-          "pnl": null
-        }
-      ]
-    },
-    {
-      "date": "2024-01-03T00:00:00",
-      "open": 43000.0,
-      "high": 43500.0,
-      "low": 42800.0,
-      "close": 43200.0,
-      "volume": 1100000.0,
-      "indicators": {
-        "Williams_R": -30.0
-      },
-      "trade_markers": [
-        {
-          "type": "SELL",
-          "action": "CLOSE",
-          "price": 43200.0,
-          "pnl": 68.0
-        }
-      ]
-    }
-  ]
+  "chart_data": [...]
 }
 ```
 
-## Chart Data Features
+Chart data provides unified timeline with OHLC, indicators, and trade markers aligned by timestamp for easy frontend visualization.
 
-The API returns chart data as a **unified timeline** where each data point contains all information for that specific timestamp. This makes frontend charting simple and efficient.
+## Testing
 
-### Unified Data Structure
+Execute test suite:
 
-Each data point in the `chart_data` array contains:
+```bash
+# Run all tests
+python tests/test_everything.py
 
-- **OHLC Data**: Open, High, Low, Close prices and Volume
-- **Technical Indicators**: All strategy indicators aligned to this timestamp
-- **Trade Markers**: Any trades that opened/closed at this timestamp
+# Individual test suites
+python tests/test_backtest.py
+python tests/test_optimization.py
+python tests/test_presets.py
+python tests/test_snapshot.py
+python tests/test_strategies.py
+python tests/test_indicators.py
+python tests/test_imports.py
 
-### Benefits
-
-- **Easy Alignment**: No need to manually sync indicators with dates
-- **Single Iteration**: Loop through once to plot everything
-- **Clean Code**: Frontend charting becomes trivial
-
-### Example Usage
-
-```javascript
-chartData.forEach(point => {
-  // Plot candlestick
-  plotCandle(point.date, point.open, point.high, point.low, point.close);
-
-  // Plot indicators
-  if (point.indicators.Williams_R !== null) {
-    plotIndicator(point.date, point.indicators.Williams_R);
-  }
-
-  // Plot trade markers
-  point.trade_markers.forEach(marker => {
-    plotMarker(point.date, marker.price, marker.type, marker.action);
-  });
-});
+# Strategy correctness tests
+python tests/strategies/test_bollinger_bands_strategy.py
+python tests/strategies/test_williams_r_strategy.py
 ```
+
+## Documentation
+
+Comprehensive structural documentation available in `docs/` directory:
+
+- **API_doc.md**: FastAPI endpoint layer, request/response models, middleware
+- **Core_doc.md**: Backtesting engine, strategy execution, optimization, chart extraction
+- **data_doc.md**: SQLite repositories, database schemas, CRUD operations
+- **config_doc.md**: Configuration management, constants, default parameters
+- **utils_doc.md**: Logging infrastructure, performance metrics calculator
+- **tests_doc.md**: Test suite organization, execution methodology, coverage
+
+Each document provides structural overview focusing on architecture, components, and integration points without implementation details.
 
 ## Adding Custom Strategies
 
-Create a new strategy by extending `Strategy_skeleton`:
+Create new strategy by extending `Strategy_skeleton`:
 
 ```python
 from src.core.strategy_skeleton import Strategy_skeleton
@@ -244,8 +335,8 @@ import backtrader as bt
 
 class MyStrategy(Strategy_skeleton):
     params = (
-        ("period", 20),
-        ("threshold", 0.02),
+        ('period', 20),
+        ('threshold', 0.02),
     )
 
     def __init__(self, args):
@@ -253,125 +344,131 @@ class MyStrategy(Strategy_skeleton):
         self.sma = bt.indicators.SMA(period=self.p.period)
 
     def get_technical_indicators(self):
-        return {
-            'SMA': self.sma
-        }
+        return {'SMA': self.sma}
 
     def next(self):
         if not self.position:
-            if self.data.close[0] > self.sma[0]:
+            if self.data.close[0] > self.sma[0] * (1 + self.p.threshold):
                 self.buy()
         else:
             if self.data.close[0] < self.sma[0]:
                 self.close()
 ```
 
-The strategy will be automatically discovered and available via the API.
-
-## Configuration
-
-### Default Parameters
-
-```python
-{
-    "cash": 10000,
-    "commission": 0.001,
-    "position_size_pct": 95.0,
-    "macd1": 12,
-    "macd2": 26,
-    "macdsig": 9,
-    "atrperiod": 14,
-    "atrdist": 2.0
-}
-```
-
-### CORS Settings
-
-CORS is configured in `src/config.py` for production use.
+Strategy automatically discovered on API restart. Add optimizable parameters in `src/core/strategy_optimization_config.py` for grid search support.
 
 ## Performance Metrics
 
-Each backtest returns comprehensive metrics:
-
 ### Basic Metrics
-- **ROI** - Return on Investment percentage
-- **Sharpe Ratio** - Risk-adjusted return
-- **Max Drawdown** - Maximum peak-to-trough decline
-- **Total Trades** - Number of trades executed
+- **PnL**: Absolute profit/loss in cash
+- **Return %**: Percentage return on initial capital
+- **Sharpe Ratio**: Risk-adjusted return (annualized)
+- **Max Drawdown**: Maximum peak-to-trough decline percentage
+- **Total Trades**: Number of completed round-trip trades
 
 ### Advanced Metrics
-- **Win Rate** - Percentage of profitable trades
-- **Profit Factor** - Gross profit / Gross loss
-- **Payoff Ratio** - Average win / Average loss
-- **Calmar Ratio** - Annual return / Max drawdown
-- **Sortino Ratio** - Downside risk-adjusted return
-- **Expectancy** - Expected value per trade
+- **Win Rate**: Percentage of profitable trades
+- **Profit Factor**: Gross profit divided by gross loss
+- **Payoff Ratio**: Average win divided by average loss
+- **Calmar Ratio**: Annualized return divided by max drawdown
+- **Sortino Ratio**: Return divided by downside deviation (penalizes only negative volatility)
+- **Expectancy**: Expected value per trade (statistical edge)
+- **Max Consecutive Wins/Losses**: Longest winning/losing streaks
+- **Average Win/Loss**: Mean profit/loss per winning/losing trade
+- **Largest Win/Loss**: Single trade extremes
 
-## Frontend Integration
+All metrics calculated via `PerformanceAnalyzer` utility class with equity curve analysis.
 
-### JavaScript Example
+## Architecture
 
-```javascript
-const response = await fetch('http://localhost:8000/backtest', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    ticker: 'BTC-USD',
-    strategy: 'williams_r_strategy',
-    start_date: '2024-01-01',
-    end_date: '2024-12-31',
-    interval: '1d',
-    cash: 10000,
-    parameters: {
-      period: 14,
-      lower_bound: -80,
-      upper_bound: -20
-    }
-  })
-});
+**Layered Architecture:**
 
-const result = await response.json();
-console.log(`ROI: ${result.return_pct}%`);
+1. **API Layer** (`src/api`): FastAPI endpoints, request validation, response formatting
+2. **Service Layer** (`src/services`): Business logic, orchestration, strategy metadata
+3. **Core Layer** (`src/core`): Backtrader integration, execution engine, optimization, data extraction
+4. **Data Layer** (`src/data`): SQLite persistence, repository pattern, CRUD operations
+5. **Support Layers**:
+   - Config: Centralized configuration and constants
+   - Utils: Logging, performance analysis
+   - Exceptions: Custom exception hierarchy
+   - Indicators: Custom Backtrader indicators
+   - Strategies: Trading algorithm implementations
 
-result.chart_data.forEach(point => {
-  console.log(`${point.date}: Close ${point.close}`);
-  if (point.trade_markers.length > 0) {
-    point.trade_markers.forEach(marker => {
-      console.log(`  ${marker.action} ${marker.type} @ ${marker.price}`);
-    });
-  }
-});
-```
+**Data Flow:**
+API Request → Service Orchestration → Core Execution → Data Persistence → API Response
 
-### Python Example
+**Testing Strategy:**
+- Unit tests: Import validation, indicator accuracy
+- Integration tests: API endpoints, database operations
+- Behavioral tests: Strategy correctness with controlled price data
+- End-to-end tests: Full workflow validation
+
+## Database Schema
+
+SQLite database (`data/strategy_runs.db`) with three tables:
+
+- **strategy_runs**: Backtest execution history with performance metrics
+- **strategy_presets**: Reusable strategy configurations
+- **watchlist_entries**: Automated monitoring schedule with foreign keys to presets/runs
+
+Foreign key constraints enforce referential integrity. All timestamps stored in ISO 8601 format.
+
+## Configuration
+
+Default settings in `src/config/backtest_config.py`:
 
 ```python
-import requests
-
-response = requests.post('http://localhost:8000/backtest', json={
-    'ticker': 'BTC-USD',
-    'strategy': 'williams_r_strategy',
-    'start_date': '2024-01-01',
-    'end_date': '2024-12-31',
-    'interval': '1d',
-    'cash': 10000,
-    'parameters': {
-        'period': 14,
-        'lower_bound': -80,
-        'upper_bound': -20
-    }
-})
-
-result = response.json()
-print(f"ROI: {result['return_pct']}%")
-print(f"Chart data points: {len(result['chart_data'])}")
-
-for point in result['chart_data']:
-    print(f"{point['date']}: Close {point['close']}")
-    for marker in point['trade_markers']:
-        print(f"  {marker['action']} {marker['type']} @ {marker['price']}")
+DEFAULT_CASH = 10000.0
+DEFAULT_COMMISSION = 0.001
+DEFAULT_POSITION_SIZE_PCT = 95.0
+DEFAULT_INTERVAL = "1d"
+DEFAULT_BACKTEST_PERIOD_YEARS = 1
 ```
+
+API configuration in `src/config/api_config.py`:
+
+```python
+API_HOST = "0.0.0.0"
+API_PORT = 8086
+CORS_ALLOW_ORIGINS = ["*"]  # Restrict in production
+```
+
+## Dependencies
+
+### Core
+- fastapi - REST API framework
+- uvicorn - ASGI server
+- backtrader - Backtesting engine
+- yfinance - Market data provider
+- pandas - Data manipulation
+- numpy - Numerical operations
+
+### Additional
+- pydantic - Data validation
+- python-dateutil - Date parsing
+- requests - HTTP client (tests)
+
+See `requirements.txt` for complete list with versions.
+
+## Logging
+
+Structured logging via `src/utils/api_logger.py`:
+
+- **File**: `logs/api_errors.log`
+- **Console**: Stdout for development visibility
+- **Level**: INFO for normal operations, ERROR for failures
+- **Decorator**: `@log_errors` provides automatic error tracking with full context
+
+Client errors (400-499) logged at INFO level. Server errors (500+) logged at ERROR level with complete traceback.
 
 ## Disclaimer
 
-This software is for educational and research purposes only. Do not use for live trading without thorough testing and understanding of the risks involved. Past performance does not guarantee future results.
+Educational and research purposes only. Not intended for live trading without extensive testing, risk assessment, and regulatory compliance. Past performance does not guarantee future results. Use at your own risk.
+
+## License
+
+[Specify license here]
+
+## Contributing
+
+[Specify contribution guidelines here]
