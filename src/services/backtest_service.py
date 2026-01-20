@@ -131,6 +131,12 @@ class BacktestService:
         from src.utils.sp500_tickers import get_sp500_tickers
         from src.utils.api_logger import logger
         import numpy as np
+        import time
+
+        # PERFORMANCE TRACKING
+        scan_start_time = time.time()
+        stock_timings = {}  # {ticker: time_seconds}
+        failed_stocks = []  # List of tickers that failed
 
         tickers = get_sp500_tickers()
         total_pnl = 0.0
@@ -147,7 +153,8 @@ class BacktestService:
 
         logger.info(f"Starting market scan with strategy '{strategy_name}' across {len(tickers)} stocks")
 
-        for ticker in tickers:
+        for idx, ticker in enumerate(tickers, 1):
+            stock_start_time = time.time()
             try:
                 request = BacktestRequest(
                     ticker=ticker,
@@ -194,8 +201,18 @@ class BacktestService:
                 if last_end_date is None or response.end_date > last_end_date:
                     last_end_date = response.end_date
 
+                # Track successful stock timing
+                stock_elapsed = time.time() - stock_start_time
+                stock_timings[ticker] = round(stock_elapsed, 3)
+
+                # Print progress
+                print(f"[{idx}/{len(tickers)}] {ticker}: {stock_elapsed:.3f}s (Total: {time.time() - scan_start_time:.1f}s)")
+
             except Exception as e:
-                logger.warning(f"Failed to run backtest for {ticker}: {str(e)}")
+                stock_elapsed = time.time() - stock_start_time
+                stock_timings[ticker] = round(stock_elapsed, 3)
+                failed_stocks.append({'ticker': ticker, 'error': str(e), 'time': round(stock_elapsed, 3)})
+                logger.warning(f"[{idx}/{len(tickers)}] Failed to run backtest for {ticker} after {stock_elapsed:.3f}s: {str(e)}")
                 continue
 
         stock_results.sort(key=lambda x: x['pnl'], reverse=True)
@@ -242,7 +259,35 @@ class BacktestService:
             'win_rate': round((winning_trades / total_trades * 100), 2) if total_trades > 0 else 0.0
         }
 
+        # PERFORMANCE SUMMARY
+        total_elapsed = time.time() - scan_start_time
+        avg_time_per_stock = total_elapsed / len(tickers) if len(tickers) > 0 else 0
+
         logger.info(f"Market scan completed: {stocks_with_trades}/{len(tickers)} stocks had trades, Total PnL: ${total_pnl:.2f}")
+        logger.info(f"Performance: Total time={total_elapsed:.2f}s, Avg per stock={avg_time_per_stock:.3f}s, Failed={len(failed_stocks)}")
+
+        # Print performance summary
+        print(f"\n{'='*60}")
+        print(f"MARKET SCAN PERFORMANCE SUMMARY")
+        print(f"{'='*60}")
+        print(f"Total time: {total_elapsed:.2f} seconds ({total_elapsed/60:.2f} minutes)")
+        print(f"Stocks processed: {len(tickers)}")
+        print(f"Successful: {len(stock_results)}")
+        print(f"Failed: {len(failed_stocks)}")
+        print(f"Average time per stock: {avg_time_per_stock:.3f}s")
+
+        if stock_timings:
+            sorted_timings = sorted(stock_timings.items(), key=lambda x: x[1], reverse=True)
+            print(f"\nSlowest 10 stocks:")
+            for ticker, elapsed in sorted_timings[:10]:
+                print(f"  {ticker}: {elapsed:.3f}s")
+
+        if failed_stocks:
+            print(f"\nFailed stocks ({len(failed_stocks)}):")
+            for failure in failed_stocks[:10]:  # Show first 10
+                print(f"  {failure['ticker']}: {failure['error'][:50]}... ({failure['time']:.3f}s)")
+
+        print(f"{'='*60}\n")
 
         return {
             'success': True,
@@ -262,7 +307,16 @@ class BacktestService:
             'stocks_scanned': len(stock_results),
             'stocks_with_trades': stocks_with_trades,
             'stock_results': stock_results,
-            'macro_statistics': macro_statistics
+            'macro_statistics': macro_statistics,
+            # PERFORMANCE DATA
+            'performance_data': {
+                'total_time_seconds': round(total_elapsed, 2),
+                'avg_time_per_stock': round(avg_time_per_stock, 3),
+                'stock_timings': stock_timings,
+                'failed_stocks': failed_stocks,
+                'successful_count': len(stock_results),
+                'failed_count': len(failed_stocks)
+            }
         }
 
     def get_snapshot(self, ticker: str, strategy_name: str, interval: str = "1d",
