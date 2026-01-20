@@ -153,6 +153,7 @@ class MarketScanResponse(BaseModel):
     stocks_with_trades: int
     stock_results: List[Dict[str, Any]]
     macro_statistics: Dict[str, Any]
+    performance_data: Optional[Dict[str, Any]] = None
 
 class PortfolioPositionResponse(BaseModel):
     id: int
