@@ -12,6 +12,7 @@ from src.core.optimizer import StrategyOptimizer
 from src.data.run_repository import RunRepository
 from src.data.preset_repository import PresetRepository
 from src.data.watchlist_repository import WatchlistRepository
+from src.data.portfolio_repository import PortfolioRepository
 from src.utils.api_logger import log_errors
 from src.api.models import (
     BacktestRequest, MarketDataRequest, BacktestResponse, StrategyInfo,
@@ -19,7 +20,9 @@ from src.api.models import (
     OptimizationRequest, OptimizationResponse, OptimizationResult,
     CreatePresetRequest, PresetResponse, SnapshotRequest, SnapshotResponse,
     SnapshotPositionState, CreateWatchlistRequest, WatchlistEntryResponse,
-    MarketScanRequest, MarketScanResponse
+    MarketScanRequest, MarketScanResponse,
+    AddPortfolioPositionRequest, UpdatePortfolioPositionRequest, PortfolioAnalysisRequest,
+    PortfolioPositionResponse, PortfolioSummaryResponse, PortfolioAnalysisResponse
 )
 from src.exceptions import StrategyNotFoundError, StrategyLoadError
 
@@ -34,6 +37,7 @@ data_manager = DataManager()
 run_repository = RunRepository()
 preset_repository = PresetRepository()
 watchlist_repository = WatchlistRepository()
+portfolio_repository = PortfolioRepository()
 
 def convert_to_columnar(chart_data: List[Dict[str, Any]]) -> Dict[str, List[Any]]:
     if not chart_data:
@@ -60,7 +64,10 @@ def root() -> Dict[str, object]:
             "replay_run": "/runs/{run_id}/replay",
             "presets": "/presets",
             "preset_detail": "/presets/{preset_id}",
-            "preset_backtest": "/presets/{preset_id}/backtest"
+            "preset_backtest": "/presets/{preset_id}/backtest",
+            "portfolio": "/portfolio",
+            "portfolio_position": "/portfolio/{position_id}",
+            "portfolio_analyze": "/portfolio/analyze"
         }
     }
 
@@ -590,6 +597,163 @@ def update_watchlist_entry(entry_id: int, enabled: Optional[bool] = Query(None))
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to update watchlist entry: {str(e)}")
+
+@app.post("/portfolio", response_model=PortfolioPositionResponse)
+@log_errors
+def add_portfolio_position(request: AddPortfolioPositionRequest) -> PortfolioPositionResponse:
+    try:
+        position_size = request.quantity * request.entry_price
+        position = {
+            'ticker': request.ticker.upper(),
+            'quantity': request.quantity,
+            'entry_price': request.entry_price,
+            'entry_date': request.entry_date,
+            'position_size': position_size,
+            'notes': request.notes
+        }
+        position_id = portfolio_repository.add_position(position)
+        created_position = portfolio_repository.get_position_by_id(position_id)
+
+        if not created_position:
+            raise HTTPException(status_code=500, detail="Failed to retrieve created position")
+
+        return PortfolioPositionResponse(**created_position)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to add position: {str(e)}")
+
+@app.get("/portfolio", response_model=PortfolioSummaryResponse)
+@log_errors
+def get_portfolio() -> PortfolioSummaryResponse:
+    try:
+        positions = portfolio_repository.get_all_positions()
+        total_value = portfolio_repository.get_total_portfolio_value()
+
+        position_responses = [PortfolioPositionResponse(**pos) for pos in positions]
+
+        return PortfolioSummaryResponse(
+            total_positions=len(positions),
+            total_portfolio_value=total_value,
+            positions=position_responses
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve portfolio: {str(e)}")
+
+@app.get("/portfolio/{position_id}", response_model=PortfolioPositionResponse)
+@log_errors
+def get_portfolio_position(position_id: int) -> PortfolioPositionResponse:
+    try:
+        position = portfolio_repository.get_position_by_id(position_id)
+        if not position:
+            raise HTTPException(status_code=404, detail=f"Position with ID {position_id} not found")
+        return PortfolioPositionResponse(**position)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve position: {str(e)}")
+
+@app.put("/portfolio/{position_id}", response_model=PortfolioPositionResponse)
+@log_errors
+def update_portfolio_position(position_id: int, request: UpdatePortfolioPositionRequest) -> PortfolioPositionResponse:
+    try:
+        updates = {}
+        if request.ticker is not None:
+            updates['ticker'] = request.ticker.upper()
+        if request.quantity is not None:
+            updates['quantity'] = request.quantity
+        if request.entry_price is not None:
+            updates['entry_price'] = request.entry_price
+        if request.entry_date is not None:
+            updates['entry_date'] = request.entry_date
+        if request.notes is not None:
+            updates['notes'] = request.notes
+
+        if 'quantity' in updates or 'entry_price' in updates:
+            current = portfolio_repository.get_position_by_id(position_id)
+            if not current:
+                raise HTTPException(status_code=404, detail=f"Position with ID {position_id} not found")
+            quantity = updates.get('quantity', current['quantity'])
+            entry_price = updates.get('entry_price', current['entry_price'])
+            updates['position_size'] = quantity * entry_price
+
+        if not updates:
+            raise HTTPException(status_code=400, detail="No fields to update")
+
+        updated = portfolio_repository.update_position(position_id, updates)
+        if not updated:
+            raise HTTPException(status_code=404, detail=f"Position with ID {position_id} not found")
+
+        position = portfolio_repository.get_position_by_id(position_id)
+        return PortfolioPositionResponse(**position)
+    except HTTPException:
+        raise
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update position: {str(e)}")
+
+@app.delete("/portfolio/{position_id}")
+@log_errors
+def delete_portfolio_position(position_id: int) -> Dict[str, Any]:
+    try:
+        deleted = portfolio_repository.delete_position(position_id)
+        if not deleted:
+            raise HTTPException(status_code=404, detail=f"Position with ID {position_id} not found")
+        return {
+            "success": True,
+            "message": f"Position {position_id} deleted successfully"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete position: {str(e)}")
+
+@app.post("/portfolio/analyze", response_model=PortfolioAnalysisResponse)
+@log_errors
+def analyze_portfolio(request: PortfolioAnalysisRequest) -> PortfolioAnalysisResponse:
+    try:
+        strategy_class = strategy_service.load_strategy_class(request.strategy)
+        if not strategy_class:
+            raise HTTPException(status_code=404, detail=f"Strategy '{request.strategy}' not found")
+
+        positions = portfolio_repository.get_all_positions()
+        if not positions:
+            raise HTTPException(status_code=400, detail="Portfolio is empty. Add positions before running analysis.")
+
+        result = backtest_service.analyze_portfolio(
+            positions=positions,
+            strategy_name=request.strategy,
+            start_date=request.start_date,
+            end_date=request.end_date,
+            interval=request.interval,
+            parameters=request.parameters
+        )
+
+        return PortfolioAnalysisResponse(
+            success=result['success'],
+            strategy=result['strategy'],
+            interval=result['interval'],
+            start_date=result['start_date'],
+            end_date=result['end_date'],
+            total_portfolio_value=result['total_portfolio_value'],
+            weighted_pnl=result['weighted_pnl'],
+            weighted_return_pct=result['weighted_return_pct'],
+            weighted_sharpe_ratio=result['weighted_sharpe_ratio'],
+            weighted_max_drawdown=result['weighted_max_drawdown'],
+            total_trades=result['total_trades'],
+            winning_trades=result['winning_trades'],
+            losing_trades=result['losing_trades'],
+            positions_analyzed=result['positions_analyzed'],
+            position_results=result['position_results'],
+            portfolio_statistics=result['portfolio_statistics']
+        )
+    except (StrategyNotFoundError, StrategyLoadError) as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Portfolio analysis failed: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn

@@ -345,3 +345,133 @@ class BacktestService:
             'cash': results['end_value'] - sum(t.get('pnl', 0) for t in trades),
             'timestamp': datetime.now().isoformat()
         }
+
+    def analyze_portfolio(self, positions: list, strategy_name: str, start_date: Optional[str] = None,
+                          end_date: Optional[str] = None, interval: str = BacktestConfig.DEFAULT_INTERVAL,
+                          parameters: Optional[Dict[str, Union[int, float]]] = None) -> Dict[str, Any]:
+        from src.utils.api_logger import logger
+        import numpy as np
+
+        if not positions:
+            raise ValueError("Portfolio is empty. Add positions before running analysis.")
+
+        total_portfolio_value = sum(p['position_size'] for p in positions)
+        position_results = []
+        weighted_returns = []
+        all_trades = 0
+        all_winning = 0
+        all_losing = 0
+        first_start_date = None
+        last_end_date = None
+
+        logger.info(f"Starting portfolio analysis with strategy '{strategy_name}' across {len(positions)} positions")
+
+        for position in positions:
+            ticker = position['ticker']
+            position_size = position['position_size']
+            weight = position_size / total_portfolio_value if total_portfolio_value > 0 else 0
+
+            try:
+                request = BacktestRequest(
+                    ticker=ticker,
+                    strategy=strategy_name,
+                    start_date=start_date,
+                    end_date=end_date,
+                    interval=interval,
+                    cash=position_size,
+                    parameters=parameters
+                )
+
+                response = self.run_backtest(request, save_run=False)
+
+                stock_winning = response.advanced_metrics.get('winning_trades', 0) if response.advanced_metrics else 0
+                stock_losing = response.advanced_metrics.get('losing_trades', 0) if response.advanced_metrics else 0
+
+                position_result = {
+                    'position_id': position['id'],
+                    'ticker': ticker,
+                    'position_size': position_size,
+                    'weight': round(weight * 100, 2),
+                    'pnl': round(response.pnl, 2),
+                    'return_pct': round(response.return_pct, 2),
+                    'total_trades': response.total_trades,
+                    'winning_trades': stock_winning,
+                    'losing_trades': stock_losing,
+                    'sharpe_ratio': round(response.sharpe_ratio, 2) if response.sharpe_ratio else None,
+                    'max_drawdown': round(response.max_drawdown, 2) if response.max_drawdown else None,
+                    'start_value': response.start_value,
+                    'end_value': response.end_value
+                }
+                position_results.append(position_result)
+
+                weighted_returns.append({
+                    'weight': weight,
+                    'return_pct': response.return_pct,
+                    'pnl': response.pnl,
+                    'sharpe': response.sharpe_ratio,
+                    'drawdown': response.max_drawdown
+                })
+
+                all_trades += response.total_trades
+                all_winning += stock_winning
+                all_losing += stock_losing
+
+                if first_start_date is None:
+                    first_start_date = response.start_date
+                if last_end_date is None or response.end_date > last_end_date:
+                    last_end_date = response.end_date
+
+            except Exception as e:
+                logger.warning(f"Failed to analyze position for {ticker}: {str(e)}")
+                continue
+
+        weighted_pnl = sum(wr['pnl'] for wr in weighted_returns)
+        weighted_return_pct = sum(wr['weight'] * wr['return_pct'] for wr in weighted_returns)
+
+        weighted_sharpe = None
+        sharpes = [wr['sharpe'] for wr in weighted_returns if wr['sharpe'] is not None]
+        if sharpes:
+            weighted_sharpe = sum(wr['weight'] * wr['sharpe'] for wr in weighted_returns if wr['sharpe'] is not None)
+
+        weighted_drawdown = None
+        drawdowns = [wr['drawdown'] for wr in weighted_returns if wr['drawdown'] is not None]
+        if drawdowns:
+            weighted_drawdown = sum(wr['weight'] * wr['drawdown'] for wr in weighted_returns if wr['drawdown'] is not None)
+
+        position_pnls = [pr['pnl'] for pr in position_results]
+        position_returns = [pr['return_pct'] for pr in position_results]
+
+        portfolio_statistics = {
+            'avg_position_pnl': round(np.mean(position_pnls), 2) if position_pnls else 0.0,
+            'median_position_pnl': round(np.median(position_pnls), 2) if position_pnls else 0.0,
+            'std_position_pnl': round(np.std(position_pnls), 2) if position_pnls else 0.0,
+            'min_position_pnl': round(min(position_pnls), 2) if position_pnls else 0.0,
+            'max_position_pnl': round(max(position_pnls), 2) if position_pnls else 0.0,
+            'avg_position_return': round(np.mean(position_returns), 2) if position_returns else 0.0,
+            'median_position_return': round(np.median(position_returns), 2) if position_returns else 0.0,
+            'profitable_positions': len([p for p in position_pnls if p > 0]),
+            'losing_positions': len([p for p in position_pnls if p < 0]),
+            'win_rate': round((all_winning / all_trades * 100), 2) if all_trades > 0 else 0.0,
+            'avg_trades_per_position': round(all_trades / len(position_results), 2) if position_results else 0.0
+        }
+
+        logger.info(f"Portfolio analysis completed: {len(position_results)} positions analyzed, Weighted PnL: ${weighted_pnl:.2f}")
+
+        return {
+            'success': True,
+            'strategy': strategy_name,
+            'interval': interval,
+            'start_date': first_start_date,
+            'end_date': last_end_date,
+            'total_portfolio_value': round(total_portfolio_value, 2),
+            'weighted_pnl': round(weighted_pnl, 2),
+            'weighted_return_pct': round(weighted_return_pct, 2),
+            'weighted_sharpe_ratio': round(weighted_sharpe, 2) if weighted_sharpe else None,
+            'weighted_max_drawdown': round(weighted_drawdown, 2) if weighted_drawdown else None,
+            'total_trades': all_trades,
+            'winning_trades': all_winning,
+            'losing_trades': all_losing,
+            'positions_analyzed': len(position_results),
+            'position_results': position_results,
+            'portfolio_statistics': portfolio_statistics
+        }

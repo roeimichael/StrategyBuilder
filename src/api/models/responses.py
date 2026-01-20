@@ -155,3 +155,52 @@ class MarketScanResponse(BaseModel):
     stocks_with_trades: int
     stock_results: List[Dict[str, Any]]
     macro_statistics: Dict[str, Any]
+
+class PortfolioPositionResponse(BaseModel):
+    id: int
+    ticker: str
+    quantity: float
+    entry_price: float
+    entry_date: str
+    position_size: float
+    notes: Optional[str]
+    created_at: str
+    updated_at: str
+
+class PortfolioSummaryResponse(BaseModel):
+    total_positions: int
+    total_portfolio_value: float
+    positions: List[PortfolioPositionResponse]
+
+class PositionAnalysisResult(BaseModel):
+    position_id: int
+    ticker: str
+    position_size: float
+    weight: float
+    pnl: float
+    return_pct: float
+    total_trades: int
+    winning_trades: int
+    losing_trades: int
+    sharpe_ratio: Optional[float]
+    max_drawdown: Optional[float]
+    start_value: float
+    end_value: float
+
+class PortfolioAnalysisResponse(BaseModel):
+    success: bool
+    strategy: str
+    interval: str
+    start_date: str
+    end_date: str
+    total_portfolio_value: float
+    weighted_pnl: float
+    weighted_return_pct: float
+    weighted_sharpe_ratio: Optional[float]
+    weighted_max_drawdown: Optional[float]
+    total_trades: int
+    winning_trades: int
+    losing_trades: int
+    positions_analyzed: int
+    position_results: List[PositionAnalysisResult]
+    portfolio_statistics: Dict[str, Any]

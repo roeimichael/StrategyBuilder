@@ -64,3 +64,24 @@ class MarketScanRequest(BaseModel):
     interval: str = Field(BacktestConfig.DEFAULT_INTERVAL, example="1d")
     cash: float = Field(BacktestConfig.DEFAULT_CASH, example=10000.0)
     parameters: Optional[Dict[str, Union[int, float]]] = Field(None)
+
+class AddPortfolioPositionRequest(BaseModel):
+    ticker: str = Field(..., example="AAPL", min_length=1, max_length=10)
+    quantity: float = Field(..., example=100.0, gt=0)
+    entry_price: float = Field(..., example=150.50, gt=0)
+    entry_date: str = Field(..., example="2024-01-15")
+    notes: Optional[str] = Field(None, example="Initial position", max_length=500)
+
+class UpdatePortfolioPositionRequest(BaseModel):
+    ticker: Optional[str] = Field(None, example="AAPL", min_length=1, max_length=10)
+    quantity: Optional[float] = Field(None, example=100.0, gt=0)
+    entry_price: Optional[float] = Field(None, example=150.50, gt=0)
+    entry_date: Optional[str] = Field(None, example="2024-01-15")
+    notes: Optional[str] = Field(None, example="Updated position", max_length=500)
+
+class PortfolioAnalysisRequest(BaseModel):
+    strategy: str = Field(..., example="bollinger_bands_strategy")
+    start_date: Optional[str] = Field(None, example="2024-01-01")
+    end_date: Optional[str] = Field(None, example="2024-12-31")
+    interval: str = Field(BacktestConfig.DEFAULT_INTERVAL, example="1d")
+    parameters: Optional[Dict[str, Union[int, float]]] = Field(None)
