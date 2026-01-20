@@ -13,6 +13,7 @@ from src.data.run_repository import RunRepository
 from src.data.preset_repository import PresetRepository
 from src.data.watchlist_repository import WatchlistRepository
 from src.data.portfolio_repository import PortfolioRepository
+from src.data.monitor_tickers_repository import MonitorTickersRepository
 from src.utils.api_logger import log_errors
 from src.api.models import (
     BacktestRequest, MarketDataRequest, BacktestResponse, StrategyInfo,
@@ -38,6 +39,7 @@ run_repository = RunRepository()
 preset_repository = PresetRepository()
 watchlist_repository = WatchlistRepository()
 portfolio_repository = PortfolioRepository()
+monitor_tickers_repository = MonitorTickersRepository()
 
 def convert_to_columnar(chart_data: List[Dict[str, Any]]) -> Dict[str, List[Any]]:
     if not chart_data:
@@ -67,7 +69,10 @@ def root() -> Dict[str, object]:
             "preset_backtest": "/presets/{preset_id}/backtest",
             "portfolio": "/portfolio",
             "portfolio_position": "/portfolio/{position_id}",
-            "portfolio_analyze": "/portfolio/analyze"
+            "portfolio_analyze": "/portfolio/analyze",
+            "monitor_tickers": "/monitor/tickers",
+            "monitor_tickers_add": "/monitor/tickers?ticker={ticker}",
+            "monitor_tickers_remove": "/monitor/tickers/{ticker}"
         }
     }
 
@@ -769,6 +774,139 @@ def analyze_portfolio(request: PortfolioAnalysisRequest) -> PortfolioAnalysisRes
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Portfolio analysis failed: {str(e)}")
+
+@app.get("/monitor/tickers")
+@log_errors
+def get_monitor_tickers() -> Dict[str, Any]:
+    """
+    Get list of tickers for live market monitor
+
+    Returns list of ticker symbols in display order.
+    Used by frontend on initialization to populate the live monitor.
+    """
+    try:
+        tickers = monitor_tickers_repository.get_all_tickers()
+        return {
+            "success": True,
+            "count": len(tickers),
+            "tickers": tickers
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve monitor tickers: {str(e)}")
+
+@app.get("/monitor/tickers/detailed")
+@log_errors
+def get_monitor_tickers_detailed() -> Dict[str, Any]:
+    """
+    Get detailed list of monitor tickers with metadata
+
+    Returns full ticker objects with id, display_order, created_at
+    """
+    try:
+        tickers = monitor_tickers_repository.get_all_tickers_detailed()
+        return {
+            "success": True,
+            "count": len(tickers),
+            "tickers": tickers
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve monitor tickers: {str(e)}")
+
+@app.post("/monitor/tickers")
+@log_errors
+def add_monitor_ticker(ticker: str = Query(..., example="NVDA", min_length=1, max_length=10)) -> Dict[str, Any]:
+    """
+    Add a ticker to the live market monitor
+
+    Args:
+        ticker: Ticker symbol to add (query parameter)
+
+    Returns:
+        Success message with created ticker ID
+    """
+    try:
+        ticker_id = monitor_tickers_repository.add_ticker(ticker)
+        return {
+            "success": True,
+            "message": f"Ticker {ticker.upper()} added to monitor",
+            "id": ticker_id,
+            "ticker": ticker.upper()
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to add ticker: {str(e)}")
+
+@app.delete("/monitor/tickers/{ticker}")
+@log_errors
+def remove_monitor_ticker(ticker: str) -> Dict[str, Any]:
+    """
+    Remove a ticker from the live market monitor
+
+    Args:
+        ticker: Ticker symbol to remove (path parameter)
+
+    Returns:
+        Success message
+    """
+    try:
+        removed = monitor_tickers_repository.remove_ticker(ticker)
+        if not removed:
+            raise HTTPException(status_code=404, detail=f"Ticker {ticker.upper()} not found in monitor list")
+
+        return {
+            "success": True,
+            "message": f"Ticker {ticker.upper()} removed from monitor"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to remove ticker: {str(e)}")
+
+@app.put("/monitor/tickers/reorder")
+@log_errors
+def reorder_monitor_tickers(tickers: List[str]) -> Dict[str, Any]:
+    """
+    Update the display order of monitor tickers
+
+    Args:
+        tickers: List of ticker symbols in desired display order
+
+    Returns:
+        Success message
+    """
+    try:
+        if not tickers:
+            raise HTTPException(status_code=400, detail="Ticker list cannot be empty")
+
+        monitor_tickers_repository.update_order(tickers)
+        return {
+            "success": True,
+            "message": f"Updated display order for {len(tickers)} tickers"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update ticker order: {str(e)}")
+
+@app.delete("/monitor/tickers")
+@log_errors
+def clear_monitor_tickers() -> Dict[str, Any]:
+    """
+    Remove all tickers from the live market monitor
+
+    Returns:
+        Success message with count of removed tickers
+    """
+    try:
+        count = monitor_tickers_repository.clear_all()
+        return {
+            "success": True,
+            "message": f"Removed {count} tickers from monitor",
+            "count": count
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to clear monitor tickers: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn

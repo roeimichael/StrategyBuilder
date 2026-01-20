@@ -22,9 +22,10 @@
 6. [Portfolio Management](#portfolio-management)
 7. [Snapshot](#snapshot)
 8. [Watchlist](#watchlist)
-9. [Data Models](#data-models)
-10. [TypeScript Interfaces](#typescript-interfaces)
-11. [Common Patterns](#common-patterns)
+9. [Live Market Monitor](#live-market-monitor)
+10. [Data Models](#data-models)
+11. [TypeScript Interfaces](#typescript-interfaces)
+12. [Common Patterns](#common-patterns)
 
 ---
 
@@ -1330,6 +1331,227 @@ Delete a watchlist entry.
 
 **Error Responses:**
 - `404` - Watchlist entry not found
+
+---
+
+## Live Market Monitor
+
+The live market monitor displays real-time data for a configured list of tickers. This section manages which tickers appear in the monitor.
+
+### Key Concepts
+- **Simple ticker list** - No complex configuration, just ticker symbols
+- **Display order** - Tickers are shown in specified order
+- **Persistent** - Saved in database across sessions
+- **Initialized with defaults** - AAPL, MSFT, GOOGL on first run
+
+#### GET `/monitor/tickers`
+Get list of tickers for live market monitor (for initialization).
+
+**Response:**
+```json
+{
+  "success": true,
+  "count": 3,
+  "tickers": ["AAPL", "MSFT", "GOOGL"]
+}
+```
+
+**Notes:**
+- Returns simple array of ticker symbols
+- Ordered by `display_order` field
+- Frontend should call this on initialization
+- Defaults to ["AAPL", "MSFT", "GOOGL"] on first run
+
+**Use Case:**
+```typescript
+// Frontend on mount
+useEffect(() => {
+  const loadMonitorTickers = async () => {
+    const response = await fetch('/monitor/tickers');
+    const data = await response.json();
+    setMonitorTickers(data.tickers); // ["AAPL", "MSFT", "GOOGL"]
+  };
+  loadMonitorTickers();
+}, []);
+```
+
+#### GET `/monitor/tickers/detailed`
+Get detailed list of monitor tickers with metadata.
+
+**Response:**
+```json
+{
+  "success": true,
+  "count": 3,
+  "tickers": [
+    {
+      "id": 1,
+      "ticker": "AAPL",
+      "display_order": 0,
+      "created_at": "2024-01-20T10:00:00"
+    },
+    {
+      "id": 2,
+      "ticker": "MSFT",
+      "display_order": 1,
+      "created_at": "2024-01-20T10:00:00"
+    },
+    {
+      "id": 3,
+      "ticker": "GOOGL",
+      "display_order": 2,
+      "created_at": "2024-01-20T10:00:00"
+    }
+  ]
+}
+```
+
+**Notes:**
+- Returns full ticker objects with IDs and order
+- Useful for admin UI showing ticker management
+
+#### POST `/monitor/tickers`
+Add a ticker to the live market monitor.
+
+**Query Parameters:**
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `ticker` | string | Yes | Ticker symbol to add (1-10 chars) |
+
+**Example Request:**
+```
+POST /monitor/tickers?ticker=NVDA
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Ticker NVDA added to monitor",
+  "id": 4,
+  "ticker": "NVDA"
+}
+```
+
+**Notes:**
+- Ticker is automatically uppercased
+- Added to end of display order
+- Duplicate tickers are rejected
+
+**Error Responses:**
+- `400` - Ticker already exists or invalid format
+- `500` - Database error
+
+#### DELETE `/monitor/tickers/{ticker}`
+Remove a ticker from the live market monitor.
+
+**Parameters:**
+- `ticker` (path) - Ticker symbol to remove
+
+**Example Request:**
+```
+DELETE /monitor/tickers/NVDA
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Ticker NVDA removed from monitor"
+}
+```
+
+**Error Responses:**
+- `404` - Ticker not found in monitor list
+- `500` - Database error
+
+#### PUT `/monitor/tickers/reorder`
+Update the display order of monitor tickers.
+
+**Request Body:**
+```json
+["MSFT", "AAPL", "GOOGL", "NVDA"]
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Updated display order for 4 tickers"
+}
+```
+
+**Notes:**
+- Pass array of tickers in desired display order
+- All tickers must exist in monitor list
+- Frontend can implement drag-and-drop reordering
+
+**Error Responses:**
+- `400` - Empty ticker list
+- `500` - Database error
+
+#### DELETE `/monitor/tickers`
+Remove all tickers from the live market monitor.
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Removed 3 tickers from monitor",
+  "count": 3
+}
+```
+
+**Notes:**
+- Clears entire monitor list
+- Useful for "reset to defaults" functionality
+
+### Frontend Integration Example
+
+```typescript
+// Initialize monitor on app load
+const MonitorPage: React.FC = () => {
+  const [tickers, setTickers] = useState<string[]>([]);
+
+  useEffect(() => {
+    loadTickers();
+  }, []);
+
+  const loadTickers = async () => {
+    const res = await fetch('http://localhost:8000/monitor/tickers');
+    const data = await res.json();
+    setTickers(data.tickers);
+  };
+
+  const addTicker = async (ticker: string) => {
+    await fetch(`http://localhost:8000/monitor/tickers?ticker=${ticker}`, {
+      method: 'POST'
+    });
+    loadTickers(); // Refresh
+  };
+
+  const removeTicker = async (ticker: string) => {
+    await fetch(`http://localhost:8000/monitor/tickers/${ticker}`, {
+      method: 'DELETE'
+    });
+    loadTickers(); // Refresh
+  };
+
+  return (
+    <div>
+      <h2>Live Market Monitor</h2>
+      {tickers.map(ticker => (
+        <TickerCard
+          key={ticker}
+          ticker={ticker}
+          onRemove={() => removeTicker(ticker)}
+        />
+      ))}
+      <AddTickerButton onAdd={addTicker} />
+    </div>
+  );
+};
+```
 
 ---
 
