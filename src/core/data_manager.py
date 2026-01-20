@@ -144,6 +144,11 @@ class DataManager:
 
         df = df.dropna()
 
+        # Remove duplicate index entries (keep first occurrence)
+        # This prevents "cannot reindex on an axis with duplicate labels" error
+        if not df.index.is_unique:
+            df = df[~df.index.duplicated(keep='first')]
+
         if 'Open' in df.columns:
             df = df[(df['Open'] > 0) & (df['High'] > 0) & (df['Low'] > 0) & (df['Close'] > 0)]
 
