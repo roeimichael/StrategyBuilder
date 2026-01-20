@@ -5,7 +5,8 @@ from .requests import (
     ReplayRunRequest,
     CreatePresetRequest,
     SnapshotRequest,
-    CreateWatchlistRequest
+    CreateWatchlistRequest,
+    MarketScanRequest
 )
 from .responses import (
     BacktestResponse,
@@ -19,7 +20,8 @@ from .responses import (
     PresetResponse,
     SnapshotPositionState,
     SnapshotResponse,
-    WatchlistEntryResponse
+    WatchlistEntryResponse,
+    MarketScanResponse
 )
 
 __all__ = [
@@ -41,5 +43,7 @@ __all__ = [
     'PresetResponse',
     'SnapshotPositionState',
     'SnapshotResponse',
-    'WatchlistEntryResponse'
+    'WatchlistEntryResponse',
+    'MarketScanRequest',
+    'MarketScanResponse'
 ]
