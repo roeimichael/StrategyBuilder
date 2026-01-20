@@ -20,21 +20,26 @@ class PresetRepository:
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
         with self._get_connection() as conn:
             cursor = conn.cursor()
+
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='strategy_presets'")
+            table_exists = cursor.fetchone()
+
+            if table_exists:
+                cursor.execute("PRAGMA table_info(strategy_presets)")
+                columns = [col[1] for col in cursor.fetchall()]
+                if 'ticker' in columns:
+                    cursor.execute('DROP TABLE strategy_presets')
+
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS strategy_presets (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT NOT NULL,
-                    ticker TEXT NOT NULL,
                     strategy TEXT NOT NULL,
                     parameters_json TEXT NOT NULL,
-                    interval TEXT NOT NULL,
                     notes TEXT,
                     created_at TEXT NOT NULL,
-                    UNIQUE(name, strategy, ticker)
+                    UNIQUE(name, strategy)
                 )
-            ''')
-            cursor.execute('''
-                CREATE INDEX IF NOT EXISTS idx_preset_ticker ON strategy_presets(ticker)
             ''')
             cursor.execute('''
                 CREATE INDEX IF NOT EXISTS idx_preset_strategy ON strategy_presets(strategy)
@@ -60,14 +65,12 @@ class PresetRepository:
             created_at = datetime.datetime.now().isoformat()
             cursor.execute('''
                 INSERT INTO strategy_presets (
-                    name, ticker, strategy, parameters_json, interval, notes, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    name, strategy, parameters_json, notes, created_at
+                ) VALUES (?, ?, ?, ?, ?)
             ''', (
                 preset_data['name'],
-                preset_data['ticker'],
                 preset_data['strategy'],
                 parameters_json,
-                preset_data['interval'],
                 preset_data.get('notes'),
                 created_at
             ))
@@ -83,15 +86,12 @@ class PresetRepository:
                 return None
             return self._row_to_dict(row)
 
-    def list_presets(self, ticker: Optional[str] = None, strategy: Optional[str] = None,
+    def list_presets(self, strategy: Optional[str] = None,
                      limit: int = 100, offset: int = 0) -> List[Dict[str, Any]]:
         with self._get_connection() as conn:
             cursor = conn.cursor()
             query = 'SELECT * FROM strategy_presets WHERE 1=1'
             params = []
-            if ticker:
-                query += ' AND ticker = ?'
-                params.append(ticker)
             if strategy:
                 query += ' AND strategy = ?'
                 params.append(strategy)
@@ -108,26 +108,23 @@ class PresetRepository:
             conn.commit()
             return cursor.rowcount > 0
 
-    def get_preset_count(self, ticker: Optional[str] = None, strategy: Optional[str] = None) -> int:
+    def get_preset_count(self, strategy: Optional[str] = None) -> int:
         with self._get_connection() as conn:
             cursor = conn.cursor()
             query = 'SELECT COUNT(*) FROM strategy_presets WHERE 1=1'
             params = []
-            if ticker:
-                query += ' AND ticker = ?'
-                params.append(ticker)
             if strategy:
                 query += ' AND strategy = ?'
                 params.append(strategy)
             cursor.execute(query, params)
             return cursor.fetchone()[0]
 
-    def preset_exists(self, name: str, strategy: str, ticker: str) -> bool:
+    def preset_exists(self, name: str, strategy: str) -> bool:
         with self._get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                'SELECT COUNT(*) FROM strategy_presets WHERE name = ? AND strategy = ? AND ticker = ?',
-                (name, strategy, ticker)
+                'SELECT COUNT(*) FROM strategy_presets WHERE name = ? AND strategy = ?',
+                (name, strategy)
             )
             return cursor.fetchone()[0] > 0
 

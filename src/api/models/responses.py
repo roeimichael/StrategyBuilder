@@ -85,10 +85,8 @@ class SavedRunDetailResponse(BaseModel):
 class PresetResponse(BaseModel):
     id: int
     name: str
-    ticker: str
     strategy: str
     parameters: Dict[str, Union[int, float]]
-    interval: str
     notes: Optional[str]
     created_at: str
 

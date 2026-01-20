@@ -24,8 +24,7 @@ class PresetTester:
             response = requests.post(
                 f"{BASE_URL}/presets",
                 json={
-                    "name": "RSI 1D mean reversion for AAPL",
-                    "ticker": "AAPL",
+                    "name": "Aggressive RSI Strategy",
                     "strategy": "rsi_stochastic_strategy",
                     "parameters": {
                         "rsi_period": 14,
@@ -35,8 +34,7 @@ class PresetTester:
                         "stoch_oversold": 20,
                         "stoch_overbought": 80
                     },
-                    "interval": "1d",
-                    "notes": "Works well in sideways markets"
+                    "notes": "Aggressive mean reversion strategy for volatile markets"
                 }
             )
 
@@ -45,9 +43,7 @@ class PresetTester:
                 print(f"[OK] Status Code: {response.status_code}")
                 print(f"  Preset ID: {result['id']}")
                 print(f"  Name: {result['name']}")
-                print(f"  Ticker: {result['ticker']}")
                 print(f"  Strategy: {result['strategy']}")
-                print(f"  Interval: {result['interval']}")
                 print(f"  Parameters: {result['parameters']}")
                 print(f"  Notes: {result.get('notes', 'None')}")
 
@@ -77,11 +73,9 @@ class PresetTester:
             response = requests.post(
                 f"{BASE_URL}/presets",
                 json={
-                    "name": "RSI 1D mean reversion for AAPL",
-                    "ticker": "AAPL",
+                    "name": "Aggressive RSI Strategy",
                     "strategy": "rsi_stochastic_strategy",
-                    "parameters": {"rsi_period": 14},
-                    "interval": "1d"
+                    "parameters": {"rsi_period": 14}
                 }
             )
 
@@ -120,8 +114,8 @@ class PresetTester:
                     first = result['presets'][0]
                     print(f"    ID: {first['id']}")
                     print(f"    Name: {first['name']}")
-                    print(f"    Ticker: {first['ticker']}")
                     print(f"    Strategy: {first['strategy']}")
+                    print(f"    Parameters: {first['parameters']}")
 
                 self.passed += 1
                 return True
@@ -144,12 +138,12 @@ class PresetTester:
         try:
             response = requests.get(
                 f"{BASE_URL}/presets",
-                params={"ticker": "AAPL", "strategy": "rsi_stochastic_strategy"}
+                params={"strategy": "rsi_stochastic_strategy"}
             )
 
             if response.status_code == 200:
                 result = response.json()
-                print(f"[OK] Filtered by ticker=AAPL, strategy=rsi_stochastic_strategy")
+                print(f"[OK] Filtered by strategy=rsi_stochastic_strategy")
                 print(f"  Found {result['count']} matching presets")
 
                 self.passed += 1
@@ -178,8 +172,10 @@ class PresetTester:
             response = requests.post(
                 f"{BASE_URL}/presets/{self.created_preset_id}/backtest",
                 params={
+                    "ticker": "AAPL",
                     "start_date": "2024-01-01",
                     "end_date": "2024-06-30",
+                    "interval": "1d",
                     "cash": 10000.0
                 }
             )
@@ -250,10 +246,8 @@ class PresetTester:
                 f"{BASE_URL}/presets",
                 json={
                     "name": "Invalid Strategy Test",
-                    "ticker": "AAPL",
                     "strategy": "nonexistent_strategy",
-                    "parameters": {},
-                    "interval": "1d"
+                    "parameters": {}
                 }
             )
 

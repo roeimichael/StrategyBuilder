@@ -353,17 +353,15 @@ def create_preset(request: CreatePresetRequest) -> PresetResponse:
         strategy_class = strategy_service.load_strategy_class(request.strategy)
         if not strategy_class:
             raise HTTPException(status_code=404, detail=f"Strategy '{request.strategy}' not found")
-        if preset_repository.preset_exists(request.name, request.strategy, request.ticker):
+        if preset_repository.preset_exists(request.name, request.strategy):
             raise HTTPException(
                 status_code=409,
-                detail=f"Preset with name '{request.name}' for strategy '{request.strategy}' and ticker '{request.ticker}' already exists"
+                detail=f"Preset with name '{request.name}' for strategy '{request.strategy}' already exists"
             )
         preset_data = {
             'name': request.name,
-            'ticker': request.ticker,
             'strategy': request.strategy,
             'parameters': request.parameters,
-            'interval': request.interval,
             'notes': request.notes
         }
         preset_id = preset_repository.create_preset(preset_data)
@@ -371,10 +369,8 @@ def create_preset(request: CreatePresetRequest) -> PresetResponse:
         return PresetResponse(
             id=created_preset['id'],
             name=created_preset['name'],
-            ticker=created_preset['ticker'],
             strategy=created_preset['strategy'],
             parameters=created_preset['parameters'],
-            interval=created_preset['interval'],
             notes=created_preset['notes'],
             created_at=created_preset['created_at']
         )
@@ -386,22 +382,19 @@ def create_preset(request: CreatePresetRequest) -> PresetResponse:
 @app.get("/presets")
 @log_errors
 def get_presets(
-    ticker: Optional[str] = Query(None),
     strategy: Optional[str] = Query(None),
     limit: int = Query(100, ge=1, le=1000),
     offset: int = Query(0, ge=0)
 ) -> Dict[str, Any]:
     try:
-        presets = preset_repository.list_presets(ticker=ticker, strategy=strategy, limit=limit, offset=offset)
-        total_count = preset_repository.get_preset_count(ticker=ticker, strategy=strategy)
+        presets = preset_repository.list_presets(strategy=strategy, limit=limit, offset=offset)
+        total_count = preset_repository.get_preset_count(strategy=strategy)
         preset_responses = [
             PresetResponse(
                 id=preset['id'],
                 name=preset['name'],
-                ticker=preset['ticker'],
                 strategy=preset['strategy'],
                 parameters=preset['parameters'],
-                interval=preset['interval'],
                 notes=preset['notes'],
                 created_at=preset['created_at']
             )
@@ -417,6 +410,26 @@ def get_presets(
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve presets: {str(e)}")
+
+@app.get("/presets/{preset_id}", response_model=PresetResponse)
+@log_errors
+def get_preset(preset_id: int) -> PresetResponse:
+    try:
+        preset = preset_repository.get_preset(preset_id)
+        if not preset:
+            raise HTTPException(status_code=404, detail=f"Preset with ID {preset_id} not found")
+        return PresetResponse(
+            id=preset['id'],
+            name=preset['name'],
+            strategy=preset['strategy'],
+            parameters=preset['parameters'],
+            notes=preset['notes'],
+            created_at=preset['created_at']
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve preset: {str(e)}")
 
 @app.delete("/presets/{preset_id}")
 @log_errors
@@ -437,19 +450,21 @@ def delete_preset(preset_id: int) -> Dict[str, Any]:
 @app.post("/presets/{preset_id}/backtest", response_model=BacktestResponse)
 @log_errors
 def backtest_from_preset(preset_id: int,
+                         ticker: str = Query(..., example="AAPL"),
                          start_date: Optional[str] = Query(None, example="2024-01-01"),
                          end_date: Optional[str] = Query(None, example="2024-12-31"),
+                         interval: str = Query("1d", example="1d"),
                          cash: Optional[float] = Query(None, example=10000.0)) -> BacktestResponse:
     try:
         preset = preset_repository.get_preset(preset_id)
         if not preset:
             raise HTTPException(status_code=404, detail=f"Preset with ID {preset_id} not found")
         backtest_request = ServiceBacktestRequest(
-            ticker=preset['ticker'],
+            ticker=ticker,
             strategy=preset['strategy'],
             start_date=start_date,
             end_date=end_date,
-            interval=preset['interval'],
+            interval=interval,
             cash=cash if cash is not None else 10000.0,
             parameters=preset['parameters']
         )
