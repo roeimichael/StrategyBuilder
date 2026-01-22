@@ -1,6 +1,6 @@
 import backtrader as bt
 from ..core.strategy_skeleton import Strategy_skeleton
-from src.indicators.obv_indicator import OBV
+from src.shared.indicators.obv_indicator import OBV
 
 
 class Momentum_Multi(Strategy_skeleton):

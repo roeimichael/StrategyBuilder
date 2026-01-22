@@ -2,7 +2,7 @@ from typing import Dict, List, Any, Type, Union
 from itertools import product
 from datetime import date
 import backtrader as bt
-from src.core.data_manager import DataManager
+from src.domains.market_data.manager import DataManager
 
 class StrategyOptimizer:
     def __init__(self, strategy_cls: Type[bt.Strategy], data_manager: DataManager):

@@ -1,5 +1,5 @@
 import backtrader as bt
-from src.indicators.cmf_indicator import CMF
+from src.shared.indicators.cmf_indicator import CMF
 from ..core.strategy_skeleton import Strategy_skeleton
 
 

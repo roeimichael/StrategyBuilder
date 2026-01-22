@@ -3,9 +3,9 @@ import importlib
 import inspect
 from typing import Type, List, Dict, Optional, Any, Union
 import backtrader as bt
-from src.core.strategy_skeleton import Strategy_skeleton
-from src.config import BacktestConfig
-from src.core.strategy_optimization_config import get_strategy_parameters
+from src.shared.strategy_skeleton import Strategy_skeleton
+from src.shared.config import BacktestConfig
+from src.domains.backtests.optimization_config import get_strategy_parameters
 
 
 class StrategyInfo:
@@ -28,7 +28,7 @@ class StrategyService:
         try:
             if strategy_name.endswith('.py'):
                 strategy_name = strategy_name[:-3]
-            module = importlib.import_module(f'src.strategies.{strategy_name}')
+            module = importlib.import_module(f'src.domains.strategies.implementations.{strategy_name}')
             for name, obj in inspect.getmembers(module, inspect.isclass):
                 if issubclass(obj, bt.Strategy) and obj not in [bt.Strategy, Strategy_skeleton]:
                     return obj
@@ -40,13 +40,13 @@ class StrategyService:
 
     @staticmethod
     def list_strategies() -> List[StrategyInfo]:
-        strategies_dir = os.path.join(os.path.dirname(__file__), '..', 'strategies')
+        strategies_dir = os.path.join(os.path.dirname(__file__), 'implementations')
         strategies = []
         for filename in os.listdir(strategies_dir):
             if filename.endswith('.py') and not filename.startswith('__'):
                 module_name = filename[:-3]
                 try:
-                    module = importlib.import_module(f'src.strategies.{module_name}')
+                    module = importlib.import_module(f'src.domains.strategies.implementations.{module_name}')
                     for name, obj in inspect.getmembers(module, inspect.isclass):
                         if issubclass(obj, bt.Strategy) and obj not in [bt.Strategy, Strategy_skeleton]:
                             strategies.append(StrategyInfo(

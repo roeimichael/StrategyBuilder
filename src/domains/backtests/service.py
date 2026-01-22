@@ -1,10 +1,10 @@
 from typing import Dict, Optional, Any, Union
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
-from src.config import BacktestConfig
-from src.core.run_strategy import Run_strategy
-from src.services.strategy_service import StrategyService
-from src.data.run_repository import RunRepository
+from src.shared.config import BacktestConfig
+from src.domains.backtests.engine import Run_strategy
+from src.domains.strategies.service import StrategyService
+from src.domains.saved_runs.repository import RunRepository
 
 
 class BacktestRequest:

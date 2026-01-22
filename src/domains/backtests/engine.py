@@ -3,9 +3,9 @@ from datetime import date
 import datetime
 import backtrader as bt
 import pandas as pd
-from src.core.data_manager import DataManager
-from src.core.extractors.chart_data_extractor import ChartDataExtractor
-from src.utils.performance_analyzer import PerformanceAnalyzer
+from src.domains.market_data.manager import DataManager
+from src.domains.backtests.extractors.chart_data_extractor import ChartDataExtractor
+from src.shared.utils.performance_analyzer import PerformanceAnalyzer
 
 
 class Run_strategy:
