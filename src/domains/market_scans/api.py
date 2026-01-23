@@ -2,9 +2,11 @@ from fastapi import APIRouter, HTTPException
 from src.domains.market_scans.models import MarketScanRequest, MarketScanResponse
 from src.domains.market_scans.service import MarketScanService
 from src.shared.utils.api_logger import log_errors
+from src.shared.utils.config_reader import ConfigReader
 
 router = APIRouter(prefix="/market-scan", tags=["market-scans"])
 market_scan_service = MarketScanService()
+config = ConfigReader.load_domain_config('market_scans')
 
 
 @router.post("", response_model=MarketScanResponse)
@@ -24,10 +26,10 @@ def run_market_scan(request: MarketScanRequest) -> MarketScanResponse:
     - **min_sharpe_ratio**: Filter results by minimum Sharpe ratio (optional)
     """
     try:
-        if len(request.tickers) > 500:
+        if len(request.tickers) > config.MAX_TICKERS_PER_SCAN:
             raise HTTPException(
                 status_code=400,
-                detail="Too many tickers. Maximum 500 tickers per scan."
+                detail=f"Too many tickers. Maximum {config.MAX_TICKERS_PER_SCAN} tickers per scan."
             )
 
         response = market_scan_service.run_market_scan(request)

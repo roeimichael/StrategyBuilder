@@ -4,6 +4,7 @@ import datetime
 import json
 from typing import Optional, List, Dict, Any
 from contextlib import contextmanager
+from src.shared.utils.config_reader import ConfigReader
 
 
 class PresetRepository:
@@ -11,11 +12,8 @@ class PresetRepository:
 
     def __init__(self, db_path: str = None):
         if db_path is None:
-            db_path = os.path.join(
-                os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
-                'data',
-                'presets.db'
-            )
+            config = ConfigReader.load_domain_config('presets')
+            db_path = config.DB_PATH
 
         self.db_path = db_path
         self._ensure_db_exists()

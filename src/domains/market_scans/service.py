@@ -2,11 +2,13 @@ from typing import List
 from datetime import datetime
 from src.domains.market_scans.models import MarketScanRequest, MarketScanResponse, MarketScanTickerResult
 from src.domains.backtests.service import BacktestService, BacktestRequest
+from src.shared.utils.config_reader import ConfigReader
 
 
 class MarketScanService:
     def __init__(self):
         self.backtest_service = BacktestService()
+        self.config = ConfigReader.load_domain_config('market_scans')
 
     def run_market_scan(self, request: MarketScanRequest) -> MarketScanResponse:
         """
@@ -35,8 +37,11 @@ class MarketScanService:
                     parameters=request.parameters or {}
                 )
 
-                # Run backtest (don't save to run history)
-                backtest_response = self.backtest_service.run_backtest(backtest_request, save_run=False)
+                # Run backtest (don't save to run history by default)
+                backtest_response = self.backtest_service.run_backtest(
+                    backtest_request,
+                    save_run=self.config.SAVE_SCAN_RUNS
+                )
 
                 # Apply filters if specified
                 if request.min_return_pct is not None and backtest_response.return_pct < request.min_return_pct:
@@ -79,5 +84,5 @@ class MarketScanService:
             successful_scans=successful_scans,
             failed_scans=failed_scans,
             results=results,
-            top_performers=successful_results[:20]  # Top 20 performers
+            top_performers=successful_results[:self.config.TOP_PERFORMERS_COUNT]
         )
