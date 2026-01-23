@@ -4,7 +4,7 @@ from dateutil.relativedelta import relativedelta
 from src.shared.config import BacktestConfig
 from src.domains.backtests.engine import Run_strategy
 from src.domains.strategies.service import StrategyService
-from src.domains.saved_runs.repository import RunRepository
+from src.domains.run_history.repository import RunRepository
 
 
 class BacktestRequest:

@@ -7,8 +7,13 @@ from src.shared.config import Config
 from src.domains.system.api import router as system_router
 from src.domains.strategies.api import router as strategies_router
 from src.domains.backtests.api import router as backtests_router
-from src.domains.market_data.api import router as market_data_router
-from src.domains.saved_runs.api import router as saved_runs_router
+from src.domains.optimizations.api import router as optimizations_router
+from src.domains.market_scans.api import router as market_scans_router
+from src.domains.run_history.api import router as run_history_router
+from src.domains.presets.api import router as presets_router
+from src.domains.watchlists.api import router as watchlists_router
+from src.domains.portfolios.api import router as portfolios_router
+from src.domains.live_monitor.api import router as live_monitor_router
 
 app = FastAPI(
     title=Config.API_TITLE,
@@ -30,8 +35,13 @@ app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.include_router(system_router)
 app.include_router(strategies_router)
 app.include_router(backtests_router)
-app.include_router(market_data_router)
-app.include_router(saved_runs_router)
+app.include_router(optimizations_router)
+app.include_router(market_scans_router)
+app.include_router(run_history_router)
+app.include_router(presets_router)
+app.include_router(watchlists_router)
+app.include_router(portfolios_router)
+app.include_router(live_monitor_router)
 
 if __name__ == "__main__":
     import uvicorn

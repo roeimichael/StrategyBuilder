@@ -1,13 +1,13 @@
 from typing import Optional, Dict, Any
 from fastapi import APIRouter, HTTPException, Query
-from src.domains.saved_runs.repository import RunRepository
-from src.domains.saved_runs.models import ReplayRunRequest, SavedRunSummaryResponse, SavedRunDetailResponse
+from src.domains.run_history.repository import RunRepository
+from src.domains.run_history.models import ReplayRunRequest, SavedRunSummaryResponse, SavedRunDetailResponse
 from src.domains.backtests.service import BacktestService
 from src.domains.backtests.models import BacktestResponse
 from src.shared.exceptions import StrategyNotFoundError, StrategyLoadError
 from src.shared.utils.api_logger import log_errors
 
-router = APIRouter(prefix="/runs", tags=["saved-runs"])
+router = APIRouter(prefix="/runs", tags=["run-history"])
 run_repository = RunRepository()
 backtest_service = BacktestService()
 
