@@ -1,5 +1,5 @@
 import backtrader as bt
-from ..core.strategy_skeleton import Strategy_skeleton
+from src.shared.strategy_skeleton import Strategy_skeleton
 
 
 class Keltner_Channel(Strategy_skeleton):

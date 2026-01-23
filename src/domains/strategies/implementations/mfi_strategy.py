@@ -1,5 +1,5 @@
 import backtrader as bt
-from ..core.strategy_skeleton import Strategy_skeleton
+from src.shared.strategy_skeleton import Strategy_skeleton
 from src.shared.indicators.mfi_indicator import MFI
 
 

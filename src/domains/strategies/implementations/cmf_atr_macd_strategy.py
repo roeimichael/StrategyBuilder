@@ -1,6 +1,6 @@
 import backtrader as bt
 from src.shared.indicators.cmf_indicator import CMF
-from ..core.strategy_skeleton import Strategy_skeleton
+from src.shared.strategy_skeleton import Strategy_skeleton
 
 
 class MACD_CMF_ATR_Strategy(Strategy_skeleton):

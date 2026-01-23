@@ -32,8 +32,4 @@ def get_strategy_info(strategy_name: str) -> Dict[str, object]:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/parameters/default")
-@log_errors
-def get_default_params() -> Dict[str, object]:
-    """Get default parameters for all strategies."""
-    return {"success": True, "parameters": strategy_service.get_default_parameters()}
+# Note: /parameters/default endpoint is in system/api.py
