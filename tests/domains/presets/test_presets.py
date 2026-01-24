@@ -50,7 +50,6 @@ def test_preset_repository_crud():
     print("  Testing PresetRepository CRUD...")
     try:
         from src.domains.presets.repository import PresetRepository
-        from src.domains.presets.models import PortfolioHolding
 
         # Create temporary database
         with tempfile.NamedTemporaryFile(suffix='.db', delete=False) as f:
