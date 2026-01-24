@@ -18,16 +18,16 @@ def test_imports():
     try:
         from src.domains.market_scans.service import MarketScanService
         from src.domains.market_scans.models import MarketScanRequest, MarketScanResponse
-        print("  ✓ Market scan components imported successfully")
+        print("  PASS Market scan components imported successfully")
         return True
     except ImportError as e:
         if "yfinance" in str(e):
-            print(f"  ⚠ Warning: yfinance not installed (optional dependency)")
+            print(f"  WARN Warning: yfinance not installed (optional dependency)")
             return True  # Don't fail the test for optional dependency
-        print(f"  ✗ Failed to import components: {e}")
+        print(f"  FAIL Failed to import components: {e}")
         return False
     except Exception as e:
-        print(f"  ✗ Failed to import components: {e}")
+        print(f"  FAIL Failed to import components: {e}")
         return False
 
 
@@ -38,12 +38,12 @@ def test_config_loading():
         from src.shared.utils.config_reader import ConfigReader
 
         config = ConfigReader.load_domain_config('market_scans')
-        print(f"  ✓ Config loaded: MAX_TICKERS_PER_SCAN = {config.MAX_TICKERS_PER_SCAN}")
+        print(f"  PASS Config loaded: MAX_TICKERS_PER_SCAN = {config.MAX_TICKERS_PER_SCAN}")
         print(f"    TOP_PERFORMERS_COUNT = {config.TOP_PERFORMERS_COUNT}")
         print(f"    SAVE_SCAN_RUNS = {config.SAVE_SCAN_RUNS}")
         return True
     except Exception as e:
-        print(f"  ✗ Config loading failed: {e}")
+        print(f"  FAIL Config loading failed: {e}")
         return False
 
 
@@ -61,10 +61,10 @@ def test_market_scan_model():
             interval="1d",
             cash=10000.0
         )
-        print(f"  ✓ MarketScanRequest created with {len(request.tickers)} tickers")
+        print(f"  PASS MarketScanRequest created with {len(request.tickers)} tickers")
         return True
     except Exception as e:
-        print(f"  ✗ Model test failed: {e}")
+        print(f"  FAIL Model test failed: {e}")
         return False
 
 

@@ -1,3 +1,4 @@
+"""Backtest API endpoints for running strategy backtests."""
 from typing import Dict, Any, List
 from fastapi import APIRouter, HTTPException
 from src.domains.backtests.service import BacktestService, BacktestRequest as ServiceBacktestRequest
@@ -10,7 +11,6 @@ backtest_service = BacktestService()
 
 
 def convert_to_columnar(chart_data: List[Dict[str, Any]]) -> Dict[str, List[Any]]:
-    """Convert chart data from row-based to columnar format."""
     if not chart_data:
         return {}
     columnar = {}
@@ -22,7 +22,6 @@ def convert_to_columnar(chart_data: List[Dict[str, Any]]) -> Dict[str, List[Any]
 @router.post("", response_model=BacktestResponse)
 @log_errors
 def run_backtest(request: BacktestRequest) -> BacktestResponse:
-    """Run a backtest with the specified parameters."""
     try:
         service_request = ServiceBacktestRequest(
             ticker=request.ticker, strategy=request.strategy, start_date=request.start_date,

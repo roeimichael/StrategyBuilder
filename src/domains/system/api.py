@@ -1,4 +1,5 @@
-from typing import Dict
+"""System API endpoints for health checks and API metadata."""
+from typing import Dict, Any
 from datetime import datetime
 from fastapi import APIRouter
 from src.shared.config import Config
@@ -11,8 +12,7 @@ strategy_service = StrategyService()
 
 @router.get("/")
 @log_errors
-def root() -> Dict[str, object]:
-    """API root endpoint with information and available endpoints."""
+def root() -> Dict[str, Any]:
     return {
         "name": Config.API_TITLE, "version": Config.API_VERSION, "status": "running", "docs": "/docs",
         "endpoints": {
@@ -31,12 +31,10 @@ def root() -> Dict[str, object]:
 @router.get("/health")
 @log_errors
 def health() -> Dict[str, str]:
-    """Health check endpoint."""
     return {"status": "healthy", "timestamp": datetime.now().isoformat()}
 
 
 @router.get("/parameters/default")
 @log_errors
-def get_default_params() -> Dict[str, object]:
-    """Get default parameters for all strategies."""
+def get_default_params() -> Dict[str, Any]:
     return {"success": True, "parameters": strategy_service.get_default_parameters()}

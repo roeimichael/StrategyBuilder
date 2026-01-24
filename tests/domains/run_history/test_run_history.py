@@ -20,10 +20,10 @@ def test_run_repository_import():
     print("  Testing RunRepository import...")
     try:
         from src.domains.run_history.repository import RunRepository
-        print("  ✓ RunRepository imported successfully")
+        print("  PASS RunRepository imported successfully")
         return True
     except Exception as e:
-        print(f"  ✗ Failed to import RunRepository: {e}")
+        print(f"  FAIL Failed to import RunRepository: {e}")
         return False
 
 
@@ -59,38 +59,38 @@ def test_run_repository_crud():
             }
 
             run_id = repo.save_run(run_record)
-            print(f"  ✓ Run saved with ID: {run_id}")
+            print(f"  PASS Run saved with ID: {run_id}")
 
             # Read
             retrieved = repo.get_run_by_id(run_id)
             if retrieved and retrieved['ticker'] == 'AAPL':
-                print("  ✓ Run retrieved successfully")
+                print("  PASS Run retrieved successfully")
             else:
-                print("  ✗ Failed to retrieve run")
+                print("  FAIL Failed to retrieve run")
                 return False
 
             # List
             runs = repo.list_runs(limit=10)
             if len(runs) == 1:
-                print(f"  ✓ List runs successful ({len(runs)} run)")
+                print(f"  PASS List runs successful ({len(runs)} run)")
             else:
-                print(f"  ✗ List runs unexpected count: {len(runs)}")
+                print(f"  FAIL List runs unexpected count: {len(runs)}")
                 return False
 
             # Filter
             filtered = repo.list_runs(ticker='AAPL')
             if len(filtered) == 1:
-                print("  ✓ Filter by ticker successful")
+                print("  PASS Filter by ticker successful")
             else:
-                print(f"  ✗ Filter failed: {len(filtered)}")
+                print(f"  FAIL Filter failed: {len(filtered)}")
                 return False
 
             # Count
             count = repo.get_run_count()
             if count == 1:
-                print(f"  ✓ Count runs successful ({count})")
+                print(f"  PASS Count runs successful ({count})")
             else:
-                print(f"  ✗ Count unexpected: {count}")
+                print(f"  FAIL Count unexpected: {count}")
                 return False
 
             return True
@@ -100,7 +100,7 @@ def test_run_repository_crud():
                 os.unlink(temp_db)
 
     except Exception as e:
-        print(f"  ✗ CRUD test failed: {e}")
+        print(f"  FAIL CRUD test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -118,14 +118,14 @@ def test_models():
 
         # Test ReplayRunRequest
         replay = ReplayRunRequest(start_date="2024-01-01", cash=20000.0)
-        print(f"  ✓ ReplayRunRequest created")
+        print(f"  PASS ReplayRunRequest created")
 
         # Test SavedRunSummaryResponse
         summary = SavedRunSummaryResponse(
             id=1, ticker="AAPL", strategy="test", interval="1d",
             pnl=500.0, return_pct=5.0, created_at="2024-01-01T00:00:00"
         )
-        print(f"  ✓ SavedRunSummaryResponse created")
+        print(f"  PASS SavedRunSummaryResponse created")
 
         # Test SavedRunDetailResponse
         detail = SavedRunDetailResponse(
@@ -135,11 +135,11 @@ def test_models():
             max_drawdown=10.0, total_trades=10, winning_trades=6,
             losing_trades=4, created_at="2024-01-01T00:00:00"
         )
-        print(f"  ✓ SavedRunDetailResponse created")
+        print(f"  PASS SavedRunDetailResponse created")
 
         return True
     except Exception as e:
-        print(f"  ✗ Models test failed: {e}")
+        print(f"  FAIL Models test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -152,10 +152,10 @@ def test_config_loading():
         from src.shared.utils.config_reader import ConfigReader
 
         config = ConfigReader.load_domain_config('run_history')
-        print(f"  ✓ Config loaded: DEFAULT_LIST_LIMIT = {config.DEFAULT_LIST_LIMIT}")
+        print(f"  PASS Config loaded: DEFAULT_LIST_LIMIT = {config.DEFAULT_LIST_LIMIT}")
         return True
     except Exception as e:
-        print(f"  ✗ Config loading failed: {e}")
+        print(f"  FAIL Config loading failed: {e}")
         return False
 
 

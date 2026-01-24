@@ -1,4 +1,5 @@
-from typing import Dict
+"""Market data API endpoints for fetching historical price data."""
+from typing import Dict, Any
 import datetime as dt
 from fastapi import APIRouter, HTTPException
 from src.domains.market_data.manager import DataManager
@@ -11,8 +12,7 @@ data_manager = DataManager()
 
 @router.post("")
 @log_errors
-def get_market_data(request: MarketDataRequest) -> Dict[str, object]:
-    """Fetch historical market data for a ticker."""
+def get_market_data(request: MarketDataRequest) -> Dict[str, Any]:
     try:
         end_date = dt.date.today()
         period_map = {'1mo': 30, '3mo': 90, '6mo': 180, '1y': 365, '2y': 730, '5y': 1825,

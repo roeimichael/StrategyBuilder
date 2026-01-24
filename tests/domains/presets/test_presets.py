@@ -23,10 +23,10 @@ def test_imports():
     try:
         from src.domains.presets.repository import PresetRepository
         from src.domains.presets.models import CreatePresetRequest, PresetResponse
-        print("  ✓ Preset components imported successfully")
+        print("  PASS Preset components imported successfully")
         return True
     except Exception as e:
-        print(f"  ✗ Failed to import components: {e}")
+        print(f"  FAIL Failed to import components: {e}")
         return False
 
 
@@ -37,11 +37,11 @@ def test_config_loading():
         from src.shared.utils.config_reader import ConfigReader
 
         config = ConfigReader.load_domain_config('presets')
-        print(f"  ✓ Config loaded: MAX_PRESETS = {config.MAX_PRESETS}")
+        print(f"  PASS Config loaded: MAX_PRESETS = {config.MAX_PRESETS}")
         print(f"    DB_NAME = {config.DB_NAME}")
         return True
     except Exception as e:
-        print(f"  ✗ Config loading failed: {e}")
+        print(f"  FAIL Config loading failed: {e}")
         return False
 
 
@@ -69,39 +69,39 @@ def test_preset_repository_crud():
             }
 
             preset_id = repo.create_preset(preset_data)
-            print(f"  ✓ Preset created with ID: {preset_id}")
+            print(f"  PASS Preset created with ID: {preset_id}")
 
             # Read
             retrieved = repo.get_preset_by_id(preset_id)
             if retrieved and retrieved['name'] == 'Test Preset':
-                print("  ✓ Preset retrieved successfully")
+                print("  PASS Preset retrieved successfully")
             else:
-                print("  ✗ Failed to retrieve preset")
+                print("  FAIL Failed to retrieve preset")
                 return False
 
             # Update
             updates = {'description': 'Updated description'}
             success = repo.update_preset(preset_id, updates)
             if success:
-                print("  ✓ Preset updated successfully")
+                print("  PASS Preset updated successfully")
             else:
-                print("  ✗ Failed to update preset")
+                print("  FAIL Failed to update preset")
                 return False
 
             # List
             presets = repo.list_presets()
             if len(presets) == 1:
-                print(f"  ✓ List presets successful ({len(presets)} preset)")
+                print(f"  PASS List presets successful ({len(presets)} preset)")
             else:
-                print(f"  ✗ List presets unexpected count: {len(presets)}")
+                print(f"  FAIL List presets unexpected count: {len(presets)}")
                 return False
 
             # Delete
             deleted = repo.delete_preset(preset_id)
             if deleted:
-                print("  ✓ Preset deleted successfully")
+                print("  PASS Preset deleted successfully")
             else:
-                print("  ✗ Failed to delete preset")
+                print("  FAIL Failed to delete preset")
                 return False
 
             return True
@@ -111,7 +111,7 @@ def test_preset_repository_crud():
                 os.unlink(temp_db)
 
     except Exception as e:
-        print(f"  ✗ CRUD test failed: {e}")
+        print(f"  FAIL CRUD test failed: {e}")
         import traceback
         traceback.print_exc()
         return False

@@ -1,3 +1,4 @@
+"""Optimization API endpoints for strategy parameter optimization."""
 from fastapi import APIRouter, HTTPException
 from src.domains.optimizations.models import OptimizationRequest, OptimizationResponse
 from src.domains.optimizations.service import OptimizationService
@@ -11,17 +12,6 @@ optimization_service = OptimizationService()
 @router.post("", response_model=OptimizationResponse)
 @log_errors
 def run_optimization(request: OptimizationRequest) -> OptimizationResponse:
-    """
-    Optimize a strategy by testing different parameter combinations.
-
-    - **ticker**: Stock symbol (e.g., "AAPL")
-    - **strategy**: Strategy name to optimize
-    - **start_date**: Backtest start date (YYYY-MM-DD)
-    - **end_date**: Backtest end date (YYYY-MM-DD)
-    - **interval**: Data interval (1d, 1h, etc.)
-    - **cash**: Starting cash amount
-    - **param_ranges**: Dictionary of parameters with lists of values to test
-    """
     try:
         response = optimization_service.run_optimization(request)
         return response

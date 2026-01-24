@@ -18,10 +18,10 @@ def test_strategy_service_import():
     print("  Testing StrategyService import...")
     try:
         from src.domains.strategies.service import StrategyService
-        print("  ✓ StrategyService imported successfully")
+        print("  PASS StrategyService imported successfully")
         return True
     except Exception as e:
-        print(f"  ✗ Failed to import StrategyService: {e}")
+        print(f"  FAIL Failed to import StrategyService: {e}")
         return False
 
 
@@ -35,15 +35,15 @@ def test_list_strategies():
         strategies = service.list_strategies()
 
         if len(strategies) > 0:
-            print(f"  ✓ Found {len(strategies)} strategies")
+            print(f"  PASS Found {len(strategies)} strategies")
             for strat in strategies[:3]:  # Show first 3
                 print(f"    - {strat.module}: {strat.class_name}")
             return True
         else:
-            print("  ✗ No strategies found")
+            print("  FAIL No strategies found")
             return False
     except Exception as e:
-        print(f"  ✗ test_list_strategies failed: {e}")
+        print(f"  FAIL test_list_strategies failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -59,14 +59,14 @@ def test_get_strategy_info():
         strategy_info = service.get_strategy_info('bollinger_bands_strategy')
 
         if strategy_info and 'class_name' in strategy_info:
-            print(f"  ✓ Strategy info retrieved: {strategy_info['class_name']}")
+            print(f"  PASS Strategy info retrieved: {strategy_info['class_name']}")
             print(f"    Parameters: {len(strategy_info.get('parameters', {}))} found")
             return True
         else:
-            print("  ✗ Failed to get strategy info")
+            print("  FAIL Failed to get strategy info")
             return False
     except Exception as e:
-        print(f"  ✗ test_get_strategy_info failed: {e}")
+        print(f"  FAIL test_get_strategy_info failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -79,10 +79,10 @@ def test_config_loading():
         from src.shared.utils.config_reader import ConfigReader
 
         config = ConfigReader.load_domain_config('strategies')
-        print(f"  ✓ Config loaded: DEFAULT_CASH = {config.DEFAULT_PARAMETERS['cash']}")
+        print(f"  PASS Config loaded: DEFAULT_CASH = {config.DEFAULT_PARAMETERS['cash']}")
         return True
     except Exception as e:
-        print(f"  ✗ Config loading failed: {e}")
+        print(f"  FAIL Config loading failed: {e}")
         return False
 
 

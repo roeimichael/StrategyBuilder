@@ -1,3 +1,4 @@
+"""Preset API endpoints for managing reusable strategy configurations."""
 from typing import Optional
 from fastapi import APIRouter, HTTPException, Query
 from src.domains.presets.models import CreatePresetRequest, UpdatePresetRequest, PresetResponse, PresetListResponse
@@ -11,16 +12,6 @@ preset_repository = PresetRepository()
 @router.post("", response_model=PresetResponse, status_code=201)
 @log_errors
 def create_preset(request: CreatePresetRequest) -> PresetResponse:
-    """
-    Create a new strategy preset (configuration without a specific ticker).
-
-    - **name**: Unique name for the preset
-    - **description**: Optional description
-    - **strategy**: Strategy name
-    - **parameters**: Strategy parameters
-    - **interval**: Data interval (default: 1d)
-    - **cash**: Starting cash amount (default: 10000)
-    """
     try:
         # Check if name already exists
         existing = preset_repository.get_preset_by_name(request.name)
@@ -51,13 +42,6 @@ def list_presets(
     limit: int = Query(100, description="Maximum number of results", ge=1, le=500),
     offset: int = Query(0, description="Number of results to skip", ge=0)
 ) -> PresetListResponse:
-    """
-    List all strategy presets with optional filters.
-
-    - **strategy**: Filter by strategy name (optional)
-    - **limit**: Maximum number of results (default: 100, max: 500)
-    - **offset**: Number of results to skip for pagination
-    """
     try:
         presets = preset_repository.list_presets(strategy=strategy, limit=limit, offset=offset)
         preset_responses = [PresetResponse(**preset) for preset in presets]
@@ -74,11 +58,6 @@ def list_presets(
 @router.get("/{preset_id}", response_model=PresetResponse)
 @log_errors
 def get_preset(preset_id: int) -> PresetResponse:
-    """
-    Get a specific preset by ID.
-
-    - **preset_id**: The ID of the preset
-    """
     try:
         preset = preset_repository.get_preset_by_id(preset_id)
         if not preset:
@@ -94,12 +73,6 @@ def get_preset(preset_id: int) -> PresetResponse:
 @router.patch("/{preset_id}", response_model=PresetResponse)
 @log_errors
 def update_preset(preset_id: int, request: UpdatePresetRequest) -> PresetResponse:
-    """
-    Update an existing preset.
-
-    - **preset_id**: The ID of the preset to update
-    - **request**: Fields to update (all optional)
-    """
     try:
         # Check if preset exists
         existing = preset_repository.get_preset_by_id(preset_id)
@@ -136,12 +109,7 @@ def update_preset(preset_id: int, request: UpdatePresetRequest) -> PresetRespons
 
 @router.delete("/{preset_id}", status_code=204)
 @log_errors
-def delete_preset(preset_id: int):
-    """
-    Delete a preset.
-
-    - **preset_id**: The ID of the preset to delete
-    """
+def delete_preset(preset_id: int) -> None:
     try:
         success = preset_repository.delete_preset(preset_id)
         if not success:

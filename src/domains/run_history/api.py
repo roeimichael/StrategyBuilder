@@ -1,3 +1,4 @@
+"""Run history API endpoints for managing saved backtest runs."""
 from typing import Optional, Dict, Any
 from fastapi import APIRouter, HTTPException, Query
 from src.domains.run_history.repository import RunRepository
@@ -20,14 +21,6 @@ def get_runs(
     limit: int = Query(100, description="Maximum number of results", ge=1, le=1000),
     offset: int = Query(0, description="Number of results to skip", ge=0)
 ) -> Dict[str, Any]:
-    """
-    List saved backtest runs with optional filters.
-
-    - **ticker**: Filter by ticker symbol (optional)
-    - **strategy**: Filter by strategy name (optional)
-    - **limit**: Maximum number of results (default: 100, max: 1000)
-    - **offset**: Number of results to skip for pagination (default: 0)
-    """
     try:
         runs = run_repository.list_runs(ticker=ticker, strategy=strategy, limit=limit, offset=offset)
         total_count = run_repository.get_run_count(ticker=ticker, strategy=strategy)
@@ -60,11 +53,6 @@ def get_runs(
 @router.get("/{run_id}", response_model=SavedRunDetailResponse)
 @log_errors
 def get_run_detail(run_id: int) -> SavedRunDetailResponse:
-    """
-    Get detailed information about a specific saved run.
-
-    - **run_id**: The ID of the saved run
-    """
     try:
         run = run_repository.get_run_by_id(run_id)
         if not run:
@@ -97,12 +85,6 @@ def get_run_detail(run_id: int) -> SavedRunDetailResponse:
 @router.post("/{run_id}/replay", response_model=BacktestResponse)
 @log_errors
 def replay_run(run_id: int, request: ReplayRunRequest) -> BacktestResponse:
-    """
-    Replay a saved backtest run with optional parameter overrides.
-
-    - **run_id**: The ID of the saved run to replay
-    - **request**: Optional overrides for start_date, end_date, interval, cash, or parameters
-    """
     try:
         overrides = {}
         if request.start_date is not None:
