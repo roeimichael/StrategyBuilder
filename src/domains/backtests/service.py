@@ -9,8 +9,8 @@ from src.domains.run_history.repository import RunRepository
 
 class BacktestRequest:
     def __init__(self, ticker: str, strategy: str, start_date: Optional[str] = None,
-                 end_date: Optional[str] = None, interval: str = BacktestConfig.DEFAULT_INTERVAL,
-                 cash: float = BacktestConfig.DEFAULT_CASH, parameters: Optional[Dict[str, Union[int, float]]] = None):
+                 end_date: Optional[str] = None, interval: str = "1d",
+                 cash: float = 10000.0, parameters: Optional[Dict[str, Union[int, float]]] = None):
         self.ticker = ticker
         self.strategy = strategy
         self.start_date = start_date
