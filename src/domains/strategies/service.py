@@ -25,18 +25,20 @@ class StrategyInfo:
 class StrategyService:
     @staticmethod
     def load_strategy_class(strategy_name: str) -> Type[bt.Strategy]:
+        if strategy_name.endswith('.py'):
+            strategy_name = strategy_name[:-3]
         try:
-            if strategy_name.endswith('.py'):
-                strategy_name = strategy_name[:-3]
             module = importlib.import_module(f'src.domains.strategies.implementations.{strategy_name}')
             for name, obj in inspect.getmembers(module, inspect.isclass):
                 if issubclass(obj, bt.Strategy) and obj not in [bt.Strategy, Strategy_skeleton]:
                     return obj
-            print(f"No valid strategy class found in {strategy_name}")
+            raise ValueError(f"No valid strategy class found in {strategy_name}")
         except ImportError as e:
-            print(f"Strategy module '{strategy_name}' not found: {str(e)}")
+            raise ImportError(f"Strategy module '{strategy_name}' not found: {str(e)}")
+        except ValueError:
+            raise
         except Exception as e:
-            print(f"Error loading strategy: {str(e)}")
+            raise RuntimeError(f"Error loading strategy: {str(e)}")
 
     @staticmethod
     def list_strategies() -> List[StrategyInfo]:

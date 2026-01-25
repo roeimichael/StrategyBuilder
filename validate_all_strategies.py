@@ -53,7 +53,7 @@ def test_all_strategies() -> Dict[str, Any]:
             backtest_request = {
                 "ticker": "AAPL",
                 "strategy": strategy_name,
-                "start_date": "2024-11-01",
+                "start_date": "2024-07-01",
                 "end_date": "2024-12-31",
                 "interval": "1d",
                 "cash": 10000,
@@ -109,11 +109,11 @@ def validate_config_dynamic_behavior() -> Dict[str, Any]:
                 "strategy": "bollinger_bands_strategy",
                 "start_date": "2024-12-01",
                 "end_date": "2024-12-31",
-                "interval": "1h",
+                "interval": "1d",
                 "cash": 10000,
                 "parameters": {"period": 20, "devfactor": 2.0}
             },
-            "expected_interval": "1h"
+            "expected_interval": "1d"
         }
     ]
 

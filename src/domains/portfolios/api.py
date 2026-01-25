@@ -182,9 +182,7 @@ def backtest_portfolio(portfolio_id: int, request: PortfolioBacktestRequest) -> 
                     return_pct=backtest_response.return_pct,
                     sharpe_ratio=backtest_response.sharpe_ratio
                 ))
-            except Exception as e:
-                # Continue with other tickers if one fails
-                print(f"Failed to backtest {holding['ticker']}: {str(e)}")
+            except Exception:
                 continue
 
         # Calculate weighted results if requested
