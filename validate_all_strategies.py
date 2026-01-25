@@ -94,7 +94,7 @@ def validate_config_dynamic_behavior() -> Dict[str, Any]:
             "request": {
                 "ticker": "AAPL",
                 "strategy": "bollinger_bands_strategy",
-                "start_date": "2024-12-01",
+                "start_date": "2024-07-01",
                 "end_date": "2024-12-31",
                 "interval": "1d",
                 "cash": 50000,
@@ -107,7 +107,7 @@ def validate_config_dynamic_behavior() -> Dict[str, Any]:
             "request": {
                 "ticker": "AAPL",
                 "strategy": "bollinger_bands_strategy",
-                "start_date": "2024-12-01",
+                "start_date": "2024-07-01",
                 "end_date": "2024-12-31",
                 "interval": "1d",
                 "cash": 10000,
