@@ -60,12 +60,20 @@ class Run_strategy:
         return results, start_value, end_value
 
     def runstrat(self, ticker: str, start_date: date, interval: str, end_date: Optional[date] = None) -> Dict[str, Any]:
-        self.cerebro.broker.set_cash(self.args['cash'])
+        cash = self.args.get('cash', 10000.0)
+        commission = self.args.get('commission', 0.001)
+        position_size_pct = self.args.get('position_size_pct', 95.0)
+
+        backtest_config_keys = {'cash', 'commission', 'position_size_pct', 'macd1', 'macd2', 'macdsig',
+                               'atrperiod', 'atrdist', 'order_pct'}
+        strategy_params = {k: v for k, v in self.args.items() if k not in backtest_config_keys}
+
+        self.cerebro.broker.set_cash(cash)
+        self.cerebro.broker.setcommission(commission=commission)
         if self.data is None:
             self._fetch_and_add_data(ticker, start_date, interval, end_date)
-        sizer_percent = self.args.get('position_size_pct', 95)
-        self.cerebro.addsizer(bt.sizers.PercentSizer, percents=sizer_percent)
-        self.cerebro.addstrategy(self.strategy, args=self.args)
+        self.cerebro.addsizer(bt.sizers.PercentSizer, percents=position_size_pct)
+        self.cerebro.addstrategy(self.strategy, args=self.args, **strategy_params)
         self.add_analyzers(self.data)
         results, start_value, end_value = self._execute_backtest()
         strat = results[0]
