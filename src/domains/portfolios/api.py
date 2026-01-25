@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, HTTPException
 from src.domains.portfolios.models import (
     CreatePortfolioRequest,
@@ -12,6 +13,9 @@ from src.domains.portfolios.repository import PortfolioRepository
 from src.domains.presets.repository import PresetRepository
 from src.domains.backtests.service import BacktestService, BacktestRequest
 from src.shared.utils.api_logger import log_errors
+from src.shared.exceptions import StrategyNotFoundError, StrategyLoadError
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/portfolios", tags=["portfolios"])
 portfolio_repository = PortfolioRepository()
@@ -182,7 +186,14 @@ def backtest_portfolio(portfolio_id: int, request: PortfolioBacktestRequest) -> 
                     return_pct=backtest_response.return_pct,
                     sharpe_ratio=backtest_response.sharpe_ratio
                 ))
-            except Exception:
+            except (StrategyNotFoundError, StrategyLoadError) as e:
+                logger.warning(f"Failed to backtest {holding['ticker']}: {e}")
+                continue
+            except ValueError as e:
+                logger.warning(f"Invalid data for {holding['ticker']}: {e}")
+                continue
+            except Exception as e:
+                logger.error(f"Unexpected error backtesting {holding['ticker']}: {e}", exc_info=True)
                 continue
 
         # Calculate weighted results if requested

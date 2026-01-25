@@ -1,10 +1,13 @@
 import os
 import sqlite3
 import datetime
+import logging
 import pandas as pd
 import yfinance as yf
 from typing import Optional, List, Tuple
 from contextlib import contextmanager
+
+logger = logging.getLogger(__name__)
 
 
 class DataManager:
@@ -253,7 +256,15 @@ class DataManager:
             table = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
             df = table[0]
             return df['Symbol'].str.replace('.', '-').tolist()
-        except Exception:
+        except ImportError as e:
+            logger.warning(f"Failed to fetch S&P 500 list from Wikipedia (missing dependency): {e}. Using default list.")
+            return [
+                'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA', 'BRK-B', 'UNH', 'JNJ',
+                'V', 'WMT', 'XOM', 'JPM', 'PG', 'MA', 'CVX', 'HD', 'LLY', 'ABBV',
+                'MRK', 'AVGO', 'KO', 'PEP', 'COST', 'TMO', 'MCD', 'CSCO', 'ACN', 'ABT'
+            ]
+        except Exception as e:
+            logger.warning(f"Failed to fetch S&P 500 list from Wikipedia: {e}. Using default list.")
             return [
                 'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA', 'BRK-B', 'UNH', 'JNJ',
                 'V', 'WMT', 'XOM', 'JPM', 'PG', 'MA', 'CVX', 'HD', 'LLY', 'ABBV',

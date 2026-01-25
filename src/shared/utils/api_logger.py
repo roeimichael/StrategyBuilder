@@ -1,6 +1,7 @@
 import logging
 import traceback
 import functools
+import asyncio
 from datetime import datetime
 from typing import Callable, Any
 from pathlib import Path
@@ -80,6 +81,3 @@ FULL TRACEBACK:
         return async_wrapper
     else:
         return sync_wrapper
-
-
-import asyncio

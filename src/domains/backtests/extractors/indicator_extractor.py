@@ -1,6 +1,9 @@
 from typing import Dict, List, Optional
 from abc import ABC, abstractmethod
+import logging
 import backtrader as bt
+
+logger = logging.getLogger(__name__)
 
 
 class IndicatorValueExtractor(ABC):
@@ -189,8 +192,11 @@ class IndicatorExtractor:
                     data_length
                 )
                 result.update(extracted)
-            except Exception:
-                # Skip indicators that fail to extract
+            except (AttributeError, IndexError, ValueError) as e:
+                logger.debug(f"Failed to extract indicator '{indicator_name}': {e}")
+                continue
+            except Exception as e:
+                logger.warning(f"Unexpected error extracting indicator '{indicator_name}': {e}", exc_info=True)
                 continue
 
         return result
@@ -214,7 +220,11 @@ class IndicatorExtractor:
                     data_length
                 )
                 result.update(extracted)
-            except Exception:
+            except (AttributeError, IndexError, ValueError) as e:
+                logger.debug(f"Failed to extract indicator attribute '{attr_name}': {e}")
+                continue
+            except Exception as e:
+                logger.warning(f"Unexpected error extracting indicator attribute '{attr_name}': {e}", exc_info=True)
                 continue
 
         return result

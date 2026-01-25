@@ -1,11 +1,14 @@
 import os
 import importlib
 import inspect
+import logging
 from typing import Type, List, Dict, Optional, Any, Union
 import backtrader as bt
 from src.shared.strategy_skeleton import Strategy_skeleton
 from src.shared.config import BacktestConfig
 from src.domains.backtests.optimization_config import get_strategy_parameters
+
+logger = logging.getLogger(__name__)
 
 
 class StrategyInfo:
@@ -56,8 +59,12 @@ class StrategyService:
                                 class_name=name,
                                 description=obj.__doc__ or ""
                             ))
-                except Exception:
-                    pass
+                except ImportError as e:
+                    logger.warning(f"Failed to import strategy module '{module_name}': {e}")
+                except AttributeError as e:
+                    logger.warning(f"Invalid strategy class in '{module_name}': {e}")
+                except Exception as e:
+                    logger.error(f"Unexpected error loading strategy '{module_name}': {e}", exc_info=True)
         return strategies
 
     @staticmethod
@@ -71,8 +78,10 @@ class StrategyService:
                         param_value = getattr(strategy_class.params, param_name, None)
                         if param_value is not None and not callable(param_value):
                             params[param_name] = param_value
-            except Exception:
-                pass
+            except AttributeError as e:
+                logger.warning(f"Failed to read parameters from strategy '{strategy_name}': {e}")
+            except Exception as e:
+                logger.error(f"Unexpected error reading strategy parameters for '{strategy_name}': {e}", exc_info=True)
         optimizable_params = get_strategy_parameters(strategy_name)
         return {
             "module": strategy_name,

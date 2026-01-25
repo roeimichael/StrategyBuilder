@@ -1,5 +1,8 @@
 from typing import List, Dict, Any
+import logging
 import backtrader as bt
+
+logger = logging.getLogger(__name__)
 
 
 class TradeMarkerExtractor:
@@ -35,8 +38,11 @@ class TradeMarkerExtractor:
                 if exit_marker:
                     markers.append(exit_marker)
 
-            except Exception:
-                # Skip malformed trades
+            except (KeyError, AttributeError, ValueError) as e:
+                logger.debug(f"Skipping malformed trade: {e}")
+                continue
+            except Exception as e:
+                logger.warning(f"Unexpected error extracting trade marker: {e}", exc_info=True)
                 continue
 
         # Sort markers by date

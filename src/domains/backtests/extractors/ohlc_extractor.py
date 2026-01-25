@@ -1,5 +1,8 @@
 from typing import List, Dict, Any
+import logging
 import backtrader as bt
+
+logger = logging.getLogger(__name__)
 
 
 class OHLCExtractor:
@@ -37,8 +40,11 @@ class OHLCExtractor:
                     'close': float(row.get('Close', row.get('close', 0))),
                     'volume': float(row.get('Volume', row.get('volume', 0)))
                 })
-            except Exception:
-                # Skip malformed data points
+            except (ValueError, TypeError, KeyError) as e:
+                logger.debug(f"Skipping malformed OHLC data point at index {idx}: {e}")
+                continue
+            except Exception as e:
+                logger.warning(f"Unexpected error extracting OHLC data at index {idx}: {e}", exc_info=True)
                 continue
 
         return ohlc_list

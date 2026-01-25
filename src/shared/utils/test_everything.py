@@ -32,6 +32,36 @@ try:
 except ImportError as e:
     print(f"Warning: Could not import test_presets: {e}")
 
+try:
+    from tests.domains.backtests import test_backtests
+    test_modules.append(('Backtests', test_backtests))
+except ImportError as e:
+    print(f"Warning: Could not import test_backtests: {e}")
+
+try:
+    from tests.domains.optimizations import test_optimizations
+    test_modules.append(('Optimizations', test_optimizations))
+except ImportError as e:
+    print(f"Warning: Could not import test_optimizations: {e}")
+
+try:
+    from tests.domains.portfolios import test_portfolios
+    test_modules.append(('Portfolios', test_portfolios))
+except ImportError as e:
+    print(f"Warning: Could not import test_portfolios: {e}")
+
+try:
+    from tests.domains.watchlists import test_watchlists
+    test_modules.append(('Watchlists', test_watchlists))
+except ImportError as e:
+    print(f"Warning: Could not import test_watchlists: {e}")
+
+try:
+    from tests.domains.market_data import test_market_data
+    test_modules.append(('Market Data', test_market_data))
+except ImportError as e:
+    print(f"Warning: Could not import test_market_data: {e}")
+
 def print_header() -> None:
     print("\n" + "=" * 80)
     print(" " * 20 + "STRATEGYBUILDER COMPREHENSIVE TEST SUITE")
