@@ -13,7 +13,7 @@ class Config:
     # Database settings
     DB_NAME = "market_data.db"
     DB_PATH = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+        os.path.dirname(os.path.dirname(__file__)),
         'data',
         DB_NAME
     )

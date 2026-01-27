@@ -14,7 +14,7 @@ class DataManager:
 
     def __init__(self, db_path: str = None, update_schedule: str = 'daily'):
         if db_path is None:
-            db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'data',
+            db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data',
                                    'market_data.db')
 
         self.db_path = db_path
@@ -252,17 +252,17 @@ class DataManager:
 
     @staticmethod
     def _read_tickers_from_file() -> List[str]:
-        """Read S&P 500 tickers from data/tickers.txt file as fallback."""
-        # Get project root (4 levels up from this file: market_data -> domains -> src -> project_root)
-        project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-        ticker_file_path = os.path.join(project_root, 'data', 'tickers.txt')
+        """Read S&P 500 tickers from src/data/tickers.txt file as fallback."""
+        # Get src directory (2 levels up from this file: market_data -> domains -> src)
+        src_dir = os.path.dirname(os.path.dirname(__file__))
+        ticker_file_path = os.path.join(src_dir, 'data', 'tickers.txt')
         try:
             with open(ticker_file_path, 'r') as f:
                 tickers = [line.strip() for line in f if line.strip()]
             logger.info(f"Loaded {len(tickers)} tickers from {ticker_file_path}")
             return tickers
         except FileNotFoundError:
-            logger.error(f"Ticker file not found at {ticker_file_path}. Please create data/tickers.txt with S&P 500 ticker symbols.")
+            logger.error(f"Ticker file not found at {ticker_file_path}. Please create src/data/tickers.txt with S&P 500 ticker symbols.")
             raise ValueError(f"Ticker file not found at {ticker_file_path}. Cannot proceed without ticker list.")
         except Exception as e:
             logger.error(f"Failed to read tickers from file: {e}")
@@ -272,7 +272,7 @@ class DataManager:
     def get_sp500_tickers() -> List[str]:
         """
         Get S&P 500 ticker list.
-        First tries to fetch from Wikipedia, falls back to reading from data/tickers.txt file.
+        First tries to fetch from Wikipedia, falls back to reading from src/data/tickers.txt file.
         """
         try:
             table = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
