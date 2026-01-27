@@ -1,6 +1,6 @@
 from typing import Optional, Dict, Union, List
 from pydantic import BaseModel, Field
-from src.config.backtest_config import BacktestConfig
+from src.shared.config import BacktestConfig
 
 class BacktestRequest(BaseModel):
     ticker: str = Field(..., example="AAPL")
