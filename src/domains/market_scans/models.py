@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 
 
 class MarketScanRequest(BaseModel):
-    tickers: List[str] = Field(..., example=["AAPL", "MSFT", "GOOGL", "AMZN"])
+    tickers: Optional[List[str]] = Field(None, example=["AAPL", "MSFT", "GOOGL", "AMZN"], description="Optional ticker list. If not provided, defaults to S&P 500 tickers")
     strategy: str = Field(..., example="bollinger_bands_strategy")
     start_date: str = Field(..., example="2023-01-01")
     end_date: str = Field(..., example="2024-01-01")

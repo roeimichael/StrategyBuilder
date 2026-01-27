@@ -314,7 +314,7 @@ Set `CORS_ORIGINS` environment variable for production.
 **Request Body:**
 ```typescript
 {
-  tickers: string[];        // Array of ticker symbols, REQUIRED
+  tickers?: string[];       // OPTIONAL: Array of ticker symbols (defaults to S&P 500)
   strategy: string;         // Strategy name, REQUIRED
   start_date: string;       // YYYY-MM-DD format, REQUIRED
   end_date: string;         // YYYY-MM-DD format, REQUIRED
@@ -328,10 +328,27 @@ Set `CORS_ORIGINS` environment variable for production.
 }
 ```
 
-**Example Request:**
+**⚠️ IMPORTANT:** The `tickers` field is now **OPTIONAL**. If not provided or empty, the system automatically uses the S&P 500 ticker list (fetched from Wikipedia or fallback to `data/tickers.txt`).
+
+**Example Request (with custom tickers):**
 ```json
 {
   "tickers": ["AAPL", "MSFT", "GOOGL"],
+  "strategy": "bollinger_bands_strategy",
+  "start_date": "2024-07-01",
+  "end_date": "2024-12-31",
+  "interval": "1d",
+  "cash": 10000,
+  "parameters": {
+    "period": 20,
+    "devfactor": 2.0
+  }
+}
+```
+
+**Example Request (S&P 500 scan - no tickers specified):**
+```json
+{
   "strategy": "bollinger_bands_strategy",
   "start_date": "2024-07-01",
   "end_date": "2024-12-31",

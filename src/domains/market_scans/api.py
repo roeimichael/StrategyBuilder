@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from src.domains.market_scans.models import MarketScanRequest, MarketScanResponse
 from src.domains.market_scans.service import MarketScanService
+from src.domains.market_data.manager import DataManager
 from src.shared.utils.api_logger import log_errors
 from src.shared.utils.config_reader import ConfigReader
 
@@ -15,7 +16,7 @@ def run_market_scan(request: MarketScanRequest) -> MarketScanResponse:
     """
     Run a strategy backtest across multiple tickers to find best performers.
 
-    - **tickers**: List of ticker symbols to scan
+    - **tickers**: List of ticker symbols to scan (optional, defaults to S&P 500)
     - **strategy**: Strategy name to apply
     - **start_date**: Backtest start date (YYYY-MM-DD)
     - **end_date**: Backtest end date (YYYY-MM-DD)
@@ -26,6 +27,10 @@ def run_market_scan(request: MarketScanRequest) -> MarketScanResponse:
     - **min_sharpe_ratio**: Filter results by minimum Sharpe ratio (optional)
     """
     try:
+        # If no tickers provided, use S&P 500 tickers
+        if request.tickers is None or len(request.tickers) == 0:
+            request.tickers = DataManager.get_sp500_tickers()
+
         if len(request.tickers) > config.MAX_TICKERS_PER_SCAN:
             raise HTTPException(
                 status_code=400,

@@ -251,22 +251,38 @@ class DataManager:
             conn.commit()
 
     @staticmethod
+    def _read_tickers_from_file() -> List[str]:
+        """Read S&P 500 tickers from data/tickers.txt file as fallback."""
+        # Get project root (4 levels up from this file: market_data -> domains -> src -> project_root)
+        project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+        ticker_file_path = os.path.join(project_root, 'data', 'tickers.txt')
+        try:
+            with open(ticker_file_path, 'r') as f:
+                tickers = [line.strip() for line in f if line.strip()]
+            logger.info(f"Loaded {len(tickers)} tickers from {ticker_file_path}")
+            return tickers
+        except FileNotFoundError:
+            logger.error(f"Ticker file not found at {ticker_file_path}. Please create data/tickers.txt with S&P 500 ticker symbols.")
+            raise ValueError(f"Ticker file not found at {ticker_file_path}. Cannot proceed without ticker list.")
+        except Exception as e:
+            logger.error(f"Failed to read tickers from file: {e}")
+            raise ValueError(f"Failed to read ticker file: {str(e)}")
+
+    @staticmethod
     def get_sp500_tickers() -> List[str]:
+        """
+        Get S&P 500 ticker list.
+        First tries to fetch from Wikipedia, falls back to reading from data/tickers.txt file.
+        """
         try:
             table = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
             df = table[0]
-            return df['Symbol'].str.replace('.', '-').tolist()
+            tickers = df['Symbol'].str.replace('.', '-').tolist()
+            logger.info(f"Successfully fetched {len(tickers)} S&P 500 tickers from Wikipedia")
+            return tickers
         except ImportError as e:
-            logger.warning(f"Failed to fetch S&P 500 list from Wikipedia (missing dependency): {e}. Using default list.")
-            return [
-                'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA', 'BRK-B', 'UNH', 'JNJ',
-                'V', 'WMT', 'XOM', 'JPM', 'PG', 'MA', 'CVX', 'HD', 'LLY', 'ABBV',
-                'MRK', 'AVGO', 'KO', 'PEP', 'COST', 'TMO', 'MCD', 'CSCO', 'ACN', 'ABT'
-            ]
+            logger.warning(f"Failed to fetch S&P 500 list from Wikipedia (missing dependency): {e}. Reading from file.")
+            return DataManager._read_tickers_from_file()
         except Exception as e:
-            logger.warning(f"Failed to fetch S&P 500 list from Wikipedia: {e}. Using default list.")
-            return [
-                'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA', 'BRK-B', 'UNH', 'JNJ',
-                'V', 'WMT', 'XOM', 'JPM', 'PG', 'MA', 'CVX', 'HD', 'LLY', 'ABBV',
-                'MRK', 'AVGO', 'KO', 'PEP', 'COST', 'TMO', 'MCD', 'CSCO', 'ACN', 'ABT'
-            ]
+            logger.warning(f"Failed to fetch S&P 500 list from Wikipedia: {e}. Reading from file.")
+            return DataManager._read_tickers_from_file()
