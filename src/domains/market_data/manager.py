@@ -75,12 +75,21 @@ class DataManager:
         if force_update:
             return self._fetch_and_cache_data(ticker, start_date, end_date, interval)
 
+        # Try to get cached data
         cached_data = self._get_cached_data(ticker, start_date, end_date, interval)
 
         if cached_data is not None and not cached_data.empty:
+            # Check if cache is complete
             if self._is_cache_complete(cached_data, start_date, end_date):
+                logger.info(f"Cache hit for {ticker} ({interval}): {start_date} to {end_date}")
                 return cached_data
 
+            # Cache exists but incomplete - fetch only missing data
+            logger.info(f"Partial cache for {ticker} ({interval}): fetching missing data")
+            return self._smart_fetch_and_merge(ticker, start_date, end_date, interval, cached_data)
+
+        # No cached data - fetch everything
+        logger.info(f"Cache miss for {ticker} ({interval}): fetching all data")
         return self._fetch_and_cache_data(ticker, start_date, end_date, interval)
 
     def _get_cached_data(self, ticker: str, start_date: datetime.date,
@@ -141,6 +150,55 @@ class DataManager:
         self._cache_data(ticker, cleaned_data, interval)
 
         return cleaned_data
+
+    def _smart_fetch_and_merge(self, ticker: str, start_date: datetime.date,
+                               end_date: datetime.date, interval: str,
+                               cached_data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Intelligently fetch only missing data ranges and merge with cached data.
+        If we have 3 months cached and need 1 year, only fetch the missing 9 months.
+        """
+        cache_start = cached_data.index.min().date()
+        cache_end = cached_data.index.max().date()
+
+        missing_ranges = []
+
+        # Check if we need data before cached range
+        if start_date < cache_start:
+            missing_ranges.append((start_date, cache_start - datetime.timedelta(days=1)))
+            logger.info(f"Missing data before cache: {start_date} to {cache_start - datetime.timedelta(days=1)}")
+
+        # Check if we need data after cached range
+        if end_date > cache_end:
+            missing_ranges.append((cache_end + datetime.timedelta(days=1), end_date))
+            logger.info(f"Missing data after cache: {cache_end + datetime.timedelta(days=1)} to {end_date}")
+
+        # Fetch missing data
+        new_data_frames = [cached_data]
+        for missing_start, missing_end in missing_ranges:
+            try:
+                logger.info(f"Fetching missing range for {ticker}: {missing_start} to {missing_end}")
+                missing_data = self._fetch_and_cache_data(ticker, missing_start, missing_end, interval)
+                if not missing_data.empty:
+                    new_data_frames.append(missing_data)
+            except Exception as e:
+                logger.warning(f"Failed to fetch missing data for {ticker} ({missing_start} to {missing_end}): {e}")
+
+        # Merge all data and remove duplicates
+        if len(new_data_frames) > 1:
+            merged_data = pd.concat(new_data_frames)
+            # Remove duplicates, keeping the most recent data
+            merged_data = merged_data[~merged_data.index.duplicated(keep='last')]
+            merged_data = merged_data.sort_index()
+
+            # Filter to requested range
+            merged_data = merged_data[(merged_data.index.date >= start_date) &
+                                     (merged_data.index.date <= end_date)]
+
+            logger.info(f"Merged data for {ticker}: {len(merged_data)} rows covering {merged_data.index.min().date()} to {merged_data.index.max().date()}")
+            return merged_data
+
+        return cached_data
 
     def _clean_and_validate_data(self, data: pd.DataFrame) -> pd.DataFrame:
         df = data.copy()
@@ -216,6 +274,48 @@ class DataManager:
 
         return results
 
+    def get_ticker_cache_info(self, ticker: str) -> dict:
+        """
+        Get cache information for a specific ticker across all intervals.
+        Useful for understanding what data is already cached.
+        """
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+
+            cursor.execute('''
+                SELECT interval, start_date, end_date, last_update
+                FROM data_metadata
+                WHERE ticker = ?
+                ORDER BY interval
+            ''', (ticker,))
+
+            metadata = cursor.fetchall()
+
+            if not metadata:
+                return {'ticker': ticker, 'cached': False, 'intervals': []}
+
+            intervals_info = []
+            for interval, start_date, end_date, last_update in metadata:
+                cursor.execute('''
+                    SELECT COUNT(*) FROM ohlcv_data
+                    WHERE ticker = ? AND interval = ?
+                ''', (ticker, interval))
+                row_count = cursor.fetchone()[0]
+
+                intervals_info.append({
+                    'interval': interval,
+                    'start_date': start_date,
+                    'end_date': end_date,
+                    'last_update': last_update,
+                    'rows': row_count
+                })
+
+            return {
+                'ticker': ticker,
+                'cached': True,
+                'intervals': intervals_info
+            }
+
     def get_cache_stats(self) -> dict:
         with self._get_connection() as conn:
             cursor = conn.cursor()
@@ -253,8 +353,10 @@ class DataManager:
     @staticmethod
     def _read_tickers_from_file() -> List[str]:
         """Read S&P 500 tickers from src/data/tickers.txt file as fallback."""
-        # Get src directory (2 levels up from this file: market_data -> domains -> src)
-        src_dir = os.path.dirname(os.path.dirname(__file__))
+        # Get src directory (3 levels up from this file: manager.py -> market_data -> domains -> src)
+        market_data_dir = os.path.dirname(__file__)
+        domains_dir = os.path.dirname(market_data_dir)
+        src_dir = os.path.dirname(domains_dir)
         ticker_file_path = os.path.join(src_dir, 'data', 'tickers.txt')
         try:
             with open(ticker_file_path, 'r') as f:
@@ -272,10 +374,15 @@ class DataManager:
     def get_sp500_tickers() -> List[str]:
         """
         Get S&P 500 ticker list.
-        First tries to fetch from Wikipedia, falls back to reading from src/data/tickers.txt file.
+        First tries to fetch from Wikipedia with custom headers, falls back to reading from src/data/tickers.txt file.
         """
         try:
-            table = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
+            # Use custom headers to avoid HTTP 403 errors
+            url = 'https://en.wikipedia.org/wiki/List_of_S%26P_500_companies'
+            storage_options = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            }
+            table = pd.read_html(url, storage_options=storage_options)
             df = table[0]
             tickers = df['Symbol'].str.replace('.', '-').tolist()
             logger.info(f"Successfully fetched {len(tickers)} S&P 500 tickers from Wikipedia")
