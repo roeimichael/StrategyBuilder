@@ -163,15 +163,41 @@ class DataManager:
 
         missing_ranges = []
 
+        # Minimum buffer days to add when fetching (to handle weekends/holidays)
+        MIN_FETCH_BUFFER = 7
+
         # Check if we need data before cached range
         if start_date < cache_start:
-            missing_ranges.append((start_date, cache_start - datetime.timedelta(days=1)))
-            logger.info(f"Missing data before cache: {start_date} to {cache_start - datetime.timedelta(days=1)}")
+            # Add buffer to ensure we get valid trading days
+            fetch_start = start_date
+            fetch_end = cache_start - datetime.timedelta(days=1)
+
+            # Only fetch if the range is meaningful (more than just a couple days)
+            days_missing = (fetch_end - fetch_start).days
+            if days_missing >= 0:  # At least 1 day
+                # Add extra buffer days to ensure we catch trading days
+                buffered_start = max(fetch_start - datetime.timedelta(days=MIN_FETCH_BUFFER), fetch_start)
+                missing_ranges.append((buffered_start, fetch_end))
+                logger.info(f"Missing data before cache: {fetch_start} to {fetch_end} (fetching with buffer: {buffered_start})")
 
         # Check if we need data after cached range
         if end_date > cache_end:
-            missing_ranges.append((cache_end + datetime.timedelta(days=1), end_date))
-            logger.info(f"Missing data after cache: {cache_end + datetime.timedelta(days=1)} to {end_date}")
+            fetch_start = cache_end + datetime.timedelta(days=1)
+            fetch_end = end_date
+
+            # Only fetch if the range is meaningful
+            days_missing = (fetch_end - fetch_start).days
+            if days_missing >= 0:  # At least 1 day
+                # Add extra buffer days to ensure we catch trading days
+                buffered_end = min(fetch_end + datetime.timedelta(days=MIN_FETCH_BUFFER),
+                                  datetime.date.today() + datetime.timedelta(days=1))
+                missing_ranges.append((fetch_start, buffered_end))
+                logger.info(f"Missing data after cache: {fetch_start} to {fetch_end} (fetching with buffer to {buffered_end})")
+
+        # If no missing ranges, return cached data
+        if not missing_ranges:
+            logger.info(f"Cache complete for {ticker}, no additional data needed")
+            return cached_data
 
         # Fetch missing data
         new_data_frames = [cached_data]
@@ -182,7 +208,9 @@ class DataManager:
                 if not missing_data.empty:
                     new_data_frames.append(missing_data)
             except Exception as e:
+                # Log warning but don't fail - we'll return what we have
                 logger.warning(f"Failed to fetch missing data for {ticker} ({missing_start} to {missing_end}): {e}")
+                logger.info(f"Continuing with cached data despite missing range")
 
         # Merge all data and remove duplicates
         if len(new_data_frames) > 1:
@@ -198,6 +226,8 @@ class DataManager:
             logger.info(f"Merged data for {ticker}: {len(merged_data)} rows covering {merged_data.index.min().date()} to {merged_data.index.max().date()}")
             return merged_data
 
+        # If we couldn't fetch missing data, return what we have from cache
+        logger.info(f"Returning cached data for {ticker}: {len(cached_data)} rows")
         return cached_data
 
     def _clean_and_validate_data(self, data: pd.DataFrame) -> pd.DataFrame:
