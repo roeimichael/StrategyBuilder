@@ -100,10 +100,19 @@ def run_all_tests() -> bool:
         print(f"Running {domain_name} Tests...")
         print("-" * 80 + "\n")
         try:
-            passed = test_module.run_tests()
+            test_results = test_module.run_tests()
+            # Handle both list of results and boolean return values
+            if isinstance(test_results, list):
+                # If it's a list, check if all tests passed
+                passed = all(r.get('passed', False) for r in test_results)
+            else:
+                # If it's a boolean, use it directly
+                passed = bool(test_results)
             results.append({'name': domain_name, 'passed': passed})
         except Exception as e:
             print(f"ERROR running {domain_name} tests: {e}")
+            import traceback
+            traceback.print_exc()
             results.append({'name': domain_name, 'passed': False})
     all_passed = print_footer(results)
     return all_passed

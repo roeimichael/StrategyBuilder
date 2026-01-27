@@ -6,7 +6,7 @@ from typing import Dict, Any
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
 
-API_BASE = "http://localhost:8000"
+API_BASE = "http://localhost:8086"
 
 
 def test_backtest_endpoint() -> Dict[str, Any]:

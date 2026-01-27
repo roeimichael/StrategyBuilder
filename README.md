@@ -64,9 +64,9 @@ python run_api.py
 ```
 
 The API will be available at:
-- **API**: http://localhost:8000
-- **Interactive Docs**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
+- **API**: http://localhost:8086
+- **Interactive Docs**: http://localhost:8086/docs
+- **ReDoc**: http://localhost:8086/redoc
 
 ## API Endpoints
 
@@ -312,7 +312,7 @@ Each backtest returns comprehensive metrics:
 ### JavaScript Example
 
 ```javascript
-const response = await fetch('http://localhost:8000/backtest', {
+const response = await fetch('http://localhost:8086/backtest', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
@@ -348,7 +348,7 @@ result.chart_data.forEach(point => {
 ```python
 import requests
 
-response = requests.post('http://localhost:8000/backtest', json={
+response = requests.post('http://localhost:8086/backtest', json={
     'ticker': 'BTC-USD',
     'strategy': 'williams_r_strategy',
     'start_date': '2024-01-01',
