@@ -14,6 +14,7 @@ from src.domains.presets.api import router as presets_router
 from src.domains.watchlists.api import router as watchlists_router
 from src.domains.portfolios.api import router as portfolios_router
 from src.domains.live_monitor.api import router as live_monitor_router
+from src.domains.market_data.api import router as market_data_router
 
 app = FastAPI(
     title=Config.API_TITLE,
@@ -42,6 +43,7 @@ app.include_router(presets_router)
 app.include_router(watchlists_router)
 app.include_router(portfolios_router)
 app.include_router(live_monitor_router)
+app.include_router(market_data_router)
 
 if __name__ == "__main__":
     import uvicorn
